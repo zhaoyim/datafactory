@@ -1,0 +1,42 @@
+<div class='resource-details'>
+  <div class="row">
+    <div class="col-lg-6">
+      <h3>信息</h3>
+      <dl class="dl-horizontal left">
+        <dt>名称</dt>
+        <dd>{{backingservice.spec.name}}</dd>
+        <dt>描述</dt>
+        <dd>{{backingservice.spec.description}}</dd>
+        <dt>文档链接</dt>
+        <dd>
+          <a ng-href="{{backingservice.spec.metadata.documentationUrl}}" target="_blank">{{backingservice.spec.metadata.documentationUrl}}</a>
+        </dd>
+        <dt>供应商</dt>
+        <dd>{{backingservice.spec.metadata.providerDisplayName}}</dd>
+        <dt>支持提供</dt>
+        <dd>
+          <a ng-href="{{backingservice.spec.metadata.supportUrl}}" target="_blank">{{backingservice.spec.metadata.supportUrl}}</a>
+        </dd>
+
+        <dt>仪表盘</dt>
+        <dd>
+          <span ng-if="backingservice.spec.dashboard_client">
+            <span ng-repeat="(k, v) in backingservice.spec.dashboard_client">
+              <strong>{{k}}</strong>: {{v}}<br>
+            </span>
+          </span>
+        </dd>
+
+      </dl>
+
+      <h3>状态</h3>
+      <dl class="dl-horizontal left">
+        <dt>状态:</dt>
+        <dd>
+          <status-icon status="backingservice.status.phase"></status-icon>
+          {{backingservice.status.phase}}
+        </dd>
+      </dl>
+    </div>
+  </div>
+</div>

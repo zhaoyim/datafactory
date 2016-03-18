@@ -1,0 +1,78 @@
+<div class="container">
+  <div>
+    <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
+    <alerts alerts="alerts"></alerts>
+    <div ng-if="!loaded">加载中...</div>
+    <div ng-if="backingservice">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="tile">
+            <h1>
+              {{backingservice.spec.name}}
+              <small class="meta">created <relative-timestamp timestamp="backingservice.metadata.creationTimestamp"></relative-timestamp></small>
+              <div class="pull-right dropdown">
+                <a href="" class="dropdown-toggle resource-actions-dropdown" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
+                <ul class="dropdown-menu actions action-button">
+                  <li>
+                    <edit-link
+                      resource="backingservice"
+                      kind="backingservices"
+                      alerts="alerts">
+                    </edit-link>
+                  </li>
+                  <li>
+                    <delete-link
+                      resource-type="backingservice"
+                      resource-name="{{backingservice.metadata.name}}"
+                      project-name="{{backingservice.metadata.namespace}}"
+                      alerts="alerts">
+                    </delete-link>
+                  </li>
+                </ul>
+              </div>
+            </h1>
+            <labels labels="backingservice.metadata.labels" clickable="false" kind="backingservices" limit="3"></labels>
+
+            <ng-include src=" 'views/_backingservice-details.html' "></ng-include>
+
+          </div>
+
+          <h1>
+            计划列表
+          </h1>
+
+          <table class="table table-bordered table-hover table-mobile" ng-if="(backingservice.spec.plans | hashSize) != 0">
+            <thead>
+            <tr>
+              <th>名称</th>
+              <th>显示名</th>
+              <th>价格</th>
+              <th>描述</th>
+              <th>项目列表</th>
+            </tr>
+            </thead>
+            <tbody ng-repeat="plan in backingservice.spec.plans">
+            <tr>
+              <td data-title="Name">
+                {{plan.name}}
+              </td>
+              <td data-title="DisplayName">
+                {{plan.metadata.displayName}}
+              </td>
+              <td data-title="Costs">
+                <span ng-bind-html="plan.metadata.costs | costsFilter"></span>
+              </td>
+              <td data-title="Description">
+                {{plan.description}}
+              </td>
+              <td data-title="Bullets">
+                <span ng-bind-html="plan.metadata.bullets | join: '<br>'"></span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /.row -->
+    </div><!-- /backingservice -->
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class='resource-details'>
+  <div class="row">
+    <div class="col-lg-6">
+      <h3>绑定服务</h3>
+      <div ng-if="!backingserviceinstance.spec.bound || backingserviceinstance.spec.bound <= 0">
+        未绑定
+      </div>
+      <div ng-if="backingserviceinstance.spec.bound > 0">
+        <dl class="dl-horizontal left" ng-repeat="b in backingserviceinstance.spec.binding">
+          <dt>服务名称</dt>
+          <dd>{{b.bind_deploymentconfig}}</dd>
+          <dt>运行时间</dt>
+          <dd>{{b.bound_time}}</dd>
+          <dt>凭证</dt>
+          <dd>
+          <span ng-if="b.credentials">
+            <span ng-repeat="(k, v) in b.credentials">
+              <strong>{{k}}</strong>: {{v}}<br>
+            </span>
+          </span>
+          </dd>
+          <hr>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>

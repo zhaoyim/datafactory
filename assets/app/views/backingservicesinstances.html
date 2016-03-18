@@ -1,0 +1,31 @@
+<div class="content">
+  <project-page>
+    <div class="page-header page-header-bleed-right">
+      <h1>My Backing Services</h1>
+    </div>
+    <alerts alerts="alerts"></alerts>
+    <table class="table table-bordered table-hover table-mobile">
+      <thead>
+      <tr>
+        <th>实例名称</th>
+        <th>服务名称</th>
+        <th>创建时间</th>
+      </tr>
+      </thead>
+      <tbody ng-if="(backingserviceinstances | hashSize) == 0">
+      <tr><td colspan="5"><em>{{emptyMessage}}</em></td></tr>
+      </tbody>
+      <tbody ng-repeat="bsi in backingserviceinstances | orderObjectsByDate : true">
+      <tr>
+        <td data-title="Instance Name">
+        <a ng-href="{{bsi | navigateResourceURL}}">{{bsi.metadata.name}}</a></td>
+        <td data-title="Backing Service Name">
+            <a ng-href="project/openshift/backingservices/{{bsi.spec.provisioning.backingservice_name}}">{{bsi.spec.provisioning.backingservice_name}}</a></td>
+        <td data-title="Created Time">
+        <relative-timestamp timestamp="bsi.metadata.creationTimestamp"></relative-timestamp>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </project-page>
+</div>

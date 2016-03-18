@@ -1,0 +1,32 @@
+<div class='resource-details'>
+  <div class="row">
+    <div class="col-lg-6">
+      <h3>信息</h3>
+      <dl class="dl-horizontal left">
+        <dt>名称</dt>
+        <dd>{{backingserviceinstance.metadata.name}}</dd>
+        <dt>创建时间</dt>
+        <dd>{{backingserviceinstance.metadata.creationTimestamp}}</dd>
+        <!--<dt>绑定配置</dt>-->
+        <!--<dd>{{b.bind_deploymentconfig}}</dd>-->
+        <dt>后端服务名称</dt>
+        <dd>{{backingserviceinstance.spec.provisioning.backingservice_name}}</dd>
+        <dt>套餐名称</dt>
+        <dd>{{backingserviceinstance.spec.provisioning.backingservice_plan_name}}</dd>
+        <dt>仪表盘</dt>
+        <dd>
+          {{backingserviceinstance.spec.provisioning.dashboard_url}}
+        </dd>
+      </dl>
+
+      <h3>状态</h3>
+      <dl class="dl-horizontal left">
+        <dt>状态:</dt>
+        <dd>
+          <status-icon status="backingserviceinstance.status.phase"></status-icon>
+          {{backingserviceinstance.status.phase}}
+        </dd>
+      </dl>
+    </div>
+  </div>
+</div>
