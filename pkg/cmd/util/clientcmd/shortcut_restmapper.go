@@ -112,6 +112,9 @@ var shortForms = map[string]string{
 	"sa":      "serviceaccounts",
 	"pv":      "persistentvolumes",
 	"pvc":     "persistentvolumeclaims",
+	"bs":      "backingservices",
+	"sb":      "servicebrokers",
+	"bsi":     "backingserviceinstances",
 }
 
 // expandResourceShortcut will return the expanded version of resource

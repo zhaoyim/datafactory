@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"k8s.io/kubernetes/pkg/api/validation"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
+	"k8s.io/kubernetes/pkg/util/validation/field"
 
 	"fmt"
 	oapi "github.com/openshift/origin/pkg/api"
@@ -123,42 +123,40 @@ func ValidationApplicationItemName(namespace string, items applicationapi.ItemLi
 // ValidateApplication tests required fields for a Application.
 // This should only be called when creating a application (not on update),
 // since its name validation is more restrictive than default namespace name validation
-func ValidateApplication(application *applicationapi.Application, oClient *oclient.Client, kClient *kclient.Client) fielderrors.ValidationErrorList {
-	result := fielderrors.ValidationErrorList{}
-	result = append(result, validation.ValidateObjectMeta(&application.ObjectMeta, true, ValidateApplicationName).Prefix("metadata")...)
+func ValidateApplication(application *applicationapi.Application, oClient *oclient.Client, kClient *kclient.Client)  field.ErrorList {
+	result := validation.ValidateObjectMeta(&application.ObjectMeta, true,  oapi.MinimalNameRequirements, field.NewPath("metadata"))
 
 	if ok, err := ValidationApplicationItemKind(application.Spec.Items); !ok {
-		result = append(result, fielderrors.NewFieldInvalid("items", application.Spec.Items, err))
+		result = append(result, field.Invalid(field.NewPath("items"), application.Spec.Items, err))
 	}
 
 	if ok, err := ValidationApplicationItemName(application.Namespace, application.Spec.Items, oClient, kClient); !ok {
-		result = append(result, fielderrors.NewFieldInvalid("items", application.Spec.Items, err))
+		result = append(result, field.Invalid(field.NewPath("items"), application.Spec.Items, err))
 	}
 
 	return result
 }
 
 // ValidateApplicationUpdate tests to make sure a application update can be applied.  Modifies newApplication with immutable fields.
-func ValidateApplicationUpdate(newApplication *applicationapi.Application, oldApplication *applicationapi.Application) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMetaUpdate(&newApplication.ObjectMeta, &oldApplication.ObjectMeta).Prefix("metadata")...)
+func ValidateApplicationUpdate(newApplication *applicationapi.Application, oldApplication *applicationapi.Application)  field.ErrorList {
+	allErrs := validation.ValidateObjectMetaUpdate(&newApplication.ObjectMeta, &oldApplication.ObjectMeta,field.NewPath("metadata"))
 	//allErrs = append(allErrs, ValidateApplication(newApplication)...)
 
 	if !reflect.DeepEqual(newApplication.Spec.Finalizers, oldApplication.Spec.Finalizers) {
-		allErrs = append(allErrs, fielderrors.NewFieldInvalid("spec.finalizers", oldApplication.Spec.Finalizers, "field is immutable"))
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec.finalizers"), oldApplication.Spec.Finalizers, "field is immutable"))
 	}
 	if !reflect.DeepEqual(newApplication.Status, oldApplication.Status) {
-		allErrs = append(allErrs, fielderrors.NewFieldInvalid("status", oldApplication.Spec.Finalizers, "field is immutable"))
+		allErrs = append(allErrs, field.Invalid(field.NewPath("status"), oldApplication.Spec.Finalizers, "field is immutable"))
 	}
 
 	for name, value := range newApplication.Labels {
 		if value != oldApplication.Labels[name] {
-			allErrs = append(allErrs, fielderrors.NewFieldInvalid("metadata.labels["+name+"]", value, "field is immutable, , try updating the namespace"))
+			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, , try updating the namespace"))
 		}
 	}
 	for name, value := range oldApplication.Labels {
 		if _, inNew := newApplication.Labels[name]; !inNew {
-			allErrs = append(allErrs, fielderrors.NewFieldInvalid("metadata.labels["+name+"]", value, "field is immutable, try updating the namespace"))
+			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, try updating the namespace"))
 		}
 	}
 

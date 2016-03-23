@@ -1,17 +1,17 @@
 package v1
 
 import (
-	kapi "k8s.io/kubernetes/pkg/api"
-
-	"k8s.io/kubernetes/pkg/registry/namespace"
+	"k8s.io/kubernetes/pkg/runtime"
 
 	oapi "github.com/openshift/origin/pkg/api"
+	"github.com/openshift/origin/pkg/servicebroker/api"
 )
 
-func init() {
-	if err := kapi.Scheme.AddFieldLabelConversionFunc("v1", "ServiceBroker",
-		oapi.GetFieldLabelConversionFunc(namespace.NamespaceToSelectableFields(&kapi.Namespace{}), nil),
+func addConversionFuncs(scheme *runtime.Scheme) {
+	if err := scheme.AddFieldLabelConversionFunc("v1", "ServiceBroker",
+		oapi.GetFieldLabelConversionFunc(api.ServiceBrokerToSelectableFields(&api.ServiceBroker{}), nil),
 	); err != nil {
 		panic(err)
 	}
+
 }

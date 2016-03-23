@@ -4,8 +4,6 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/rest"
 	"k8s.io/kubernetes/pkg/api/unversioned"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 
@@ -15,7 +13,7 @@ import (
 // Registry is an interface for things that know how to store ImageStream objects.
 type Registry interface {
 	// ListImageStreams obtains a list of image streams that match a selector.
-	ListBackingServiceInstances(ctx kapi.Context, selector labels.Selector) (*api.BackingServiceInstanceList, error)
+	ListBackingServiceInstances(ctx kapi.Context, options *kapi.ListOptions) (*api.BackingServiceInstanceList, error)
 	// GetImageStream retrieves a specific image stream.
 	GetBackingServiceInstance(ctx kapi.Context, id string) (*api.BackingServiceInstance, error)
 	// CreateImageStream creates a new image stream.
@@ -29,7 +27,7 @@ type Registry interface {
 	// DeleteImageStream deletes an image stream.
 	DeleteBackingServiceInstance(ctx kapi.Context, id string) (*unversioned.Status, error)
 	// WatchImageStreams watches for new/changed/deleted image streams.
-	WatchBackingServiceInstances(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
+	WatchBackingServiceInstances(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error)
 }
 
 // Storage is an interface for a standard REST Storage backend
@@ -59,8 +57,8 @@ func NewRegistry(s Storage) Registry {
 	return &storage{Storage: s}
 }
 
-func (s *storage) ListBackingServiceInstances(ctx kapi.Context, label labels.Selector) (*api.BackingServiceInstanceList, error) {
-	obj, err := s.List(ctx, label, fields.Everything())
+func (s *storage) ListBackingServiceInstances(ctx kapi.Context,options *kapi.ListOptions) (*api.BackingServiceInstanceList, error) {
+	obj, err := s.List(ctx,options)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +121,6 @@ func (s *storage) DeleteBackingServiceInstance(ctx kapi.Context, backingServiceI
 	return obj.(*unversioned.Status), nil
 }
 
-func (s *storage) WatchBackingServiceInstances(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
-	return s.Watch(ctx, label, field, resourceVersion)
+func (s *storage) WatchBackingServiceInstances(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {
+	return s.Watch(ctx, options)
 }

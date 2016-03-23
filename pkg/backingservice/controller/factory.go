@@ -4,16 +4,15 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/client/cache"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 	kutil "k8s.io/kubernetes/pkg/util"
+	utilruntime "k8s.io/kubernetes/pkg/util/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 	"time"
 
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 	osclient "github.com/openshift/origin/pkg/client"
-	controller "github.com/openshift/origin/pkg/controller"
+	"github.com/openshift/origin/pkg/controller"
 	"k8s.io/kubernetes/pkg/client/record"
 )
 
@@ -28,14 +27,14 @@ type BackingServiceControllerFactory struct {
 func (factory *BackingServiceControllerFactory) Create() controller.RunnableController {
 
 	backingserviceLW := &cache.ListWatch{
-		ListFunc: func() (runtime.Object, error) {
+		ListFunc: func(options kapi.ListOptions) (runtime.Object, error) {
 
-			return factory.Client.BackingServices(kapi.NamespaceAll).List(labels.Everything(), fields.Everything())
+			return factory.Client.BackingServices(kapi.NamespaceAll).List(options)
 
 			//return factory.KubeClient.Namespaces().List(labels.Everything(), fields.Everything())
 		},
-		WatchFunc: func(resourceVersion string) (watch.Interface, error) {
-			return factory.Client.BackingServices(kapi.NamespaceAll).Watch(labels.Everything(), fields.Everything(), resourceVersion)
+		WatchFunc: func(options kapi.ListOptions) (watch.Interface, error) {
+			return factory.Client.BackingServices(kapi.NamespaceAll).Watch(options)
 			//return factory.KubeClient.Namespaces().Watch(labels.Everything(), fields.Everything(), resourceVersion)
 		},
 	}
@@ -57,7 +56,7 @@ func (factory *BackingServiceControllerFactory) Create() controller.RunnableCont
 			queue,
 			cache.MetaNamespaceKeyFunc,
 			func(obj interface{}, err error, retries controller.Retry) bool {
-				kutil.HandleError(err)
+				utilruntime.HandleError(err)
 				if _, isFatal := err.(fatalError); isFatal {
 					return false
 				}
@@ -82,10 +81,10 @@ type backingServiceLW struct {
 
 // List lists all BuildConfigs.
 func (lw *backingServiceLW) List() (runtime.Object, error) {
-	return lw.client.BackingServices(kapi.NamespaceAll).List(labels.Everything(), fields.Everything())
+	return lw.client.BackingServices(kapi.NamespaceAll).List(kapi.ListOptions{})
 }
 
 // Watch watches all BuildConfigs.
 func (lw *backingServiceLW) Watch(resourceVersion string) (watch.Interface, error) {
-	return lw.client.BackingServices(kapi.NamespaceAll).Watch(labels.Everything(), fields.Everything(), resourceVersion)
+	return lw.client.BackingServices(kapi.NamespaceAll).Watch(kapi.ListOptions{})
 }

@@ -19,7 +19,7 @@ func GetBootstrapOpenshiftRoles(openshiftNamespace string) []authorizationapi.Ro
 			Rules: []authorizationapi.PolicyRule{
 				{
 					Verbs:     sets.NewString("get", "list"),
-					Resources: sets.NewString("templates", authorizationapi.ImageGroupName),
+					Resources: sets.NewString("backingservices", "templates", authorizationapi.ImageGroupName),
 				},
 				{
 					// so anyone can pull from openshift/* image streams

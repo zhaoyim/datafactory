@@ -340,7 +340,7 @@ angular.module('openshiftConsole')
       catch (e) {
         // it wasn't valid json
         return null;
-      }      
+      }
     };
   })
   .filter('prettifyJSON', function(parseJSONFilter) {
@@ -393,7 +393,7 @@ angular.module('openshiftConsole')
     return function(value, format) {
       if (!value) {
         return value;
-      }  
+      }
       var accessModes = [];
       angular.forEach(value, function(item) {
         var accessModeString;
@@ -416,6 +416,32 @@ angular.module('openshiftConsole')
       return _.uniq(accessModes);
     };
   })
+ .filter('costsFilter', function() {
+    return function(costs) {
+      if (costs instanceof Array) {
+        var res = "";
+        for (var i = 0; i < costs.length; i++) {
+          res += "<strong>" + costs[i].unit + "</strong>: €" + costs[i].amount.eur + " | $" + costs[i].amount.usd + "<br>";
+        }
+        return res;
+      }
+      return costs;
+    };
+  })
+  .filter('serviceLenFilter', function() {
+    return function(bs, kind) {
+      if (bs instanceof Array) {
+        var len = 0;
+        for (var i = 0; i < bs.length; i++) {
+          if (bs[i].kind === kind) {
+            len++;
+          }
+        }
+        return len;
+      }
+      return 0;
+    };
+  });
   .filter('truncate', function() {
     return function(str, charLimit, useWordBoundary, newlineLimit) {
       if (!str) {

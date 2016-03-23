@@ -8,6 +8,11 @@ import (
 
 	"github.com/golang/glog"
 
+	applicatioincontroller "github.com/openshift/origin/pkg/application/controller"
+	backingservicecontroller "github.com/openshift/origin/pkg/backingservice/controller"
+	backingserviceinstancecontroller "github.com/openshift/origin/pkg/backingserviceinstance/controller"
+	servicebrokercontroller "github.com/openshift/origin/pkg/servicebroker/controller"
+
 	cmapp "k8s.io/kubernetes/cmd/kube-controller-manager/app/options"
 	"k8s.io/kubernetes/pkg/admission"
 	kapi "k8s.io/kubernetes/pkg/api"
@@ -55,6 +60,54 @@ const (
 	defaultConcurrentResourceQuotaSyncs int           = 5
 	defaultResourceQuotaSyncPeriod      time.Duration = 5 * time.Minute
 )
+
+// RunApplicationController starts the project authorization cache
+func (c *MasterConfig) RunApplicationController() {
+	osclient, kclient := c.OriginNamespaceControllerClients()
+	factory := applicatioincontroller.ApplicationControllerFactory{
+		Client:     osclient,
+		KubeClient: kclient,
+	}
+	controller := factory.Create()
+	controller.Run()
+
+}
+
+// RunServiceBrokerController starts the project authorization cache
+func (c *MasterConfig) RunServiceBrokerController() {
+	osclient, kclient := c.OriginNamespaceControllerClients()
+	factory := servicebrokercontroller.ServiceBrokerControllerFactory{
+		Client:     osclient,
+		KubeClient: kclient,
+	}
+	controller := factory.Create()
+	controller.Run()
+
+}
+
+// RunBackingServiceController starts the project authorization cache
+func (c *MasterConfig) RunBackingServiceController() {
+	osclient, kclient := c.OriginNamespaceControllerClients()
+	factory := backingservicecontroller.BackingServiceControllerFactory{
+		Client:     osclient,
+		KubeClient: kclient,
+	}
+	controller := factory.Create()
+	controller.Run()
+
+}
+
+// RunBackingServiceInstanceController starts the project authorization cache
+func (c *MasterConfig) RunBackingServiceInstanceController() {
+	osclient, kclient := c.OriginNamespaceControllerClients()
+	factory := backingserviceinstancecontroller.BackingServiceInstanceControllerFactory{
+		Client:     osclient,
+		KubeClient: kclient,
+	}
+	controller := factory.Create()
+	controller.Run()
+
+}
 
 // RunProjectAuthorizationCache starts the project authorization cache
 func (c *MasterConfig) RunProjectAuthorizationCache() {

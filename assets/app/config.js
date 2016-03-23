@@ -16,6 +16,8 @@ window.OPENSHIFT_CONFIG = {
         "v1": "/oapi"
       },
       resources: {
+        "backingserviceinstances": true,
+        "backingservices": true,
         "buildconfigs": true,
         "buildlogoptions": true,
         "buildlogs": true,

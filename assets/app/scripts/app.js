@@ -50,7 +50,7 @@ angular
     var pluginName = "openshiftConsole";
     var tab = builder.create()
      .id(builder.join(pluginName, "overview"))
-     .title(function () { return "Overview"; })
+     .title(function () { return "概况"; })
      .template(template)
      .href(projectHref("overview"))
      .page(function () { return builder.join(templatePath, 'project.html'); })
@@ -61,7 +61,7 @@ angular
 
     tab = builder.create()
       .id(builder.join(pluginName, "browse"))
-      .title(function () { return "Browse"; })
+      .title(function () { return "浏览"; })
       .template(template)
       .href(projectHref("browse"))
       .subPath("Builds", "builds", builder.join(templatePath, 'builds.html'))
@@ -72,6 +72,8 @@ angular
       .subPath("Routes", "routes", builder.join(templatePath, 'browse/routes.html'))
       .subPath("Services", "services", builder.join(templatePath, 'services.html'))
       .subPath("Storage", "storage", builder.join(templatePath, 'storage.html'))
+      .subPath("My Backing Services", "backingserviceinstances", builder.join(templatePath, 'backingservicesinstances.html'))
+      .subPath("Applications", "applications", builder.join(templatePath, 'applications.html'))
       .build();
     tab.icon = "sitemap";
     tabs.push(tab);
@@ -79,7 +81,7 @@ angular
 
     tab = builder.create()
      .id(builder.join(pluginName, "settings"))
-     .title(function () { return "Settings"; })
+     .title(function () { return "设置"; })
      .template(template)
      .href(projectHref("settings"))
      .page(function () { return builder.join(templatePath, 'settings.html'); })
@@ -102,6 +104,24 @@ angular
         redirectTo: function(params) {
           return '/project/' + encodeURIComponent(params.project) + "/overview";
         }
+      })
+      .when('/project/:project/backingservices', {
+        templateUrl: 'views/backingservices.html',
+        controller: 'BackingservicesController'
+      })
+      .when('/project/:project/backingservices/:backingservice', {
+        templateUrl: 'views/backingservice.html',
+        controller: 'BackingserviceController'
+
+      })
+
+      .when('/project/:project/browse/backingserviceinstances', {
+        templateUrl: 'views/backingservicesinstances.html',
+        controller: 'BackingServiceInstancesController'
+      })
+      .when('/project/:project/browse/backingserviceinstances/:backingserviceinstance', {
+        templateUrl: 'views/browse/backingserviceinstance.html',
+        controller: 'BackingServiceInstanceController'
       })
       .when('/project/:project/overview', {
         templateUrl: 'views/project.html',
@@ -261,6 +281,14 @@ angular
         templateUrl: 'views/util/logout.html',
         controller: 'LogoutController'
       })
+      .when('/project/:project/browse/applications', {
+        templateUrl: 'views/applications.html',
+        controller: 'ApplicationsController'
+      })
+      .when('/project/:project/browse/applications/:application', {
+        templateUrl: 'views/browse/application.html',
+        controller: 'ApplicationController'
+      })
       // legacy redirects
       .when('/createProject', {
         redirectTo: '/create-project'
@@ -320,6 +348,35 @@ angular
     $rootScope.$on('$locationChangeSuccess', function(event) {
       LabelFilter.setLabelSelector(new LabelSelector({}, true), true);
     });
+  })
+  .run(function(AuthService){
+
+    if(AuthService.isLoggedIn()){
+      AuthService.withUser().then(function(user) {
+        //daoVoice
+        daovoice('init', {
+          app_id: "b31d2fb1",
+          user_id: "user.metadata.uid", // 必填: 该用户在您系统上的唯一ID
+          //email: "daovoice@example.com", // 选填:  该用户在您系统上的主邮箱
+          name: user.metadata.name, // 选填: 用户名
+          signed_up: parseInt((new Date(user.metadata.creationTimestamp)).getTime() / 1000) // 选填: 用户的注册时间，用Unix时间戳表示
+        });
+        daovoice('update');
+      }, function(){
+        //daoVoice
+        daovoice('init', {
+          app_id: "b31d2fb1"
+        });
+        daovoice('update');
+      });
+    } else {
+      //daoVoice
+      daovoice('init', {
+        app_id: "b31d2fb1"
+      });
+      daovoice('update');
+    }
+
   })
   .run(function(dateRelativeFilter, durationFilter) {
     // Use setInterval instead of $interval because we're directly manipulating the DOM and don't want scope.$apply overhead

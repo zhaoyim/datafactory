@@ -111,6 +111,9 @@ __custom_func() {
 }
 `
 	valid_resources = `Valid resource types include:
+   * applications
+   * backingservices (aka 'bs')
+   * backingserviceinstances (aka 'bsi')
    * buildconfigs (aka 'bc')
    * builds
    * componentstatuses (aka 'cs')
@@ -141,6 +144,7 @@ __custom_func() {
    * routes
    * secrets
    * serviceaccounts
+   * servicebrokers (aka 'sb')
    * users
 `
 )

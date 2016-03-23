@@ -8,10 +8,10 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/registry/generic"
 	"k8s.io/kubernetes/pkg/runtime"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
+	"k8s.io/kubernetes/pkg/util/validation/field"
 
 	"github.com/openshift/origin/pkg/backingserviceinstance/api"
-	//"github.com/openshift/origin/pkg/backingserviceinstance/api/validation"
+	"github.com/openshift/origin/pkg/backingserviceinstance/api/validation"
 )
 
 // sdnStrategy implements behavior for HostSubnets
@@ -23,6 +23,8 @@ type Strategy struct {
 // Strategy is the default logic that applies when creating and updating HostSubnet
 // objects via the REST API.
 var BsiStrategy = Strategy{kapi.Scheme, kapi.SimpleNameGenerator}
+
+func (Strategy) Canonicalize(obj runtime.Object) {}
 
 func (Strategy) PrepareForUpdate(obj, old runtime.Object) {}
 
@@ -38,11 +40,9 @@ func (Strategy) GenerateName(base string) string {
 func (Strategy) PrepareForCreate(obj runtime.Object) {
 }
 
-func (Strategy) Validate(ctx kapi.Context, obj runtime.Object) fielderrors.ValidationErrorList {
-	return fielderrors.ValidationErrorList{}
-	// todo
-	// bsi := obj.(*api.BackingServiceInstance)
-	// return validation.ValidateBackingServiceInstance(bsi)
+func (Strategy) Validate(ctx kapi.Context, obj runtime.Object) field.ErrorList {
+	bsi:=obj.(*api.BackingServiceInstance)
+	return validation.ValidateBackingServiceInstance(bsi)
 }
 
 // AllowCreateOnUpdate is false for sdns
@@ -60,12 +60,10 @@ func (Strategy) CheckGracefulDelete(obj runtime.Object, options *kapi.DeleteOpti
 }
 
 // ValidateUpdate is the default update validation for a HostSubnet
-func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) fielderrors.ValidationErrorList {
-	return fielderrors.ValidationErrorList{}
-	// todo
-	// ldBsi := old.(*api.BackingServiceInstance)
-	// objBsi := obj.(*api.BackingServiceInstance)
-	// return validation.ValidateBackingServiceInstance(objBsi, ldBsi)
+func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.ErrorList {
+	 oldbsi := old.(*api.BackingServiceInstance)
+	 bsi := obj.(*api.BackingServiceInstance)
+	 return validation.ValidateBackingServiceInstanceUpdate(bsi, oldbsi)
 }
 
 // Matcher returns a generic matcher for a given label and field selector.

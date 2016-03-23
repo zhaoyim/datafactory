@@ -70,7 +70,7 @@ angular.module('openshiftConsole')
           select.empty();
           select.append(options);
           select.append($('<option data-divider="true"></option>'));
-          select.append($('<option value="">View all projects</option>'));
+          select.append($('<option value="">查看所有项目</option>'));
           select.selectpicker('refresh');
         };
 
@@ -108,7 +108,7 @@ angular.module('openshiftConsole')
       restrict: 'E',
       templateUrl: 'views/directives/_project-filter.html',
       link: function($scope, $elem) {
-        LabelFilter.setupFilterWidget($elem.find('.navbar-filter-widget'), $elem.find('.active-filters'), { addButtonText: "Add" });
+        LabelFilter.setupFilterWidget($elem.find('.navbar-filter-widget'), $elem.find('.active-filters'), { addButtonText: "添加" });
         LabelFilter.toggleFilterWidget(!$scope.renderOptions || !$scope.renderOptions.hideFilterWidget);
 
         $scope.$watch("renderOptions", function(renderOptions) {

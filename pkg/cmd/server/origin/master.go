@@ -31,6 +31,11 @@ import (
 	utilwait "k8s.io/kubernetes/pkg/util/wait"
 	kversion "k8s.io/kubernetes/pkg/version"
 
+	application "github.com/openshift/origin/pkg/application/registry/application/etcd"
+	backingservice "github.com/openshift/origin/pkg/backingservice/registry/backingservice/etcd"
+	backingserviceinstanceregistry "github.com/openshift/origin/pkg/backingserviceinstance/registry/backingserviceinstance"
+	backingserviceinstanceetcd "github.com/openshift/origin/pkg/backingserviceinstance/registry/backingserviceinstance/etcd"
+
 	"github.com/openshift/origin/pkg/api/v1"
 	"github.com/openshift/origin/pkg/api/v1beta3"
 	buildclient "github.com/openshift/origin/pkg/build/client"
@@ -74,6 +79,7 @@ import (
 	hostsubnetetcd "github.com/openshift/origin/pkg/sdn/registry/hostsubnet/etcd"
 	netnamespaceetcd "github.com/openshift/origin/pkg/sdn/registry/netnamespace/etcd"
 	"github.com/openshift/origin/pkg/service"
+	servicebroker "github.com/openshift/origin/pkg/servicebroker/registry/servicebroker/etcd"
 	templateregistry "github.com/openshift/origin/pkg/template/registry"
 	templateetcd "github.com/openshift/origin/pkg/template/registry/etcd"
 	groupetcd "github.com/openshift/origin/pkg/user/registry/group/etcd"
@@ -366,6 +372,10 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 		glog.Fatalf("Unable to configure a default transport for importing: %v", err)
 	}
 
+	applicationStorage := application.NewREST(c.EtcdHelper, c.PrivilegedLoopbackOpenShiftClient, c.PrivilegedLoopbackKubernetesClient)
+	serviceBrokerStorage := servicebroker.NewREST(c.EtcdHelper)
+	backingServiceStorage := backingservice.NewREST(c.EtcdHelper)
+
 	buildStorage, buildDetailsStorage := buildetcd.NewREST(c.EtcdHelper)
 	buildRegistry := buildregistry.NewRegistry(buildStorage)
 
@@ -435,6 +445,10 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 	imageStreamImageStorage := imagestreamimage.NewREST(imageRegistry, imageStreamRegistry)
 	imageStreamImageRegistry := imagestreamimage.NewRegistry(imageStreamImageStorage)
 
+	backingServiceInstanceEtcd := backingserviceinstanceetcd.NewREST(c.EtcdHelper)
+	backingServiceInstanceRegistry := backingserviceinstanceregistry.NewRegistry(backingServiceInstanceEtcd)
+	backingServiceInstanceBindingEtcd := backingserviceinstanceetcd.NewBindingREST(backingServiceInstanceRegistry, deployConfigRegistry)
+
 	buildGenerator := &buildgenerator.BuildGenerator{
 		Client: buildgenerator.Client{
 			GetBuildConfigFunc:      buildConfigRegistry.GetBuildConfig,
@@ -493,6 +507,12 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 		"imageStreamImages":    imageStreamImageStorage,
 		"imageStreamMappings":  imageStreamMappingStorage,
 		"imageStreamTags":      imageStreamTagStorage,
+
+		"applications":                    applicationStorage,
+		"serviceBrokers":                  serviceBrokerStorage,
+		"backingServices":                 backingServiceStorage,
+		"backingServiceInstances":         backingServiceInstanceEtcd,
+		"backingServiceInstances/binding": backingServiceInstanceBindingEtcd,
 
 		"deploymentConfigs":         deployConfigStorage,
 		"deploymentConfigs/scale":   deployConfigScaleStorage,

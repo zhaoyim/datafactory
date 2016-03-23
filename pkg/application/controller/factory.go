@@ -4,16 +4,15 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/client/cache"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 	kutil "k8s.io/kubernetes/pkg/util"
+	utilruntime "k8s.io/kubernetes/pkg/util/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 	"time"
 
 	applicationapi "github.com/openshift/origin/pkg/application/api"
 	osclient "github.com/openshift/origin/pkg/client"
-	controller "github.com/openshift/origin/pkg/controller"
+	"github.com/openshift/origin/pkg/controller"
 )
 
 type ApplicationControllerFactory struct {
@@ -27,12 +26,12 @@ type ApplicationControllerFactory struct {
 func (factory *ApplicationControllerFactory) Create() controller.RunnableController {
 
 	applicationLW := &cache.ListWatch{
-		ListFunc: func() (runtime.Object, error) {
-			return factory.Client.Applications(kapi.NamespaceAll).List(labels.Everything(), fields.Everything())
+		ListFunc: func(options kapi.ListOptions) (runtime.Object, error) {
+			return factory.Client.Applications(kapi.NamespaceAll).List(options)
 
 		},
-		WatchFunc: func(resourceVersion string) (watch.Interface, error) {
-			return factory.Client.Applications(kapi.NamespaceAll).Watch(labels.Everything(), fields.Everything(), resourceVersion)
+		WatchFunc: func(options kapi.ListOptions) (watch.Interface, error) {
+			return factory.Client.Applications(kapi.NamespaceAll).Watch(options)
 		},
 	}
 	queue := cache.NewFIFO(cache.MetaNamespaceKeyFunc)
@@ -49,7 +48,7 @@ func (factory *ApplicationControllerFactory) Create() controller.RunnableControl
 			queue,
 			cache.MetaNamespaceKeyFunc,
 			func(obj interface{}, err error, retries controller.Retry) bool {
-				kutil.HandleError(err)
+				utilruntime.HandleError(err)
 				if _, isFatal := err.(fatalError); isFatal {
 					return false
 				}

@@ -4,7 +4,7 @@ import (
 	oapi "github.com/openshift/origin/pkg/api"
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 	"k8s.io/kubernetes/pkg/api/validation"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
+	"k8s.io/kubernetes/pkg/util/validation/field"
 )
 
 func BackingServicetName(name string, prefix bool) (bool, string) {
@@ -20,22 +20,22 @@ func BackingServicetName(name string, prefix bool) (bool, string) {
 }
 
 // ValidateBackingService tests required fields for a BackingService.
-func ValidateBackingService(bs *backingserviceapi.BackingService) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMeta(&bs.ObjectMeta, true, BackingServicetName).Prefix("metadata")...)
-	//allErrs = append(allErrs, validateBuildSpec(&build.Spec).Prefix("spec")...)
+func ValidateBackingService(bs *backingserviceapi.BackingService) field.ErrorList {
+
+	allErrs :=validation.ValidateObjectMeta(&bs.ObjectMeta, true, BackingServicetName, field.NewPath("metadata"))
+
 	return allErrs
 }
 
 // ValidateBuildRequest validates a BuildRequest object
-func ValidateBackingServiceUpdate(bs *backingserviceapi.BackingService, older *backingserviceapi.BackingService) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMetaUpdate(&bs.ObjectMeta, &older.ObjectMeta).Prefix("metadata")...)
+func ValidateBackingServiceUpdate(bs *backingserviceapi.BackingService, older *backingserviceapi.BackingService) field.ErrorList {
+
+	allErrs := validation.ValidateObjectMetaUpdate(&bs.ObjectMeta, &older.ObjectMeta, field.NewPath("metadata"))
 
 	allErrs = append(allErrs, ValidateBackingService(bs)...)
 
 	if older.Status.Phase != bs.Status.Phase {
-		allErrs = append(allErrs, fielderrors.NewFieldInvalid("status.Phase", bs.Status.Phase, "phase cannot be updated from a terminal state"))
+		allErrs = append(allErrs, field.Invalid(field.NewPath("status.Phase"), bs.Status.Phase, "phase cannot be updated from a terminal state"))
 	}
 	return allErrs
 }

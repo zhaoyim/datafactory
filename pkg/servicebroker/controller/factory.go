@@ -3,13 +3,12 @@ package controller
 import (
 	"k8s.io/kubernetes/pkg/client/cache"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 	kutil "k8s.io/kubernetes/pkg/util"
+	utilruntime "k8s.io/kubernetes/pkg/util/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 	"time"
-
+	kapi "k8s.io/kubernetes/pkg/api"
 	osclient "github.com/openshift/origin/pkg/client"
 	controller "github.com/openshift/origin/pkg/controller"
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
@@ -27,14 +26,14 @@ type ServiceBrokerControllerFactory struct {
 func (factory *ServiceBrokerControllerFactory) Create() controller.RunnableController {
 
 	servicebrokerLW := &cache.ListWatch{
-		ListFunc: func() (runtime.Object, error) {
+		ListFunc: func(options kapi.ListOptions) (runtime.Object, error) {
 
-			return factory.Client.ServiceBrokers().List(labels.Everything(), fields.Everything())
+			return factory.Client.ServiceBrokers().List(options)
 
 			//return factory.KubeClient.Namespaces().List(labels.Everything(), fields.Everything())
 		},
-		WatchFunc: func(resourceVersion string) (watch.Interface, error) {
-			return factory.Client.ServiceBrokers().Watch(labels.Everything(), fields.Everything(), resourceVersion)
+		WatchFunc: func(options kapi.ListOptions) (watch.Interface, error) {
+			return factory.Client.ServiceBrokers().Watch(options)
 			//return factory.KubeClient.Namespaces().Watch(labels.Everything(), fields.Everything(), resourceVersion)
 		},
 	}
@@ -53,7 +52,7 @@ func (factory *ServiceBrokerControllerFactory) Create() controller.RunnableContr
 			queue,
 			cache.MetaNamespaceKeyFunc,
 			func(obj interface{}, err error, retries controller.Retry) bool {
-				kutil.HandleError(err)
+				utilruntime.HandleError(err)
 				if _, isFatal := err.(fatalError); isFatal {
 					return false
 				}
@@ -78,10 +77,10 @@ type backingServiceLW struct {
 
 // List lists all BuildConfigs.
 func (lw *backingServiceLW) List() (runtime.Object, error) {
-	return lw.client.ServiceBrokers().List(labels.Everything(), fields.Everything())
+	return lw.client.ServiceBrokers().List(kapi.ListOptions{})
 }
 
 // Watch watches all BuildConfigs.
 func (lw *backingServiceLW) Watch(resourceVersion string) (watch.Interface, error) {
-	return lw.client.ServiceBrokers().Watch(labels.Everything(), fields.Everything(), resourceVersion)
+	return lw.client.ServiceBrokers().Watch(kapi.ListOptions{})
 }

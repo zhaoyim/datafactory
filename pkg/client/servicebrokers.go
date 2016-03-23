@@ -2,9 +2,8 @@ package client
 
 import (
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/watch"
+	kapi "k8s.io/kubernetes/pkg/api"
 )
 
 // ServiceBrokersInterface has methods to work with ServiceBroker resources in a namespace
@@ -18,8 +17,8 @@ type ServiceBrokerInterface interface {
 	Delete(name string) error
 	Update(p *servicebrokerapi.ServiceBroker) (*servicebrokerapi.ServiceBroker, error)
 	Get(name string) (*servicebrokerapi.ServiceBroker, error)
-	List(label labels.Selector, field fields.Selector) (*servicebrokerapi.ServiceBrokerList, error)
-	Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
+	List(opts kapi.ListOptions) (*servicebrokerapi.ServiceBrokerList, error)
+	Watch(opts kapi.ListOptions) (watch.Interface, error)
 }
 
 type serviceBrokers struct {
@@ -41,12 +40,11 @@ func (c *serviceBrokers) Get(name string) (result *servicebrokerapi.ServiceBroke
 }
 
 // List returns all serviceBrokers matching the label selector
-func (c *serviceBrokers) List(label labels.Selector, field fields.Selector) (result *servicebrokerapi.ServiceBrokerList, err error) {
+func (c *serviceBrokers) List(opts kapi.ListOptions) (result *servicebrokerapi.ServiceBrokerList, err error) {
 	result = &servicebrokerapi.ServiceBrokerList{}
 	err = c.r.Get().
 		Resource("serviceBrokers").
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Do().
 		Into(result)
 	return
@@ -73,12 +71,10 @@ func (c *serviceBrokers) Delete(name string) (err error) {
 }
 
 // Watch returns a watch.Interface that watches the requested serviceBrokers
-func (c *serviceBrokers) Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
+func (c *serviceBrokers) Watch(opts kapi.ListOptions) (watch.Interface, error) {
 	return c.r.Get().
 		Prefix("watch").
 		Resource("serviceBrokers").
-		Param("resourceVersion", resourceVersion).
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Watch()
 }

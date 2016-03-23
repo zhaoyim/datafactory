@@ -10,10 +10,10 @@
         <div class="middle-content">
 
             <div ng-if="!showGetStarted" class="container surface-shaded"> <!-- Safari needs surface-shaded at mobile -->
-            <div ng-if="(projects | hashSize) === 0" class="text-muted" style="margin-top: 50px;">Loading...</div>
+            <div ng-if="(projects | hashSize) === 0" class="text-muted" style="margin-top: 50px;">加载中...</div>
             <div ng-if="(projects | hashSize) !== 0" class="gutter-top">
-              <h1 style="display: inline-block;">Projects</h1>
-              <a ng-if="canCreate" href="create-project" style="margin-top: 10px;" class="btn btn-lg btn-primary pull-right">New Project</a>
+              <h1 style="display: inline-block;">项目列表</h1>
+              <a ng-if="canCreate" href="create-project" style="margin-top: 10px;" class="btn btn-lg btn-primary pull-right">新建项目</a>
               <alerts alerts="alerts"></alerts>
               <div ng-repeat="project in projects | orderByDisplayName">
                 <div row flex cross-axis="center" class="tile tile-project tile-click tile-flex">
@@ -40,31 +40,31 @@
                 </div>
               </div>
               <div ng-if="canCreate === false" style="margin-top: 10px;">
-                <span ng-if="!newProjectMessage">A cluster admin can create a project for you by running the command
+                <span ng-if="!newProjectMessage">集群管理员可以通过命令行创建一个项目
                   <code>oadm new-project &lt;projectname&gt; --admin={{user.metadata.name || '&lt;YourUsername&gt;'}}</code></span>
                 <span ng-if="newProjectMessage" ng-bind-html="newProjectMessage | linky" style="white-space:pre;"></span>
               </div>
               <div style="margin-top: 10px;">
-                A project admin can add you as an admin to a project by running the command
+                项目管理员可以通过命令行将你添加到一个项目中去
                 <code>oc policy add-role-to-user admin {{user.metadata.name || '&lt;YourUsername&gt;'}} -n &lt;projectname&gt;</code>
               </div>
             </div>
           </div>
 
           <div ng-if="showGetStarted" class="empty-state-message empty-state-full-page text-center">
-            <h1>Welcome to OpenShift.</h1>
+            <h1>欢迎使用DataFoundry.</h1>
 
             <p>
-              OpenShift helps you quickly develop, host, and scale applications.<br>
-              <span ng-if="canCreate">Create a project for your application.</span>
+              DataFoundry帮助您快速开发、部署健壮的应用<br>
+              <span ng-if="canCreate">为你的应用创建一个项目</span>
             </p>
 
-            <a ng-if="canCreate" href="create-project" class="btn btn-lg btn-primary">New Project</a>
+            <a ng-if="canCreate" href="create-project" class="btn btn-lg btn-primary">新建项目</a>
 
-            <p>To learn more, visit the OpenShift <a ng-href="{{'' | helpLink}}">documentation</a>.</p>
+            <p>了解更多, 请访问 DataFoundry <a ng-href="{{'' | helpLink}}">文档</a>.</p>
 
             <p ng-if="canCreate === false">
-              <span ng-if="!newProjectMessage">A cluster admin can create a project for you by running the command<br>
+              <span ng-if="!newProjectMessage">集群管理员可以通过命令行创建一个项目<br>
                 <code>oadm new-project &lt;projectname&gt; --admin={{user.metadata.name || '&lt;YourUsername&gt;'}}</code></span>
               <span ng-if="newProjectMessage" ng-bind-html="newProjectMessage | linky" style="white-space:pre;"></span>
             </p>

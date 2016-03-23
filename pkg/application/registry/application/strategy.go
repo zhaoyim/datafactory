@@ -6,10 +6,10 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/registry/generic"
 	"k8s.io/kubernetes/pkg/runtime"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
+	"k8s.io/kubernetes/pkg/util/validation/field"
 
-	api "github.com/openshift/origin/pkg/application/api"
-	applicationvalidation "github.com/openshift/origin/pkg/application/api/validation"
+	"github.com/openshift/origin/pkg/application/api"
+	"github.com/openshift/origin/pkg/application/api/validation"
 
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 	oclient "github.com/openshift/origin/pkg/client"
@@ -25,7 +25,7 @@ type Strategy struct {
 // Strategy is the default logic that applies when creating and updating HostSubnet
 // objects via the REST API.
 var AppStrategy = Strategy{kapi.Scheme, nil, nil}
-
+func (s Strategy) Canonicalize(obj runtime.Object) {}
 func (s Strategy) PrepareForUpdate(obj, old runtime.Object) {}
 
 func (s Strategy) NamespaceScoped() bool {
@@ -39,10 +39,10 @@ func (s Strategy) GenerateName(base string) string {
 func (s Strategy) PrepareForCreate(obj runtime.Object) {
 }
 
-func (s Strategy) Validate(ctx kapi.Context, obj runtime.Object) fielderrors.ValidationErrorList {
+func (s Strategy) Validate(ctx kapi.Context, obj runtime.Object) field.ErrorList {
 	application := obj.(*api.Application)
 
-	return applicationvalidation.ValidateApplication(application, s.OClient, s.KClient)
+	return validation.ValidateApplication(application, s.OClient, s.KClient)
 }
 
 func (s Strategy) AllowCreateOnUpdate() bool {
@@ -54,8 +54,8 @@ func (s Strategy) AllowUnconditionalUpdate() bool {
 }
 
 // ValidateUpdate is the default update validation for a HostSubnet
-func (s Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) fielderrors.ValidationErrorList {
-	return fielderrors.ValidationErrorList{}
+func (s Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.ErrorList {
+	return validation.ValidateApplicationUpdate(obj.(*api.Application),old.(*api.Application))
 }
 
 // Matcher returns a generic matcher for a given label and field selector.

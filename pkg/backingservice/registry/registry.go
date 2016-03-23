@@ -4,8 +4,6 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/rest"
 	"k8s.io/kubernetes/pkg/api/unversioned"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 
@@ -15,21 +13,21 @@ import (
 // Registry is an interface for things that know how to store ImageStream objects.
 type Registry interface {
 	// ListImageStreams obtains a list of image streams that match a selector.
-	ListBackingServices(ctx kapi.Context, selector labels.Selector) (*api.BackingServiceList, error)
+	ListBackingServices(ctx kapi.Context) (*api.BackingServiceList, error)
 	// GetImageStream retrieves a specific image stream.
-	GetBackingService(ctx kapi.Context, id string) (*api.BackingService, error)
+	GetBackingService(ctx kapi.Context, name string) (*api.BackingService, error)
 	// CreateImageStream creates a new image stream.
-	CreateBackingService(ctx kapi.Context, repo *api.BackingService) (*api.BackingService, error)
+	CreateBackingService(ctx kapi.Context, bs *api.BackingService) (*api.BackingService, error)
 	// UpdateImageStream updates an image stream.
-	UpdateBackingService(ctx kapi.Context, repo *api.BackingService) (*api.BackingService, error)
+	UpdateBackingService(ctx kapi.Context, bs *api.BackingService) (*api.BackingService, error)
 	// UpdateImageStreamSpec updates an image stream's spec.
-	UpdateBackingServiceSpec(ctx kapi.Context, repo *api.BackingService) (*api.BackingService, error)
+	UpdateBackingServiceSpec(ctx kapi.Context, bs *api.BackingService) (*api.BackingService, error)
 	// UpdateImageStreamStatus updates an image stream's status.
-	UpdateBackingServiceStatus(ctx kapi.Context, repo *api.BackingService) (*api.BackingService, error)
+	UpdateBackingServiceStatus(ctx kapi.Context, bs *api.BackingService) (*api.BackingService, error)
 	// DeleteImageStream deletes an image stream.
-	DeleteBackingService(ctx kapi.Context, id string) (*unversioned.Status, error)
+	DeleteBackingService(ctx kapi.Context, name string) (*unversioned.Status, error)
 	// WatchImageStreams watches for new/changed/deleted image streams.
-	WatchBackingServices(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
+	WatchBackingServices(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error)
 }
 
 // Storage is an interface for a standard REST Storage backend
@@ -56,16 +54,16 @@ func NewRegistry(s Storage, status, internal rest.Updater) Registry {
 	return &storage{Storage: s, status: status, internal: internal}
 }
 
-func (s *storage) ListBackingServices(ctx kapi.Context, label labels.Selector) (*api.BackingServiceList, error) {
-	obj, err := s.List(ctx, label, fields.Everything())
+func (s *storage) ListBackingServices(ctx kapi.Context) (*api.BackingServiceList, error) {
+	obj, err := s.List(ctx, &kapi.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return obj.(*api.BackingServiceList), nil
 }
 
-func (s *storage) GetBackingService(ctx kapi.Context, backingServiceID string) (*api.BackingService, error) {
-	obj, err := s.Get(ctx, backingServiceID)
+func (s *storage) GetBackingService(ctx kapi.Context, name string) (*api.BackingService, error) {
+	obj, err := s.Get(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +110,6 @@ func (s *storage) DeleteBackingService(ctx kapi.Context, backingServiceID string
 	return obj.(*unversioned.Status), nil
 }
 
-func (s *storage) WatchBackingServices(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
-	return s.Watch(ctx, label, field, resourceVersion)
+func (s *storage) WatchBackingServices(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {
+	return s.Watch(ctx, options)
 }

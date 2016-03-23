@@ -41,14 +41,13 @@
               <div ng-if="(services | hashSize) === 0 && (monopodsByService[''] | hashSize) === 0 && (deploymentsByServiceByDeploymentConfig[''] | hashSize) === 0">
                 <!-- Getting started -->
                 <div ng-if="renderOptions.showGetStarted" class="empty-project text-center">
-                  <h2>Get started with your project.</h2>
+                  <h2>从这个项目开始你的工作。</h2>
                   <p class="gutter-top">
-                    Use your source or an example repository to build an application
-                    image, or add components like databases and message queues.
+                    利用模板从源代码或代码仓库的样例代码构建镜像，可添加数据库或消息队列等组件。
                   </p>
                   <p class="gutter-top">
                     <a ng-href="project/{{projectName}}/create" class="btn btn-lg btn-primary">
-                      Add to Project
+                      部署
                     </a>
                   </p>
                 </div>

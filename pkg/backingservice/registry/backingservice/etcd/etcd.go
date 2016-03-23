@@ -10,7 +10,7 @@ import (
 	"k8s.io/kubernetes/pkg/watch"
 
 	"github.com/openshift/origin/pkg/backingservice/api"
-	backingservice "github.com/openshift/origin/pkg/backingservice/registry/backingservice"
+	"github.com/openshift/origin/pkg/backingservice/registry/backingservice"
 	"k8s.io/kubernetes/pkg/runtime"
 )
 
@@ -43,7 +43,8 @@ func NewREST(s storage.Interface) *REST {
 		PredicateFunc: func(label labels.Selector, field fields.Selector) generic.Matcher {
 			return backingservice.Matcher(label, field)
 		},
-		EndpointName: "backingservice",
+
+		QualifiedResource: api.Resource("backingservice"),
 
 		CreateStrategy: backingservice.BsStrategy,
 		UpdateStrategy: backingservice.BsStrategy,
@@ -71,8 +72,8 @@ func (r *REST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
 	return r.store.Get(ctx, name)
 }
 
-func (r *REST) List(ctx kapi.Context, label labels.Selector, field fields.Selector) (runtime.Object, error) {
-	return r.store.List(ctx, label, field)
+func (r *REST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
+	return r.store.List(ctx, options)
 }
 
 // Create creates an image based on a specification.
@@ -93,6 +94,6 @@ func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions
 	return r.store.Delete(ctx, name, options)
 }
 
-func (r *REST) Watch(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
-	return r.store.Watch(ctx, label, field, resourceVersion)
+func (r *REST) Watch(ctx kapi.Context,options *kapi.ListOptions) (watch.Interface, error) {
+	return r.store.Watch(ctx, options)
 }

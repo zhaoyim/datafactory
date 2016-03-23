@@ -354,3 +354,7 @@ func formatQuantity(quantity *resource.Quantity, scale scale) string {
 	}
 	return fmt.Sprintf("%d%s", integer, scale.unit)
 }
+
+func printItem(kind, name, ceateTime string) string {
+	return fmt.Sprintf("\t%s\t%s\t%s\t\n", kind, name, ceateTime)
+}

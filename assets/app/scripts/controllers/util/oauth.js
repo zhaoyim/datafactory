@@ -27,6 +27,16 @@ angular.module('openshiftConsole')
         authLogger.log("OAuthController, got user", user);
         AuthService.setUser(user, token, ttl);
 
+        //daoVoice
+        daovoice('init', {
+          app_id: "b31d2fb1",
+          user_id: "user.metadata.uid", // 必填: 该用户在您系统上的唯一ID
+          //email: "daovoice@example.com", // 选填:  该用户在您系统上的主邮箱
+          name: user.metadata.name, // 选填: 用户名
+          signed_up: parseInt((new Date(user.metadata.creationTimestamp)).getTime() / 1000) // 选填: 用户的注册时间，用Unix时间戳表示
+        });
+        daovoice('update');
+
         // Redirect to original destination (or default to '/')
         var destination = then || './';
         if (URI(destination).is('absolute')) {
@@ -41,6 +51,12 @@ angular.module('openshiftConsole')
         var redirect = URI('error').query({error: 'user_fetch_failed'}).toString();
         authLogger.error("OAuthController, error fetching user", rejection, "redirecting", redirect);
         $location.url(redirect);
+
+        //daoVoice
+        daovoice('init', {
+          app_id: "b31d2fb1"
+        });
+        daovoice('update');
       });
 
     })
@@ -52,6 +68,12 @@ angular.module('openshiftConsole')
       }).toString();
       authLogger.error("OAuthController, error", rejection, "redirecting", redirect);
       $location.url(redirect);
+
+      //daoVoice
+      daovoice('init', {
+        app_id: "cd9644b0"
+      });
+      daovoice('update');
     });
 
   });

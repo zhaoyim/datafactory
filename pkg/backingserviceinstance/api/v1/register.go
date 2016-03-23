@@ -1,19 +1,29 @@
 package v1
 
 import (
-	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/api/unversioned"
+	"k8s.io/kubernetes/pkg/runtime"
 )
 
-func init() {
-	api.Scheme.AddKnownTypes("v1",
+const GroupName = ""
+
+// SchemeGroupVersion is group version used to register these objects
+var SchemeGroupVersion = unversioned.GroupVersion{Group: GroupName, Version: "v1"}
+
+func AddToScheme(scheme *runtime.Scheme) {
+	addKnownTypes(scheme)
+	addConversionFuncs(scheme)
+}
+
+// Adds the list of known types to api.Scheme.
+func addKnownTypes(scheme *runtime.Scheme) {
+	scheme.AddKnownTypes(SchemeGroupVersion,
 		&BackingServiceInstance{},
 		&BackingServiceInstanceList{},
-		//&BindingRequest{},
 		&BindingRequestOptions{},
 	)
 }
 
-func (*BackingServiceInstance) IsAnAPIObject()     {}
-func (*BackingServiceInstanceList) IsAnAPIObject() {}
-//func (*BindingRequest) IsAnAPIObject()             {}
-func (*BindingRequestOptions) IsAnAPIObject()      {}
+func (obj *BackingServiceInstance) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
+func (obj *BackingServiceInstanceList) GetObjectKind() unversioned.ObjectKind        { return &obj.TypeMeta }
+func (obj *BindingRequestOptions) GetObjectKind() unversioned.ObjectKind        { return &obj.TypeMeta }

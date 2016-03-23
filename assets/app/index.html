@@ -4,7 +4,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
     <meta charset="utf-8">
     <base href="/">
-    <title>OpenShift Web Console</title>
+    <title>DataFoundry Web Console</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="images/favicon.png" />
@@ -28,9 +28,16 @@
     <!-- endbuild -->
     <link rel="stylesheet" type="text/css" href="styles/extensions.css">
      <style type="text/css">
-
+       @media (min-width: 768px) {
+         .console-os .wrap .sidebar-left .navbar-sidebar .fa {
+           margin: 0 auto!important;
+           padding: 0;
+           display: block!important;
+         }
+       }
 
     </style>
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,"script","//widget.daovoice.io/widget/b31d2fb1.js","daovoice");</script>
   </head>
 <body class="console-os">
     <!-- Add your site or application content here -->
@@ -173,6 +180,12 @@
         <script src="scripts/controllers/modals/deleteModal.js"></script>
         <script src="scripts/controllers/modals/editModal.js"></script>
         <script src="scripts/controllers/about.js"></script>
+       	<script src="scripts/controllers/backingservices.js"></script>
+      	<script src="scripts/controllers/backingservice.js"></script>
+       	<script src="scripts/controllers/backingserviceInstances.js"></script>
+        <script src="scripts/controllers/backingserviceInstance.js"></script>
+       	<script src="scripts/controllers/applications.js"></script>
+      	<script src="scripts/controllers/application.js"></script>
         <script src="scripts/directives/date.js"></script>
         <script src="scripts/directives/deleteLink.js"></script>
         <script src="scripts/directives/editLink.js"></script>

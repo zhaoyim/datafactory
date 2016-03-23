@@ -2,8 +2,7 @@ package client
 
 import (
 	applicationapi "github.com/openshift/origin/pkg/application/api"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
+	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/watch"
 )
 
@@ -18,8 +17,8 @@ type ApplicationInterface interface {
 	Delete(name string) error
 	Update(p *applicationapi.Application) (*applicationapi.Application, error)
 	Get(name string) (*applicationapi.Application, error)
-	List(label labels.Selector, field fields.Selector) (*applicationapi.ApplicationList, error)
-	Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
+	List(opts kapi.ListOptions) (*applicationapi.ApplicationList, error)
+	Watch(opts kapi.ListOptions) (watch.Interface, error)
 }
 
 type applications struct {
@@ -43,13 +42,12 @@ func (c *applications) Get(name string) (result *applicationapi.Application, err
 }
 
 // List returns all applications matching the label selector
-func (c *applications) List(label labels.Selector, field fields.Selector) (result *applicationapi.ApplicationList, err error) {
+func (c *applications) List(opts kapi.ListOptions) (result *applicationapi.ApplicationList, err error) {
 	result = &applicationapi.ApplicationList{}
 	err = c.r.Get().
 		Namespace(c.ns).
 		Resource("applications").
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Do().
 		Into(result)
 	return
@@ -76,13 +74,11 @@ func (c *applications) Delete(name string) (err error) {
 }
 
 // Watch returns a watch.Interface that watches the requested applications
-func (c *applications) Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
+func (c *applications) Watch(opts kapi.ListOptions) (watch.Interface, error) {
 	return c.r.Get().
 		Prefix("watch").
 		Namespace(c.ns).
 		Resource("applications").
-		Param("resourceVersion", resourceVersion).
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Watch()
 }

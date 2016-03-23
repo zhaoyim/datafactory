@@ -1,25 +1,23 @@
-#
-# This is the unofficial OpenShift Origin image for the DockerHub. It has as its
-# entrypoint the OpenShift all-in-one binary.
-#
-# See images/origin for the official release version of this image
-#
-# The standard name for this image is openshift/origin
-#
-FROM openshift/origin-base
+# datafactory
 
-RUN yum install -y golang && yum clean all
+FROM golang:1.5
+MAINTAINER Zonesan <chaizs@asiainfo.com>
 
-WORKDIR /go/src/github.com/openshift/origin
-ADD .   /go/src/github.com/openshift/origin
-ENV GOPATH /go
-ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
+ENV TIME_ZONE=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime && echo $TIME_ZONE > /etc/timezone
 
-RUN go get github.com/openshift/origin && \
-    hack/build-go.sh && \
-    cp _output/local/bin/linux/amd64/* /usr/bin/ && \
-    mkdir -p /var/lib/origin
+WORKDIR /datafactory
 
-EXPOSE 8080 8443
+ADD . /datafactory
+
+RUN make build && \
+    cp -a _output/local/bin/linux/amd64/* /usr/bin/ && \
+    rm -rf ../datafactory /usr/local/go
+
 WORKDIR /var/lib/origin
-ENTRYPOINT ["/usr/bin/openshift"]
+
+EXPOSE 8443 4001 53 10250 7001
+
+ENTRYPOINT ["openshift", "start"]
+
+

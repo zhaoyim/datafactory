@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"k8s.io/kubernetes/pkg/api/validation"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
+	"k8s.io/kubernetes/pkg/util/validation/field"
 
 	oapi "github.com/openshift/origin/pkg/api"
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
@@ -25,34 +25,33 @@ func ValidateServiceBrokerName(name string, prefix bool) (bool, string) {
 // ValidateServiceBroker tests required fields for a ServiceBroker.
 // This should only be called when creating a servicebroker (not on update),
 // since its name validation is more restrictive than default namespace name validation
-func ValidateServiceBroker(servicebroker *servicebrokerapi.ServiceBroker) fielderrors.ValidationErrorList {
-	result := fielderrors.ValidationErrorList{}
-	result = append(result, validation.ValidateObjectMeta(&servicebroker.ObjectMeta, false, ValidateServiceBrokerName).Prefix("metadata")...)
+func ValidateServiceBroker(servicebroker *servicebrokerapi.ServiceBroker) field.ErrorList {
+	result := validation.ValidateObjectMeta(&servicebroker.ObjectMeta, false, ValidateServiceBrokerName, field.NewPath("metadata"))
 
 	return result
 }
 
 // ValidateServiceBrokerUpdate tests to make sure a servicebroker update can be applied.  Modifies newServiceBroker with immutable fields.
-func ValidateServiceBrokerUpdate(newServiceBroker *servicebrokerapi.ServiceBroker, oldServiceBroker *servicebrokerapi.ServiceBroker) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMetaUpdate(&newServiceBroker.ObjectMeta, &oldServiceBroker.ObjectMeta).Prefix("metadata")...)
+func ValidateServiceBrokerUpdate(newServiceBroker *servicebrokerapi.ServiceBroker, oldServiceBroker *servicebrokerapi.ServiceBroker) field.ErrorList {
+
+	allErrs :=validation.ValidateObjectMetaUpdate(&newServiceBroker.ObjectMeta, &oldServiceBroker.ObjectMeta, field.NewPath("metadata"))
 	allErrs = append(allErrs, ValidateServiceBroker(newServiceBroker)...)
 
 	if !reflect.DeepEqual(newServiceBroker.Spec.Finalizers, oldServiceBroker.Spec.Finalizers) {
-		allErrs = append(allErrs, fielderrors.NewFieldInvalid("spec.finalizers", oldServiceBroker.Spec.Finalizers, "field is immutable"))
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec.finalizers"), oldServiceBroker.Spec.Finalizers, "field is immutable"))
 	}
 	if !reflect.DeepEqual(newServiceBroker.Status, oldServiceBroker.Status) {
-		allErrs = append(allErrs, fielderrors.NewFieldInvalid("status", oldServiceBroker.Spec.Finalizers, "field is immutable"))
+		allErrs = append(allErrs, field.Invalid(field.NewPath("status"), oldServiceBroker.Spec.Finalizers, "field is immutable"))
 	}
 
 	for name, value := range newServiceBroker.Labels {
 		if value != oldServiceBroker.Labels[name] {
-			allErrs = append(allErrs, fielderrors.NewFieldInvalid("metadata.labels["+name+"]", value, "field is immutable, , try updating the namespace"))
+			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, , try updating the namespace"))
 		}
 	}
 	for name, value := range oldServiceBroker.Labels {
 		if _, inNew := newServiceBroker.Labels[name]; !inNew {
-			allErrs = append(allErrs, fielderrors.NewFieldInvalid("metadata.labels["+name+"]", value, "field is immutable, try updating the namespace"))
+			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, try updating the namespace"))
 		}
 	}
 

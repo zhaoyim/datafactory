@@ -1,8 +1,8 @@
 package client
 
 import (
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
+	kapi "k8s.io/kubernetes/pkg/api"
+
 	"k8s.io/kubernetes/pkg/watch"
 
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
@@ -19,8 +19,8 @@ type BackingServiceInterface interface {
 	Delete(name string) error
 	Update(p *backingserviceapi.BackingService) (*backingserviceapi.BackingService, error)
 	Get(name string) (*backingserviceapi.BackingService, error)
-	List(label labels.Selector, field fields.Selector) (*backingserviceapi.BackingServiceList, error)
-	Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
+	List(opts kapi.ListOptions) (*backingserviceapi.BackingServiceList, error)
+	Watch(opts kapi.ListOptions) (watch.Interface, error)
 }
 
 type backingservices struct {
@@ -44,13 +44,12 @@ func (c *backingservices) Get(name string) (result *backingserviceapi.BackingSer
 }
 
 // List returns all backingservices matching the label selector
-func (c *backingservices) List(label labels.Selector, field fields.Selector) (result *backingserviceapi.BackingServiceList, err error) {
+func (c *backingservices) List(opts kapi.ListOptions) (result *backingserviceapi.BackingServiceList, err error) {
 	result = &backingserviceapi.BackingServiceList{}
 	err = c.r.Get().
 		Namespace(c.ns).
 		Resource("backingservices").
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Do().
 		Into(result)
 	return
@@ -77,13 +76,11 @@ func (c *backingservices) Delete(name string) (err error) {
 }
 
 // Watch returns a watch.Interface that watches the requested backingservices
-func (c *backingservices) Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
+func (c *backingservices) Watch(opts kapi.ListOptions) (watch.Interface, error) {
 	return c.r.Get().
 		Namespace(c.ns).
 		Prefix("watch").
 		Resource("backingservices").
-		Param("resourceVersion", resourceVersion).
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Watch()
 }

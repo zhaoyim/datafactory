@@ -311,7 +311,7 @@ func (o *BindBackingServiceInstanceOptions) Run(cmd *cobra.Command, f *clientcmd
 	
 	bro := backingserviceinstanceapi.NewBindingRequestOptions(
 		backingserviceinstanceapi.BindKind_DeploymentConfig, 
-		latestapi.Version, 
+		latestapi.Version.Version,
 		o.DeploymentConfigName)
 	bro.Name = o.Name 
 	bro.Namespace = namespace
@@ -409,7 +409,7 @@ func (o *UnbindBackingServiceInstanceOptions) Run(cmd *cobra.Command, f *clientc
 
 	bro := backingserviceinstanceapi.NewBindingRequestOptions(
 		backingserviceinstanceapi.BindKind_DeploymentConfig,
-		latestapi.Version,
+		latestapi.Version.Version,
 		o.DeploymentConfigName)
 	bro.Name = o.Name
 	bro.Namespace = namespace

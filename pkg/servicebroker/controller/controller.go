@@ -8,8 +8,8 @@ import (
 	osclient "github.com/openshift/origin/pkg/client"
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 	servicebrokerclient "github.com/openshift/origin/pkg/servicebroker/client"
-	"k8s.io/kubernetes/pkg/fields"
 	"k8s.io/kubernetes/pkg/labels"
+	kapi "k8s.io/kubernetes/pkg/api"
 	"strconv"
 	"time"
 )
@@ -116,7 +116,7 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 func (c *ServiceBrokerController) inActiveBackingService(serviceBrokerName string) {
 	selector, _ := labels.Parse(servicebrokerapi.ServiceBrokerLabel + "=" + serviceBrokerName)
 
-	bsList, err := c.Client.BackingServices(BSNS).List(selector, fields.Everything())
+	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector:selector})
 	if err == nil {
 		for _, bsvc := range bsList.Items {
 			if bsvc.Status.Phase != backingserviceapi.BackingServicePhaseInactive {
@@ -130,7 +130,7 @@ func (c *ServiceBrokerController) inActiveBackingService(serviceBrokerName strin
 func (c *ServiceBrokerController) ActiveBackingService(serviceBrokerName string) {
 	selector, _ := labels.Parse(servicebrokerapi.ServiceBrokerLabel + "=" + serviceBrokerName)
 
-	bsList, err := c.Client.BackingServices(BSNS).List(selector, fields.Everything())
+	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector:selector})
 	if err == nil {
 		for _, bsvc := range bsList.Items {
 			if bsvc.Status.Phase != backingserviceapi.BackingServicePhaseActive {

@@ -15,8 +15,6 @@ import (
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/client/record"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/util"
 	"net/http"
 	"regexp"
@@ -88,7 +86,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		}
 
 		if !plan_found {
-			c.recorder.Eventf(bsi, "Provisioning", "plan (%s) in bs(%s) for bsi (%s) not found",
+			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Provisioning", "plan (%s) in bs(%s) for bsi (%s) not found",
 				bsi.Spec.BackingServicePlanGuid, bsi.Spec.BackingServiceName, bsi.Name)
 			result = fmt.Errorf("plan (%s) in bs(%s) for bsi (%s) not found",
 				bsi.Spec.BackingServicePlanGuid, bsi.Spec.BackingServiceName, bsi.Name)
@@ -117,10 +115,10 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		svcinstance, err := servicebroker_create_instance(serviceinstance, bsInstanceID, servicebroker)
 		if err != nil {
 			result = err
-			c.recorder.Eventf(bsi, "Provisioning", err.Error())
+			c.recorder.Eventf(bsi,kapi.EventTypeWarning, "Provisioning", err.Error())
 			break
 		} else {
-			c.recorder.Eventf(bsi, "Provisioning", "bsi provisioning done, instanceid: %s", bsInstanceID)
+			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Provisioning", "bsi provisioning done, instanceid: %s", bsInstanceID)
 			glog.Infoln("bsi provisioning servicebroker_create_instance done, ", bsi.Name)
 		}
 
@@ -145,14 +143,14 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 			if result = c.deleteInstance(bs, bsi); result == nil {
 				changed = true
 			}
-			c.recorder.Eventf(bsi, "Deleting", "instance:%s [%v]", bsi.Name, changed)
+			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Deleting", "instance:%s [%v]", bsi.Name, changed)
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
 
 			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
 			if result = c.bindInstance(dcname, bs, bsi); result == nil {
 				changed = true
 			}
-			c.recorder.Eventf(bsi, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
+			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 
 		}
 	case backingserviceinstanceapi.BackingServiceInstancePhaseBound:
@@ -162,13 +160,13 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 			if result = c.unbindInstance(dcname, bs, bsi); result == nil {
 				changed = true
 			}
-			c.recorder.Eventf(bsi, "Unbinding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
+			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Unbinding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
 			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
 			if result = c.bindInstance(dcname, bs, bsi); result == nil {
 				changed = true
 			}
-			c.recorder.Eventf(bsi, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
+			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 			/*
 				default:
 					return fmt.Errorf("action '%s' should never happen under status '%s'", bsi.Status.Action, bsi.Status.Phase)
@@ -189,7 +187,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		*/
 
 		glog.Infoln("bsi controller error. ", err_msg)
-		c.recorder.Eventf(bsi, "Error", err_msg)
+		c.recorder.Eventf(bsi,kapi.EventTypeWarning, "Error", err_msg)
 	}
 
 	if changed {
@@ -232,7 +230,7 @@ func servicebroker_load(c osclient.Interface, name string) (*ServiceBroker, erro
 
 func checkIfPlanidExist(client osclient.Interface, planId string) (bool, *backingserviceapi.BackingService, error) {
 
-	items, err := client.BackingServices("openshift").List(labels.Everything(), fields.Everything())
+	items, err := client.BackingServices("openshift").List(kapi.ListOptions{})
 
 	if err != nil {
 		return false, nil, err

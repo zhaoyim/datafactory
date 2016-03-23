@@ -31,6 +31,6 @@ fi
 
 os::build::build_binaries "$@"
 os::build::place_bins "$@"
-os::build::make_openshift_binary_symlinks
+#os::build::make_openshift_binary_symlinks
 
 ret=$?; ENDTIME=$(date +%s); echo "$0 took $(($ENDTIME - $STARTTIME)) seconds"; exit "$ret"

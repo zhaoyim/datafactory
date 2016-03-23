@@ -120,6 +120,11 @@ func (c *Fake) Actions() []ktestclient.Action {
 
 var _ client.Interface = &Fake{}
 
+// Projects provides a fake REST client for ServiceBrokers
+func (c *Fake) ServiceBrokers() client.ServiceBrokerInterface {
+	return &FakeServiceBrokers{Fake: c}
+}
+
 // Builds provides a fake REST client for Builds
 func (c *Fake) Builds(namespace string) client.BuildInterface {
 	return &FakeBuilds{Fake: c, Namespace: namespace}

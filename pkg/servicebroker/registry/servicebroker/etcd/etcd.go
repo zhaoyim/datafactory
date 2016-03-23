@@ -10,7 +10,7 @@ import (
 	"k8s.io/kubernetes/pkg/watch"
 
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
-	servicebroker "github.com/openshift/origin/pkg/servicebroker/registry/servicebroker"
+	"github.com/openshift/origin/pkg/servicebroker/registry/servicebroker"
 	"k8s.io/kubernetes/pkg/runtime"
 	"k8s.io/kubernetes/pkg/api/unversioned"
 )
@@ -41,7 +41,8 @@ func NewREST(s storage.Interface) *REST {
 		PredicateFunc: func(label labels.Selector, field fields.Selector) generic.Matcher {
 			return servicebroker.Matcher(label, field)
 		},
-		EndpointName: "servicebroker",
+
+		QualifiedResource: servicebrokerapi.Resource("servicebroker"),
 
 		CreateStrategy: servicebroker.SbStrategy,
 		UpdateStrategy: servicebroker.SbStrategy,
@@ -68,8 +69,8 @@ func (r *REST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
 	return r.store.Get(ctx, name)
 }
 
-func (r *REST) List(ctx kapi.Context, label labels.Selector, field fields.Selector) (runtime.Object, error) {
-	return r.store.List(ctx, label, field)
+func (r *REST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
+	return r.store.List(ctx, options)
 }
 
 // Create creates an image based on a specification.
@@ -107,6 +108,7 @@ func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions
 	return r.store.Delete(ctx, name, options)
 }
 
-func (r *REST) Watch(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
-	return r.store.Watch(ctx, label, field, resourceVersion)
+func (r *REST) Watch(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {
+	return r.store.Watch(ctx,options)
+
 }

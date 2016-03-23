@@ -6,9 +6,9 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/registry/generic"
 	"k8s.io/kubernetes/pkg/runtime"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
-
+	"k8s.io/kubernetes/pkg/util/validation/field"
 	"github.com/openshift/origin/pkg/backingservice/api"
+	"github.com/openshift/origin/pkg/backingservice/api/validation"
 )
 
 // sdnStrategy implements behavior for HostSubnets
@@ -19,6 +19,7 @@ type Strategy struct {
 // Strategy is the default logic that applies when creating and updating HostSubnet
 // objects via the REST API.
 var BsStrategy = Strategy{kapi.Scheme}
+func (Strategy) Canonicalize(obj runtime.Object) {}
 
 func (Strategy) PrepareForUpdate(obj, old runtime.Object) {}
 
@@ -35,8 +36,9 @@ func (Strategy) PrepareForCreate(obj runtime.Object) {
 }
 
 // Validate validates a new sdn
-func (Strategy) Validate(ctx kapi.Context, obj runtime.Object) fielderrors.ValidationErrorList {
-	return fielderrors.ValidationErrorList{}
+func (Strategy) Validate(ctx kapi.Context, obj runtime.Object) field.ErrorList {
+	bs:=obj.(*api.BackingService)
+	return validation.ValidateBackingService(bs)
 }
 
 // AllowCreateOnUpdate is false for sdns
@@ -49,8 +51,9 @@ func (Strategy) AllowUnconditionalUpdate() bool {
 }
 
 // ValidateUpdate is the default update validation for a HostSubnet
-func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) fielderrors.ValidationErrorList {
-	return fielderrors.ValidationErrorList{}
+func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.ErrorList {
+
+	return validation.ValidateBackingServiceUpdate(obj.(*api.BackingService), old.(*api.BackingService))
 }
 
 // Matcher returns a generic matcher for a given label and field selector.

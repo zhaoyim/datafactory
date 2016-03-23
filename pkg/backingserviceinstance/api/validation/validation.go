@@ -4,7 +4,7 @@ import (
 	oapi "github.com/openshift/origin/pkg/api"
 	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
 	"k8s.io/kubernetes/pkg/api/validation"
-	"k8s.io/kubernetes/pkg/util/fielderrors"
+	"k8s.io/kubernetes/pkg/util/validation/field"
 )
 
 func BackingServiceInstanceName(name string, prefix bool) (bool, string) {
@@ -20,17 +20,16 @@ func BackingServiceInstanceName(name string, prefix bool) (bool, string) {
 }
 
 // ValidateBackingServiceInstance tests required fields for a BackingServiceInstance.
-func ValidateBackingServiceInstance(bsi *backingserviceinstanceapi.BackingServiceInstance) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMeta(&bsi.ObjectMeta, true, BackingServiceInstanceName).Prefix("metadata")...)
+func ValidateBackingServiceInstance(bsi *backingserviceinstanceapi.BackingServiceInstance) field.ErrorList {
+
+	allErrs := validation.ValidateObjectMeta(&bsi.ObjectMeta, true, BackingServiceInstanceName, field.NewPath("metadata"))
 	//allErrs = append(allErrs, validateBuildSpec(&build.Spec).Prefix("spec")...)
 	return allErrs
 }
 
 // ValidateBuildRequest validates a BuildRequest object
-func ValidateBackingServiceInstanceUpdate(bsi *backingserviceinstanceapi.BackingServiceInstance, older *backingserviceinstanceapi.BackingServiceInstance) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMetaUpdate(&bsi.ObjectMeta, &older.ObjectMeta).Prefix("metadata")...)
+func ValidateBackingServiceInstanceUpdate(bsi *backingserviceinstanceapi.BackingServiceInstance, older *backingserviceinstanceapi.BackingServiceInstance) field.ErrorList {
+	allErrs := validation.ValidateObjectMetaUpdate(&bsi.ObjectMeta, &older.ObjectMeta, field.NewPath("metadata"))
 
 	allErrs = append(allErrs, ValidateBackingServiceInstance(bsi)...)
 
@@ -49,9 +48,8 @@ func ValidateBackingServiceInstanceUpdate(bsi *backingserviceinstanceapi.Backing
 //	return allErrs
 //}
 
-func ValidateBackingServiceInstanceBindingRequestOptions(o *backingserviceinstanceapi.BindingRequestOptions) fielderrors.ValidationErrorList {
-	allErrs := fielderrors.ValidationErrorList{}
-	allErrs = append(allErrs, validation.ValidateObjectMeta(&o.ObjectMeta, true, oapi.MinimalNameRequirements).Prefix("metadata")...)
+func ValidateBackingServiceInstanceBindingRequestOptions(o *backingserviceinstanceapi.BindingRequestOptions) field.ErrorList {
+	allErrs := validation.ValidateObjectMeta(&o.ObjectMeta, true, oapi.MinimalNameRequirements, field.NewPath("metadata"))
 	return allErrs
 }
 

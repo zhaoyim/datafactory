@@ -506,11 +506,13 @@ function truncate_large_logs() {
 	# Clean up large log files so they don't end up on jenkins
 	local large_files=$(find "${ARTIFACT_DIR}" "${LOG_DIR}" -type f -name '*.log' \( -size +20M \))
 	for file in ${large_files}; do
-		cp "${file}" "${file}.tmp"
-		echo "LOGFILE TOO LONG, PREVIOUS BYTES TRUNCATED. LAST 20M BYTES OF LOGFILE:" > "${file}"
-		tail -c 20M "${file}.tmp" >> "${file}"
-		rm "${file}.tmp"
-	done
+        if [[ -n "${file}"  ]]; then
+            cp "${file}" "${file}.tmp"
+            echo "LOGFILE TOO LONG, PREVIOUS BYTES TRUNCATED. LAST 20M BYTES OF LOGFILE:" > "${file}"
+            tail -c 20M "${file}.tmp" >> "${file}"
+            rm "${file}.tmp"
+        fi
+    done
 }
 
 ######

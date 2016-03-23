@@ -1,9 +1,8 @@
 package client
 
 import (
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/watch"
+	kapi "k8s.io/kubernetes/pkg/api"
 
 	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
 
@@ -20,8 +19,8 @@ type BackingServiceInstanceInterface interface {
 	Delete(name string) error
 	Update(p *backingserviceinstanceapi.BackingServiceInstance) (*backingserviceinstanceapi.BackingServiceInstance, error)
 	Get(name string) (*backingserviceinstanceapi.BackingServiceInstance, error)
-	List(label labels.Selector, field fields.Selector) (*backingserviceinstanceapi.BackingServiceInstanceList, error)
-	Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
+	List(opts kapi.ListOptions) (*backingserviceinstanceapi.BackingServiceInstanceList, error)
+	Watch(opts kapi.ListOptions) (watch.Interface, error)
 
 	CreateBinding(name string, request *backingserviceinstanceapi.BindingRequestOptions) (err error)
 	UpdateBinding(name string, request *backingserviceinstanceapi.BindingRequestOptions) (err error)
@@ -54,13 +53,12 @@ func (c *backingserviceinstances) Get(name string) (result *backingserviceinstan
 }
 
 // List returns all backingserviceinstances matching the label selector
-func (c *backingserviceinstances) List(label labels.Selector, field fields.Selector) (result *backingserviceinstanceapi.BackingServiceInstanceList, err error) {
+func (c *backingserviceinstances) List(opts kapi.ListOptions) (result *backingserviceinstanceapi.BackingServiceInstanceList, err error) {
 	result = &backingserviceinstanceapi.BackingServiceInstanceList{}
 	err = c.r.Get().
 		Namespace(c.ns).
 		Resource("backingserviceinstances").
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Do().
 		Into(result)
 	return
@@ -103,14 +101,12 @@ func (c *backingserviceinstances) Delete(name string) (err error) {
 }
 
 // Watch returns a watch.Interface that watches the requested backingserviceinstances
-func (c *backingserviceinstances) Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
+func (c *backingserviceinstances) Watch(opts kapi.ListOptions) (watch.Interface, error) {
 	return c.r.Get().
 		Prefix("watch").
 		Namespace(c.ns).
 		Resource("backingserviceinstances").
-		Param("resourceVersion", resourceVersion).
-		LabelsSelectorParam(label).
-		FieldsSelectorParam(field).
+		VersionedParams(&opts, kapi.ParameterCodec).
 		Watch()
 }
 

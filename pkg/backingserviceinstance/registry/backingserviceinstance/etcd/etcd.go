@@ -59,7 +59,8 @@ func NewREST(s storage.Interface) *REST {
 		PredicateFunc: func(label labels.Selector, field fields.Selector) generic.Matcher {
 			return backingserviceinstanceregistry.Matcher(label, field)
 		},
-		EndpointName: "backingserviceinstance",
+		QualifiedResource: backingserviceinstanceapi.Resource("backingserviceinstance"),
+
 
 		CreateStrategy: backingserviceinstanceregistry.BsiStrategy,
 		UpdateStrategy: backingserviceinstanceregistry.BsiStrategy,
@@ -84,8 +85,8 @@ func (r *REST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
 	return r.store.Get(ctx, name)
 }
 
-func (r *REST) List(ctx kapi.Context, label labels.Selector, field fields.Selector) (runtime.Object, error) {
-	return r.store.List(ctx, label, field)
+func (r *REST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
+	return r.store.List(ctx,options)
 }
 
 func (r *REST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error) {
@@ -125,8 +126,8 @@ func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions
 	return r.store.Delete(ctx, name, options)
 }
 
-func (r *REST) Watch(ctx kapi.Context, label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
-	return r.store.Watch(ctx, label, field, resourceVersion)
+func (r *REST) Watch(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {
+	return r.store.Watch(ctx, options)
 }
 
 //============================================

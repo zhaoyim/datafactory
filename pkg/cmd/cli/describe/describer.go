@@ -14,6 +14,18 @@ import (
 
 	"github.com/docker/docker/pkg/parsers"
 	kapi "k8s.io/kubernetes/pkg/api"
+
+	applicationapi "github.com/openshift/origin/pkg/application/api"
+	authorizationapi "github.com/openshift/origin/pkg/authorization/api"
+	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
+	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
+	buildapi "github.com/openshift/origin/pkg/build/api"
+	buildutil "github.com/openshift/origin/pkg/build/util"
+	"github.com/openshift/origin/pkg/client"
+	deployapi "github.com/openshift/origin/pkg/deploy/api"
+	imageapi "github.com/openshift/origin/pkg/image/api"
+	projectapi "github.com/openshift/origin/pkg/project/api"
+	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 	kerrs "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/api/meta"
 	"k8s.io/kubernetes/pkg/api/unversioned"
@@ -22,14 +34,6 @@ import (
 	"k8s.io/kubernetes/pkg/runtime"
 	"k8s.io/kubernetes/pkg/util/sets"
 
-	authorizationapi "github.com/openshift/origin/pkg/authorization/api"
-	buildapi "github.com/openshift/origin/pkg/build/api"
-	buildutil "github.com/openshift/origin/pkg/build/util"
-	"github.com/openshift/origin/pkg/client"
-	deployapi "github.com/openshift/origin/pkg/deploy/api"
-	imageapi "github.com/openshift/origin/pkg/image/api"
-	projectapi "github.com/openshift/origin/pkg/project/api"
-
 	routeapi "github.com/openshift/origin/pkg/route/api"
 	templateapi "github.com/openshift/origin/pkg/template/api"
 	userapi "github.com/openshift/origin/pkg/user/api"
@@ -37,28 +41,32 @@ import (
 
 func describerMap(c *client.Client, kclient kclient.Interface, host string) map[unversioned.GroupKind]kctl.Describer {
 	m := map[unversioned.GroupKind]kctl.Describer{
-		buildapi.Kind("Build"):                        &BuildDescriber{c, kclient},
-		buildapi.Kind("BuildConfig"):                  &BuildConfigDescriber{c, host},
-		deployapi.Kind("DeploymentConfig"):            NewDeploymentConfigDescriber(c, kclient),
-		authorizationapi.Kind("Identity"):             &IdentityDescriber{c},
-		imageapi.Kind("Image"):                        &ImageDescriber{c},
-		imageapi.Kind("ImageStream"):                  &ImageStreamDescriber{c, kclient},
-		imageapi.Kind("ImageStreamTag"):               &ImageStreamTagDescriber{c},
-		imageapi.Kind("ImageStreamImage"):             &ImageStreamImageDescriber{c},
-		routeapi.Kind("Route"):                        &RouteDescriber{c, kclient},
-		projectapi.Kind("Project"):                    &ProjectDescriber{c, kclient},
-		templateapi.Kind("Template"):                  &TemplateDescriber{c, meta.NewAccessor(), kapi.Scheme, nil},
-		authorizationapi.Kind("Policy"):               &PolicyDescriber{c},
-		authorizationapi.Kind("PolicyBinding"):        &PolicyBindingDescriber{c},
-		authorizationapi.Kind("RoleBinding"):          &RoleBindingDescriber{c},
-		authorizationapi.Kind("Role"):                 &RoleDescriber{c},
-		authorizationapi.Kind("ClusterPolicy"):        &ClusterPolicyDescriber{c},
-		authorizationapi.Kind("ClusterPolicyBinding"): &ClusterPolicyBindingDescriber{c},
-		authorizationapi.Kind("ClusterRoleBinding"):   &ClusterRoleBindingDescriber{c},
-		authorizationapi.Kind("ClusterRole"):          &ClusterRoleDescriber{c},
-		userapi.Kind("User"):                          &UserDescriber{c},
-		userapi.Kind("Group"):                         &GroupDescriber{c.Groups()},
-		userapi.Kind("UserIdentityMapping"):           &UserIdentityMappingDescriber{c},
+		applicationapi.Kind("Application"):                       &ApplicationDescriber{c, kclient},
+		servicebrokerapi.Kind("ServiceBroker"):                   &ServiceBrokerDescriber{c},
+		backingserviceapi.Kind("BackingService"):                 &BackingServiceDescriber{c, kclient},
+		backingserviceinstanceapi.Kind("BackingServiceInstance"): &BackingServiceInstanceDescriber{c, kclient},
+		buildapi.Kind("Build"):                                   &BuildDescriber{c, kclient},
+		buildapi.Kind("BuildConfig"):                             &BuildConfigDescriber{c, host},
+		deployapi.Kind("DeploymentConfig"):                       NewDeploymentConfigDescriber(c, kclient),
+		authorizationapi.Kind("Identity"):                        &IdentityDescriber{c},
+		imageapi.Kind("Image"):                                   &ImageDescriber{c},
+		imageapi.Kind("ImageStream"):                             &ImageStreamDescriber{c, kclient},
+		imageapi.Kind("ImageStreamTag"):                          &ImageStreamTagDescriber{c},
+		imageapi.Kind("ImageStreamImage"):                        &ImageStreamImageDescriber{c},
+		routeapi.Kind("Route"):                                   &RouteDescriber{c, kclient},
+		projectapi.Kind("Project"):                               &ProjectDescriber{c, kclient},
+		templateapi.Kind("Template"):                             &TemplateDescriber{c, meta.NewAccessor(), kapi.Scheme, nil},
+		authorizationapi.Kind("Policy"):                          &PolicyDescriber{c},
+		authorizationapi.Kind("PolicyBinding"):                   &PolicyBindingDescriber{c},
+		authorizationapi.Kind("RoleBinding"):                     &RoleBindingDescriber{c},
+		authorizationapi.Kind("Role"):                            &RoleDescriber{c},
+		authorizationapi.Kind("ClusterPolicy"):                   &ClusterPolicyDescriber{c},
+		authorizationapi.Kind("ClusterPolicyBinding"):            &ClusterPolicyBindingDescriber{c},
+		authorizationapi.Kind("ClusterRoleBinding"):              &ClusterRoleBindingDescriber{c},
+		authorizationapi.Kind("ClusterRole"):                     &ClusterRoleDescriber{c},
+		userapi.Kind("User"):                                     &UserDescriber{c},
+		userapi.Kind("Group"):                                    &GroupDescriber{c.Groups()},
+		userapi.Kind("UserIdentityMapping"):                      &UserIdentityMappingDescriber{c},
 	}
 	return m
 }
@@ -82,6 +90,296 @@ func DescriberFor(kind unversioned.GroupKind, c *client.Client, kclient kclient.
 		return f, true
 	}
 	return nil, false
+}
+
+// BackingServiceDescriber generates information about a Image
+type ServiceBrokerDescriber struct {
+	client.Interface
+}
+
+// Describe returns the description of an image
+func (d *ServiceBrokerDescriber) Describe(namespace, name string) (string, error) {
+	c := d.ServiceBrokers()
+	bs, err := c.Get(name)
+	if err != nil {
+		return "", err
+	}
+
+	return describeServiceBroker(bs)
+}
+
+func describeServiceBroker(sb *servicebrokerapi.ServiceBroker) (string, error) {
+	return tabbedString(func(out *tabwriter.Writer) error {
+		formatMeta(out, sb.ObjectMeta)
+		formatString(out, "Url", sb.Spec.Url)
+		formatString(out, "Username", sb.Spec.UserName)
+		formatString(out, "Password", sb.Spec.Password)
+		formatString(out, "Status", sb.Status.Phase)
+		return nil
+	})
+}
+
+// BackingServiceDescriber generates information about a Image
+type BackingServiceDescriber struct {
+	osClient   client.Interface
+	kubeClient kclient.Interface
+}
+
+// Describe returns the description of an backingService
+func (d *BackingServiceDescriber) Describe(namespace, name string) (string, error) {
+	c := d.osClient.BackingServices(namespace)
+	bs, err := c.Get(name)
+	if err != nil {
+		return "", err
+	}
+
+	events, err := d.kubeClient.Events(namespace).Search(bs)
+
+	if events == nil {
+		events = &kapi.EventList{}
+	}
+
+	return describeBackingService(bs, events)
+}
+
+func describeBackingService(bs *backingserviceapi.BackingService, events *kapi.EventList) (string, error) {
+	return tabbedString(func(out *tabwriter.Writer) error {
+		formatMeta(out, bs.ObjectMeta)
+		formatString(out, "Description", bs.Spec.Description)
+		formatString(out, "Status", bs.Status.Phase)
+		formatString(out, "Bindable", bs.Spec.Bindable)
+		formatString(out, "Updateable", bs.Spec.PlanUpdateable)
+		for k, v := range bs.Spec.Metadata {
+			if "imageurl" == strings.ToLower(k) {
+				continue
+			} else {
+				formatString(out, k, v)
+			}
+		}
+		for k, v := range bs.Spec.DashboardClient {
+			formatString(out, "Service"+k, v)
+		}
+		for _, plan := range bs.Spec.Plans {
+			fmt.Fprintln(out, "────────────────────")
+			formatString(out, "Plan", plan.Name)
+
+			formatString(out, "PlanID", plan.Id)
+			formatString(out, "PlanDesc", plan.Description)
+			formatString(out, "PlanFree", plan.Free)
+			fmt.Fprintf(out, "Bullets:\n")
+			for _, bullet := range plan.Metadata.Bullets {
+				fmt.Fprintf(out, "  %s\n", bullet)
+			}
+			//formatString(out,"PlanBullets",strings.Join(plan.Metadata.Bullets,","))
+			fmt.Fprintf(out, "PlanCosts:\n")
+			for _, cost := range plan.Metadata.Costs {
+				fmt.Fprintf(out, "  CostUnit:\t%s\n", cost.Unit)
+				fmt.Fprintf(out, "  Amount:\n")
+				for k, v := range cost.Amount {
+					fmt.Fprintf(out, "    %v: %v\n", k, v)
+				}
+			}
+
+		}
+
+		kctl.DescribeEvents(events, out)
+		return nil
+	})
+}
+
+type ApplicationDescriber struct {
+	osClient   client.Interface
+	kubeClient kclient.Interface
+}
+
+func (appDescriber *ApplicationDescriber) Describe(namespace, name string) (string, error) {
+	a := appDescriber.osClient.Applications(namespace)
+	application, err := a.Get(name)
+	if err != nil {
+		return "", err
+	}
+
+	itemDescriberStr := "\n"
+	itemDescriberStr += printItem("Object Type", "Name", "Create Time")
+
+	var itemCreateTime string
+	for _, item := range application.Spec.Items {
+		switch item.Kind {
+		case "Build":
+			b, _ := appDescriber.osClient.Builds(application.Namespace).Get(item.Name)
+			itemCreateTime = b.CreationTimestamp.String()
+
+		case "BuildConfig":
+			bc, _ := appDescriber.osClient.BuildConfigs(application.Namespace).Get(item.Name)
+
+			itemCreateTime = bc.CreationTimestamp.String()
+
+		case "DeploymentConfig":
+			dc, _ := appDescriber.osClient.DeploymentConfigs(application.Namespace).Get(item.Name)
+
+			itemCreateTime = dc.CreationTimestamp.String()
+
+		case "ImageStream":
+			is, _ := appDescriber.osClient.ImageStreams(application.Namespace).Get(item.Name)
+
+			itemCreateTime = is.CreationTimestamp.String()
+
+		case "ImageStreamTag":
+		//	is := appDescriber.Interface.ImageStreams(application.Namespace).Get(item.Name)
+		//	itemCreateTime = is.CreationTimestamp.String()
+		//	itemStatus = is.Status.Phase
+		//if ist, err := c.Client.ImageStreamTags(app.Namespace).Get(item.Name); ist != nil {
+		//	return err
+		//} else {
+		//	ist.Labels[applicationapi.ApplicationSelector] = app.Name
+		//}
+
+		case "ImageStreamImage":
+		//if isi, err := c.Client.ImageStreamImages(app.Namespace).Get(item.Name); isi != nil {
+		//	return err
+		//} else {
+		//	isi.Labels[applicationapi.ApplicationSelector] = app.Name
+		//}
+
+		case "Event":
+			e, _ := appDescriber.kubeClient.Events(application.Namespace).Get(item.Name)
+			itemCreateTime = e.CreationTimestamp.String()
+
+		case "Node":
+			n, _ := appDescriber.kubeClient.Nodes().Get(item.Name)
+			itemCreateTime = n.CreationTimestamp.String()
+
+		case "Job":
+
+		case "Pod":
+			p, _ := appDescriber.kubeClient.Pods(application.Namespace).Get(item.Name)
+			itemCreateTime = p.CreationTimestamp.String()
+
+		case "ReplicationController":
+			r, _ := appDescriber.kubeClient.ReplicationControllers(application.Namespace).Get(item.Name)
+			itemCreateTime = r.CreationTimestamp.String()
+
+		case "Service":
+			s, _ := appDescriber.kubeClient.Services(application.Namespace).Get(item.Name)
+			itemCreateTime = s.CreationTimestamp.String()
+
+		case "PersistentVolume":
+			pv, _ := appDescriber.kubeClient.PersistentVolumes().Get(item.Name)
+			itemCreateTime = pv.CreationTimestamp.String()
+
+		case "PersistentVolumeClaim":
+			pvc, _ := appDescriber.kubeClient.PersistentVolumeClaims(application.Namespace).Get(item.Name)
+			itemCreateTime = pvc.CreationTimestamp.String()
+
+		case "ServiceBroker":
+			sb, _ := appDescriber.osClient.ServiceBrokers().Get(item.Name)
+			itemCreateTime = sb.CreationTimestamp.String()
+
+		case "BackingService":
+			bs, _ := appDescriber.osClient.BackingServices(namespace).Get(item.Name)
+			itemCreateTime = bs.CreationTimestamp.String()
+
+		case "BackingServiceInstance":
+			bsi, _ := appDescriber.osClient.BackingServiceInstances(application.Namespace).Get(item.Name)
+			itemCreateTime = bsi.CreationTimestamp.String()
+		}
+
+		itemDescriberStr += printItem(item.Kind, item.Name, itemCreateTime)
+	}
+
+	return describeApplication(application, itemDescriberStr)
+}
+
+func describeApplication(app *applicationapi.Application, itemStr string) (string, error) {
+
+	return tabbedString(func(out *tabwriter.Writer) error {
+		formatString(out, "Name", app.Name)
+		formatString(out, "Namespace", app.Namespace)
+		formatString(out, "Labels", formatLabels(app.Labels))
+		formatTime(out, "Create Time", app.ObjectMeta.CreationTimestamp.Time)
+		//formatTime(out, "Delete Time", app.ObjectMeta.DeletionTimestamp.Time.String())
+		//todo 查看 DeletionTimestamp 如何生成
+		formatString(out, "Items", itemStr)
+		formatString(out, "Status", app.Status.Phase)
+		formatString(out, "Event", "todo")
+		//todo 查看Event 如何输出
+		return nil
+	})
+}
+
+// BackingServiceInstanceDescriber generates information about a Image
+type BackingServiceInstanceDescriber struct {
+	osClient   client.Interface
+	kubeClient kclient.Interface
+}
+
+// Describe returns the description of an backingServiceinstance
+func (d *BackingServiceInstanceDescriber) Describe(namespace, name string) (string, error) {
+	c := d.osClient.BackingServiceInstances(namespace)
+	bsi, err := c.Get(name)
+	if err != nil {
+		return "", err
+	}
+
+	events, err := d.kubeClient.Events(namespace).Search(bsi)
+	if events == nil {
+		events = &kapi.EventList{}
+	}
+
+	return describeBackingServiceInstance(bsi, events)
+}
+
+func describeBackingServiceInstance(bsi *backingserviceinstanceapi.BackingServiceInstance, events *kapi.EventList) (string, error) {
+	return tabbedString(func(out *tabwriter.Writer) error {
+		formatMeta(out, bsi.ObjectMeta)
+		formatString(out, "Status", bsi.Status.Phase)
+		formatString(out, "DashboardUrl", bsi.Spec.DashboardUrl)
+		formatString(out, "BackingServiceName", bsi.Spec.BackingServiceName)
+		formatString(out, "BackingServicePlanName", bsi.Spec.BackingServicePlanName)
+		formatString(out, "BackingServicePlanGuid", bsi.Spec.BackingServicePlanGuid)
+		fmt.Fprintf(out, "Parameters:\n")
+		for k, v := range bsi.Spec.Parameters {
+			formatString(out, k, v)
+		}
+		formatString(out, "Bound", bsi.Spec.Bound)
+		if bsi.Spec.Bound > 0 {
+			for _, bind := range bsi.Spec.Binding {
+				fmt.Fprintln(out, "────────────────────")
+				formatString(out, "BindUuid", bind.BindUuid)
+				formatString(out, "BindDeploymentConfig", bind.BindDeploymentConfig)
+				formatString(out, "Credentials", " ")
+
+				var keys []string
+				for k := range bind.Credentials {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+
+				for _, key := range keys {
+					formatString(out, key, bind.Credentials[key])
+				}
+
+				/*
+					formatString(out, "Uri", bind.Credentials["Uri"])
+					formatString(out, "Host", bind.Credentials["Host"])
+					formatString(out, "Port", bind.Credentials["Port"])
+					formatString(out, "Name", bind.Credentials["Name"])
+					formatString(out, "Vhost", bind.Credentials["Vhost"])
+					formatString(out, "Username", bind.Credentials["Username"])
+					formatString(out, "Password", bind.Credentials["Password"])
+				*/
+				/*
+					for k, v := range bind.Credentials {
+						formatString(out, k, v)
+					}
+				*/
+			}
+
+		}
+
+		kctl.DescribeEvents(events, out)
+		return nil
+	})
 }
 
 // BuildDescriber generates information about a build

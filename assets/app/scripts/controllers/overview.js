@@ -67,7 +67,7 @@ angular.module('openshiftConsole')
 
     $scope.labelSuggestions = {};
     $scope.alerts = $scope.alerts || {};
-    $scope.emptyMessage = "Loading...";
+    $scope.emptyMessage = "加载中...";
     $scope.renderOptions = $scope.renderOptions || {};
     // Wait until data loads before showing the toolbar.
     $scope.renderOptions.showToolbar = false;

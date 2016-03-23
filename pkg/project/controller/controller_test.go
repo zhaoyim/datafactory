@@ -40,6 +40,10 @@ func TestSyncNamespaceThatIsTerminating(t *testing.T) {
 
 	// TODO: we will expect a finalize namespace call after rebase
 	expectedActionSet := []ktestclient.Action{
+		ktestclient.NewListAction("applications", "", kapi.ListOptions{}),
+		ktestclient.NewListAction("backingservices", "", kapi.ListOptions{}),
+		ktestclient.NewListAction("backingserviceinstances", "", kapi.ListOptions{}),
+		ktestclient.NewListAction("servicebrokers", "", kapi.ListOptions{}),
 		ktestclient.NewListAction("buildconfigs", "", kapi.ListOptions{}),
 		ktestclient.NewListAction("policies", "", kapi.ListOptions{}),
 		ktestclient.NewListAction("imagestreams", "", kapi.ListOptions{}),

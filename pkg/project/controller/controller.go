@@ -26,6 +26,7 @@ func (e fatalError) Error() string { return "fatal error handling namespace: " +
 
 // Handle processes a namespace and deletes content in origin if its terminating
 func (c *NamespaceController) Handle(namespace *kapi.Namespace) (err error) {
+
 	// if namespace is not terminating, ignore it
 	if namespace.Status.Phase != kapi.NamespaceTerminating {
 		return nil
