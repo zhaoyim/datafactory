@@ -441,7 +441,7 @@ angular.module('openshiftConsole')
       }
       return 0;
     };
-  })
+  });
   .filter('truncate', function() {
     return function(str, charLimit, useWordBoundary, newlineLimit) {
       if (!str) {
@@ -467,7 +467,7 @@ angular.module('openshiftConsole')
         if (lastSpace !== -1) {
           truncated = truncated.substring(0, lastSpace);
         }
-      }
+      }      
 
       return truncated;
     };
