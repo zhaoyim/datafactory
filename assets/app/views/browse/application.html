@@ -1,87 +1,98 @@
-<div class="content">
-  <project-page>
-    <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
-    <alerts alerts="alerts"></alerts>
-    <div ng-if="!loaded">加载中...</div>
-    <div ng-if="app">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="tile">
-            <h1>
-              {{app.metadata.name}}
-              <div class="pull-right dropdown">
-                <a href="" class="dropdown-toggle resource-actions-dropdown" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
-                <ul class="dropdown-menu actions action-link">
-                  <li>
-                    <edit-link
-                      resource="app"
-                      kind="applications"
-                      alerts="alerts">
-                    </edit-link>
-                  </li>
-                  <li>
-                    <delete-link
-                      resource-type="application"
-                      resource-name="{{app.metadata.name}}"
-                      project-name="{{app.metadata.namespace}}"
-                      alerts="alerts">
-                    </delete-link>
-                  </li>
-                </ul>
-              </div>
-              <small class="meta">created <relative-timestamp timestamp="app.metadata.creationTimestamp"></relative-timestamp></small>
-            </h1>
-            <labels labels="app.metadata.labels" clickable="true" kind="applications" project-name="{{app.metadata.namespace}}" limit="3"></labels>
-            <div class="resource-details">
-              <h3>后端服务</h3>
+<project-header class="top-header"></project-header>
+<project-page>
 
-              <div class="service-table table-responsive">
-                <table class="table table-bordered table-hover table-mobile" ng-if="app.spec.items" style="max-width: 650px;">
-                  <thead>
-                  <tr>
-                    <th>名称</th>
-                    <th>类型</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="item in app.spec.items" ng-if="item.kind == 'BackingServiceInstance'">
-                    <td>
-                      <a href="project/{{projectName}}/browse/backingserviceinstances/{{item.name}}">{{item.name}}</a>
-                    </td>
-                    <td>
-                      {{item.kind}}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
+  <!-- Middle section -->
+  <div class="middle-section">
+    <div id="scrollable-content" class="middle-container has-scroll">
+      <div class="middle-header">
+        <div class="container-fluid">
+          <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
+          <alerts alerts="alerts"></alerts>
+          <div ng-if="!loaded">Loading...</div>
+        </div>
+      </div><!-- /middle-header-->
+      <div class="middle-content">
+        <div class="container-fluid">
+          <div ng-if="app" class="row">
+            <div class="col-md-12">
+              <div class="tile">
+                <h1>
+                  {{app.metadata.name}}
+                  <div class="pull-right dropdown">
+                    <a href="" class="dropdown-toggle resource-actions-dropdown" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
+                    <ul class="dropdown-menu actions action-link">
+                      <li>
+                        <edit-link
+                          resource="app"
+                          kind="applications"
+                          alerts="alerts">
+                        </edit-link>
+                      </li>
+                      <li>
+                        <delete-link
+                          resource-type="application"
+                          resource-name="{{app.metadata.name}}"
+                          project-name="{{app.metadata.namespace}}"
+                          alerts="alerts">
+                        </delete-link>
+                      </li>
+                    </ul>
+                  </div>
+                  <small class="meta">created <relative-timestamp timestamp="app.metadata.creationTimestamp"></relative-timestamp></small>
+                </h1>
+                <labels labels="app.metadata.labels" clickable="true" kind="applications" project-name="{{app.metadata.namespace}}" limit="3"></labels>
+                <div class="resource-details">
+                  <h3>后端服务</h3>
 
-              <h3>服务</h3>
+                  <div class="service-table table-responsive">
+                    <table class="table table-bordered table-hover table-mobile" ng-if="app.spec.items" style="max-width: 650px;">
+                      <thead>
+                      <tr>
+                        <th>名称</th>
+                        <th>类型</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr ng-repeat="item in app.spec.items" ng-if="item.kind == 'BackingServiceInstance'">
+                        <td>
+                          <a href="project/{{projectName}}/browse/backingserviceinstances/{{item.name}}">{{item.name}}</a>
+                        </td>
+                        <td>
+                          {{item.kind}}
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-              <div class="service-table table-responsive">
-                <table class="table table-bordered table-hover table-mobile" ng-if="app.spec.items" style="max-width: 650px;">
-                  <thead>
-                  <tr>
-                    <th>名称</th>
-                    <th>类型</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="item in app.spec.items" ng-if="item.kind == 'DeploymentConfig'">
-                    <td>
-                      <a href="project/{{projectName}}/browse/deployments/{{item.name}}">{{item.name}}</a>
-                    </td>
-                    <td>
-                      {{item.kind}}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div> <!-- /tile -->
-        </div> <!-- /col -->
-      </div> <!-- /row -->
-    </div>
-  </project-page>
-</div>
+                  <h3>服务</h3>
+
+                  <div class="service-table table-responsive">
+                    <table class="table table-bordered table-hover table-mobile" ng-if="app.spec.items" style="max-width: 650px;">
+                      <thead>
+                      <tr>
+                        <th>名称</th>
+                        <th>类型</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr ng-repeat="item in app.spec.items" ng-if="item.kind == 'DeploymentConfig'">
+                        <td>
+                          <a href="project/{{projectName}}/browse/deployments/{{item.name}}">{{item.name}}</a>
+                        </td>
+                        <td>
+                          {{item.kind}}
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div> <!-- /tile -->
+            </div> <!-- /col -->
+          </div>
+        </div>
+      </div><!-- /middle-content -->
+    </div><!-- /middle-container -->
+  </div><!-- /middle-section -->
+</project-page>
