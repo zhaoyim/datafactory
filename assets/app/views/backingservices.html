@@ -1,31 +1,47 @@
-<div class="container">
-  <div>
-    <div class="page-header page-header-bleed-right">
-      <h1>Backing Services</h1>
-    </div>
-    <alerts alerts="alerts"></alerts>
-    <table class="table table-bordered table-hover table-mobile">
-      <thead>
-      <tr>
-        <th>名称</th>
-        <th style="width: 70px;">版本号</th>
-        <th>描述</th>
-      </tr>
-      </thead>
-      <tbody ng-if="(backingservices | hashSize) == 0">
-      <tr><td colspan="5"><em>{{emptyMessage}}</em></td></tr>
-      </tbody>
-      <tbody ng-repeat="backingservice in backingservices | orderObjectsByDate : true">
-      <tr>
-        <td data-title="Name"><a ng-href="project/openshift/backingservices/{{backingservice.metadata.name}}">{{backingservice.spec.name}}</a></td>
-        <td data-title="version">
-          {{backingservice.apiVersion}}
-        </td>
-        <td data-title="description">
-          {{backingservice.spec.description}}
-        </td>
-      </tr>
-      </tbody>
-    </table>
+<default-header class="top-header"></default-header>
+<div class="wrap no-sidebar">
+  <div class="sidebar-left collapse navbar-collapse navbar-collapse-2">
+    <navbar-utility-mobile></navbar-utility-mobile>
   </div>
-</div>
+  <div class="middle">
+    <!-- Middle section -->
+    <div class="middle-section surface-shaded">
+      <div class="middle-container has-scroll">
+        <div class="middle-content">
+
+          <div class="container surface-shaded">
+
+            <div class="page-header page-header-bleed-right">
+              <h1>Backing Services</h1>
+            </div>
+            <alerts alerts="alerts"></alerts>
+            <table class="table table-bordered table-hover table-mobile">
+              <thead>
+              <tr>
+                <th>名称</th>
+                <th style="width: 70px;">版本号</th>
+                <th>描述</th>
+              </tr>
+              </thead>
+              <tbody ng-if="(backingservices | hashSize) == 0">
+              <tr><td colspan="5"><em>{{emptyMessage}}</em></td></tr>
+              </tbody>
+              <tbody ng-repeat="backingservice in backingservices | orderObjectsByDate : true">
+              <tr>
+                <td data-title="Name"><a ng-href="project/openshift/backingservices/{{backingservice.metadata.name}}">{{backingservice.spec.name}}</a></td>
+                <td data-title="version">
+                  {{backingservice.apiVersion}}
+                </td>
+                <td data-title="description">
+                  {{backingservice.spec.description}}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div><!-- /middle-content -->
+      </div><!-- /middle-container -->
+    </div><!-- /middle-section -->
+  </div><!-- /middle -->
+</div><!-- /wrap -->
