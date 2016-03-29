@@ -1,47 +1,51 @@
-<div class="content">
-  <project-page>
-  <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
-  <alerts alerts="alerts"></alerts>
-  <div ng-if="!loaded">Loading...</div>
-  <div ng-if="backingserviceinstance">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="tile">
-            <h1>{{backingserviceinstance.metadata.name}}
-             <small class="meta">created <relative-timestamp timestamp="backingserviceinstance.metadata.creationTimestamp"></relative-timestamp></small>
-               <div class="pull-right dropdown">
-                <a href="" class="dropdown-toggle resource-actions-dropdown" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
-                <ul class="dropdown-menu actions action-button">
-                <li>
-                  <edit-link
-                  resource="backingserviceinstances"
-                  kind="backingserviceinstances"
-                  alerts="alerts">
-                  </edit-link>
-                </li>
-                <li>
-                  <delete-link
-                  resource-type="backingserviceinstances"
-                  resource-name="{{backingserviceinstance.metadata.name}}"
-                  project-name="{{backingservice.metadata.namespace}}"
-                  alerts="alerts">
-                  </delete-link>
-                </li>
-                </ul>
+<project-header class="top-header"></project-header>
+<project-page>
+
+  <!-- Middle section -->
+  <div class="middle-section">
+    <div id="scrollable-content" class="middle-container has-scroll">
+      <div class="middle-header">
+        <div class="container-fluid">
+          <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
+          <alerts alerts="alerts"></alerts>
+          <div ng-if="!loaded">Loading...</div>
+        </div>
+      </div><!-- /middle-header-->
+      <div class="middle-content">
+        <div class="container-fluid">
+          <div class="row" ng-if="backingserviceinstance">
+            <div class="col-md-12">
+              <div class="tile">
+                <h1>{{backingserviceinstance.metadata.name}}
+                  <small class="meta">created <relative-timestamp timestamp="backingserviceinstance.metadata.creationTimestamp"></relative-timestamp></small>
+                  <div class="pull-right dropdown">
+                    <a href="" class="dropdown-toggle resource-actions-dropdown" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
+                    <ul class="dropdown-menu actions action-button">
+                      <li>
+                        <edit-link
+                          resource="backingserviceinstances"
+                          kind="backingserviceinstances"
+                          alerts="alerts">
+                        </edit-link>
+                      </li>
+                      <li>
+                        <delete-link
+                          resource-type="backingserviceinstances"
+                          resource-name="{{backingserviceinstance.metadata.name}}"
+                          project-name="{{backingservice.metadata.namespace}}"
+                          alerts="alerts">
+                        </delete-link>
+                      </li>
+                    </ul>
+                  </div>
+                </h1>
+                <ng-include src=" 'views/browse/_backing-service-instance-detail.html' "></ng-include>
+                <ng-include src=" 'views/browse/_backing-service-instance-binding-detail.html' "></ng-include>
               </div>
-            </h1>
-            <ng-include src=" 'views/browse/_backing-service-instance-detail.html' "></ng-include>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-12">
-        <div class="tile">
-        <ng-include src=" 'views/browse/_backing-service-instance-binding-detail.html' "></ng-include>
-        </div>
-      </div>
-    </div>
-  </project-page>
-</div>
+      </div><!-- /middle-content -->
+    </div><!-- /middle-container -->
+  </div><!-- /middle-section -->
+</project-page>

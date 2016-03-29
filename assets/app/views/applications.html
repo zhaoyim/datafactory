@@ -1,47 +1,60 @@
-<div class="content">
-  <project-page>
-    <div>
-      <div class="page-header page-header-bleed-right">
-        <h1>应用</h1>
-      </div>
-      <alerts alerts="alerts"></alerts>
-      <table class="table table-bordered table-hover table-mobile">
-        <thead>
-        <tr>
-          <th>应用名称</th>
-          <th>应用编排时间</th>
-          <th>服务个数</th>
-          <th>后端服务个数</th>
-        </tr>
-        </thead>
-        <tbody ng-if="(apps | hashSize) == 0">
-        <tr><td colspan="6"><em>{{emptyMessage}}</em></td></tr>
-        </tbody>
-        <tbody ng-repeat="app in apps | orderObjectsByDate : true">
-        <tr>
-          <td data-title="Name"><a href="{{app | navigateResourceURL}}">{{app.metadata.name}}</a></td>
-          <td data-title="CreationTime">
-            <relative-timestamp timestamp="app.metadata.creationTimestamp" drop-suffix="true"></relative-timestamp>
-          </td>
-          <td data-title="BackingserviceinstanceNum">
-            <a data-toggle="collapse" href="#instance-{{app.metadata.name}}">{{app.spec.items | serviceLenFilter: 'BackingServiceInstance'}}</a>
-            <div class="collapse" id="instance-{{app.metadata.name}}">
+<project-header class="top-header"></project-header>
+<project-page>
+
+  <!-- Middle section -->
+  <div class="middle-section">
+    <div id="scrollable-content" class="middle-container has-scroll">
+      <div class="middle-header header-light">
+        <div class="container-fluid">
+          <h1>应用</h1>
+          <alerts alerts="alerts"></alerts>
+        </div>
+      </div><!-- /middle-header-->
+      <div class="middle-content">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-12 gutter-top">
+              <table class="table table-bordered table-hover table-mobile">
+                <thead>
+                <tr>
+                  <th>应用名称</th>
+                  <th>应用编排时间</th>
+                  <th>服务个数</th>
+                  <th>后端服务个数</th>
+                </tr>
+                </thead>
+                <tbody ng-if="(apps | hashSize) == 0">
+                <tr><td colspan="6"><em>{{emptyMessage}}</em></td></tr>
+                </tbody>
+                <tbody ng-repeat="app in apps | orderObjectsByDate : true">
+                <tr>
+                  <td data-title="Name"><a href="{{app | navigateResourceURL}}">{{app.metadata.name}}</a></td>
+                  <td data-title="CreationTime">
+                    <relative-timestamp timestamp="app.metadata.creationTimestamp" drop-suffix="true"></relative-timestamp>
+                  </td>
+                  <td data-title="BackingserviceinstanceNum">
+                    <a data-toggle="collapse" href="#instance-{{app.metadata.name}}">{{app.spec.items | serviceLenFilter: 'BackingServiceInstance'}}</a>
+                    <div class="collapse" id="instance-{{app.metadata.name}}">
               <span ng-repeat="item in app.spec.items" ng-if="item.kind == 'BackingServiceInstance'">
                 <a ng-href="project/{{projectName}}/browse/backingserviceinstances/{{item.name}}">{{item.name}}</a><br>
               </span>
-            </div>
-          </td>
-          <td data-title="BackingserviceNum">
-            <a data-toggle="collapse" href="#service-{{app.metadata.name}}">{{app.spec.items | serviceLenFilter: 'DeploymentConfig'}}</a>
-            <div class="collapse" id="service-{{app.metadata.name}}">
+                    </div>
+                  </td>
+                  <td data-title="BackingserviceNum">
+                    <a data-toggle="collapse" href="#service-{{app.metadata.name}}">{{app.spec.items | serviceLenFilter: 'DeploymentConfig'}}</a>
+                    <div class="collapse" id="service-{{app.metadata.name}}">
               <span ng-repeat="item in app.spec.items" ng-if="item.kind == 'DeploymentConfig'">
                 <a ng-href="project/{{projectName}}/browse/deployments/{{item.name}}">{{item.name}}</a><br>
               </span>
-            </div>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </project-page>
-</div>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div><!-- /col-* -->
+          </div>
+        </div>
+      </div><!-- /middle-content -->
+    </div><!-- /middle-container -->
+  </div><!-- /middle-section -->
+</project-page>

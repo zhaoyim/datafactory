@@ -9,6 +9,7 @@
  */
 angular.module('openshiftConsole')
   .controller('BackingServiceInstanceController', function ($scope, $routeParams, $filter, AuthService, DataService,ProjectsService) {
+    $scope.projectName = $routeParams.project;
     $scope.emptyMessage = '没有数据';
     $scope.alerts = {};
     AuthService.withUser().then(function() {
