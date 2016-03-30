@@ -24,7 +24,7 @@ type BackingServiceInstanceInterface interface {
 
 	CreateBinding(name string, request *backingserviceinstanceapi.BindingRequestOptions) (err error)
 	UpdateBinding(name string, request *backingserviceinstanceapi.BindingRequestOptions) (err error)
-	DeleteBinding(name string) (err error)
+	//DeleteBinding(name string) (err error)
 }
 
 type backingserviceinstances struct {
@@ -125,6 +125,7 @@ func (c *backingserviceinstances) CreateBinding(name string, bro *backingservice
 
 // Unbind unbinds a backing service instance off an apps
 // and returns an error.
+/*
 func (c *backingserviceinstances) DeleteBinding(name string) (err error) {
 	err = c.r.Delete().
 		Namespace(c.ns).
@@ -135,6 +136,7 @@ func (c *backingserviceinstances) DeleteBinding(name string) (err error) {
 		Error()
 	return
 }
+*/
 
 func (c *backingserviceinstances) UpdateBinding(name string, bro *backingserviceinstanceapi.BindingRequestOptions) (err error) {
 	result := &backingserviceinstanceapi.BackingServiceInstance{}

@@ -1,9 +1,11 @@
 package testclient
 
 import (
+	kapi "k8s.io/kubernetes/pkg/api"
 	ktestclient "k8s.io/kubernetes/pkg/client/unversioned/testclient"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
+	//"k8s.io/kubernetes/pkg/fields"
+	//"k8s.io/kubernetes/pkg/labels"
+	"k8s.io/kubernetes/pkg/watch"
 
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 )
@@ -23,8 +25,8 @@ func (c *FakeBackingServices) Get(name string) (*backingserviceapi.BackingServic
 	return obj.(*backingserviceapi.BackingService), err
 }
 
-func (c *FakeBackingServices) List(label labels.Selector, field fields.Selector) (*backingserviceapi.BackingServiceList, error) {
-	obj, err := c.Fake.Invokes(ktestclient.NewRootListAction("backingservices", label, field), &backingserviceapi.BackingServiceList{})
+func (c *FakeBackingServices) List(opts kapi.ListOptions) (*backingserviceapi.BackingServiceList, error) {
+	obj, err := c.Fake.Invokes(ktestclient.NewRootListAction("backingservices", opts), &backingserviceapi.BackingServiceList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -53,4 +55,8 @@ func (c *FakeBackingServices) Update(inObj *backingserviceapi.BackingService) (*
 func (c *FakeBackingServices) Delete(name string) error {
 	_, err := c.Fake.Invokes(ktestclient.NewRootDeleteAction("backingservices", name), &backingserviceapi.BackingService{})
 	return err
+}
+
+func (c *FakeBackingServices) Watch(opts kapi.ListOptions) (watch.Interface, error) {
+	return c.Fake.InvokesWatch(ktestclient.NewRootWatchAction("backingservices", opts))
 }

@@ -134,7 +134,7 @@ func (o *NewBackingServiceInstanceOptions) Run(cmd *cobra.Command, f *clientcmd.
 //====================================================
 // edit
 //====================================================
-
+/*
 const (
 	editBackingServiceInstanceLong = `
 Edit a BackingServiceInstance
@@ -227,7 +227,7 @@ func (o *EditBackingServiceInstanceOptions) Run(cmd *cobra.Command, f *clientcmd
 
 	return nil
 }
-
+*/
 //====================================================
 // bind
 //====================================================

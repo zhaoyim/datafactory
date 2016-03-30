@@ -38,11 +38,14 @@ func (Strategy) GenerateName(base string) string {
 }
 
 func (Strategy) PrepareForCreate(obj runtime.Object) {
+	bsi := obj.(*api.BackingServiceInstance)
+	if len(bsi.Status.Phase) == 0 {
+		bsi.Status.Phase = api.BackingServiceInstancePhaseProvisioning
+	}
 }
 
 func (Strategy) Validate(ctx kapi.Context, obj runtime.Object) field.ErrorList {
-	bsi:=obj.(*api.BackingServiceInstance)
-	return validation.ValidateBackingServiceInstance(bsi)
+	return validation.ValidateBackingServiceInstance(obj.(*api.BackingServiceInstance))
 }
 
 // AllowCreateOnUpdate is false for sdns
@@ -61,9 +64,10 @@ func (Strategy) CheckGracefulDelete(obj runtime.Object, options *kapi.DeleteOpti
 
 // ValidateUpdate is the default update validation for a HostSubnet
 func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.ErrorList {
-	 oldbsi := old.(*api.BackingServiceInstance)
-	 bsi := obj.(*api.BackingServiceInstance)
-	 return validation.ValidateBackingServiceInstanceUpdate(bsi, oldbsi)
+	 //oldbsi := old.(*api.BackingServiceInstance)
+	 //bsi := obj.(*api.BackingServiceInstance)
+	 //return validation.ValidateBackingServiceInstanceUpdate(bsi, oldbsi)
+	 return validation.ValidateBackingServiceInstanceUpdate(obj.(*api.BackingServiceInstance), old.(*api.BackingServiceInstance))
 }
 
 // Matcher returns a generic matcher for a given label and field selector.

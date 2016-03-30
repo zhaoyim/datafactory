@@ -1,9 +1,11 @@
 package testclient
 
 import (
+	kapi "k8s.io/kubernetes/pkg/api"
 	ktestclient "k8s.io/kubernetes/pkg/client/unversioned/testclient"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
+	//"k8s.io/kubernetes/pkg/fields"
+	//"k8s.io/kubernetes/pkg/labels"
+	"k8s.io/kubernetes/pkg/watch"
 
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 )
@@ -23,8 +25,8 @@ func (c *FakeServiceBrokers) Get(name string) (*servicebrokerapi.ServiceBroker, 
 	return obj.(*servicebrokerapi.ServiceBroker), err
 }
 
-func (c *FakeServiceBrokers) List(label labels.Selector, field fields.Selector) (*servicebrokerapi.ServiceBrokerList, error) {
-	obj, err := c.Fake.Invokes(ktestclient.NewRootListAction("servicebroker", label, field), &servicebrokerapi.ServiceBrokerList{})
+func (c *FakeServiceBrokers) List(opts kapi.ListOptions) (*servicebrokerapi.ServiceBrokerList, error) {
+	obj, err := c.Fake.Invokes(ktestclient.NewRootListAction("servicebroker", opts), &servicebrokerapi.ServiceBrokerList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -53,4 +55,8 @@ func (c *FakeServiceBrokers) Update(inObj *servicebrokerapi.ServiceBroker) (*ser
 func (c *FakeServiceBrokers) Delete(name string) error {
 	_, err := c.Fake.Invokes(ktestclient.NewRootDeleteAction("servicebroker", name), &servicebrokerapi.ServiceBroker{})
 	return err
+}
+
+func (c *FakeServiceBrokers) Watch(opts kapi.ListOptions) (watch.Interface, error) {
+	return c.Fake.InvokesWatch(ktestclient.NewRootWatchAction("servicebroker", opts))
 }

@@ -96,6 +96,5 @@ func registerAll() {
 	Validator.MustRegister(&servicebrokerapi.ServiceBroker{}, servicebrokervalidation.ValidateServiceBroker, servicebrokervalidation.ValidateServiceBrokerUpdate)
 	Validator.MustRegister(&backingserviceapi.BackingService{}, backingservicevalidation.ValidateBackingService, backingservicevalidation.ValidateBackingServiceUpdate)
 	Validator.MustRegister(&backingserviceinstanceapi.BackingServiceInstance{}, backingserviceinstancevalidation.ValidateBackingServiceInstance, backingserviceinstancevalidation.ValidateBackingServiceInstanceUpdate)
-	//Validator.MustRegister(&backingserviceinstanceapi.BindingRequest{}, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequest, nil)
-	Validator.MustRegister(&backingserviceinstanceapi.BindingRequestOptions{}, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequestOptions, nil)
+	Validator.MustRegister(&backingserviceinstanceapi.BindingRequestOptions{}, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequestOptions, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequestOptionsUpdate)
 }
