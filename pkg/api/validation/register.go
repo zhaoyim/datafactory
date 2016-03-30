@@ -19,6 +19,7 @@ import (
 	templatevalidation "github.com/openshift/origin/pkg/template/api/validation"
 	uservalidation "github.com/openshift/origin/pkg/user/api/validation"
 	extvalidation "k8s.io/kubernetes/pkg/apis/extensions/validation"
+	applicationvalidation "github.com/openshift/origin/pkg/application/api/validation"
 
 	applicationapi "github.com/openshift/origin/pkg/application/api"
 	authorizationapi "github.com/openshift/origin/pkg/authorization/api"
@@ -102,4 +103,6 @@ func registerAll() {
 	Validator.MustRegister(&backingserviceinstanceapi.BackingServiceInstance{}, backingserviceinstancevalidation.ValidateBackingServiceInstance, backingserviceinstancevalidation.ValidateBackingServiceInstanceUpdate)
 	//Validator.MustRegister(&backingserviceinstanceapi.BindingRequest{}, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequest, nil)
 	Validator.MustRegister(&backingserviceinstanceapi.BindingRequestOptions{}, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequestOptions, nil)
+	Validator.MustRegister(&applicationapi.Application{}, applicationapi.ValidateApplicationProxy, applicationapi.ValidateApplicationUpdate)
 }
+
