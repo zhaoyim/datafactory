@@ -8,22 +8,30 @@ set -o nounset
 set -o pipefail
 
 # The root of the build/dist directory
-OS_ROOT=$(
+readonly OS_ROOT=$(
   unset CDPATH
   os_root=$(dirname "${BASH_SOURCE}")/..
+  
   cd "${os_root}"
-  pwd
+  os_root=`pwd`
+  if [ -h "${os_root}" ]; then
+    readlink "${os_root}"
+  else
+    pwd
+  fi
 )
 
-OS_OUTPUT_SUBPATH="${OS_OUTPUT_SUBPATH:-_output/local}"
-OS_OUTPUT="${OS_ROOT}/${OS_OUTPUT_SUBPATH}"
-#OS_OUTPUT=~/workspace/openshift/build
-OS_OUTPUT_BINPATH="${OS_OUTPUT}/bin"
-OS_LOCAL_BINPATH="${OS_OUTPUT}/go/bin"
-OS_LOCAL_RELEASEPATH="${OS_OUTPUT}/releases"
+readonly OS_OUTPUT_SUBPATH="${OS_OUTPUT_SUBPATH:-_output/local}"
+readonly OS_OUTPUT="${OS_ROOT}/${OS_OUTPUT_SUBPATH}"
+readonly OS_LOCAL_RELEASEPATH="${OS_OUTPUT}/releases"
+readonly OS_OUTPUT_BINPATH="${OS_OUTPUT}/bin"
 
 readonly OS_GO_PACKAGE=github.com/openshift/origin
-readonly OS_GOPATH="${OS_OUTPUT}/go"
+readonly OS_GOPATH=$(
+  unset CDPATH
+  cd ${OS_ROOT}/../../../..
+  pwd
+)
 
 readonly OS_IMAGE_COMPILE_PLATFORMS=(
   linux/amd64
@@ -125,6 +133,36 @@ os::build::host_platform() {
   echo "$(go env GOHOSTOS)/$(go env GOHOSTARCH)"
 }
 
+# Create a user friendly version of host_platform for end users
+os::build::host_platform_friendly() {
+  local platform=${1:-}
+  if [[ -z "${platform}" ]]; then
+    platform=$(os::build::host_platform)
+  fi
+  if [[ $platform == "windows/amd64" ]]; then
+    echo "windows"
+  elif [[ $platform == "darwin/amd64" ]]; then
+    echo "mac"
+  elif [[ $platform == "linux/386" ]]; then
+    echo "linux-32bit"
+  elif [[ $platform == "linux/amd64" ]]; then
+    echo "linux-64bit"
+  else
+    echo "$(go env GOHOSTOS)-$(go env GOHOSTARCH)"
+  fi
+}
+
+# Build static binary targets.
+#
+# Input:
+#   $@ - targets and go flags.  If no targets are set then all binaries targets
+#     are built.
+#   OS_BUILD_PLATFORMS - Incoming variable of targets to build for.  If unset
+#     then just the host architecture is built.
+os::build::build_static_binaries() {
+  CGO_ENABLED=0 os::build::build_binaries -a -installsuffix=cgo $@
+}
+
 # Build binaries targets specified
 #
 # Input:
@@ -156,13 +194,35 @@ os::build::build_binaries() {
 
     os::build::export_targets "$@"
 
+    local -a nonstatics=()
+    local -a tests=()
+    for binary in "${binaries[@]}"; do
+      if [[ "${binary}" =~ ".test"$ ]]; then
+        tests+=($binary)
+      else
+        nonstatics+=($binary)
+      fi
+    done
+
     local platform
     for platform in "${platforms[@]}"; do
       os::build::set_platform_envs "${platform}"
       echo "++ Building go targets for ${platform}:" "${targets[@]}"
-      go install "${goflags[@]:+${goflags[@]}}" \
+      if [[ ${#nonstatics[@]} -gt 0 ]]; then
+        go install "${goflags[@]:+${goflags[@]}}" \
+            -ldflags "${version_ldflags}" \
+            "${nonstatics[@]}"
+      fi
+
+      for test in "${tests[@]:+${tests[@]}}"; do
+        mkdir -p "${GOBIN}/${platform}"
+        local outfile="${GOBIN}/${platform}/$(basename ${test})"
+        go test -c -o "${outfile}" \
+          "${goflags[@]:+${goflags[@]}}" \
           -ldflags "${version_ldflags}" \
-          "${binaries[@]}"
+          "$(dirname ${test})"
+      done
+
       os::build::unset_platform_envs "${platform}"
     done
   )
@@ -211,25 +271,9 @@ os::build::unset_platform_envs() {
   unset GOARCH
 }
 
-# Create the GOPATH tree under $OS_ROOT
-os::build::create_gopath_tree() {
-  local go_pkg_dir="${OS_GOPATH}/src/${OS_GO_PACKAGE}"
-  local go_pkg_basedir=$(dirname "${go_pkg_dir}")
-
-  mkdir -p "${go_pkg_basedir}"
-  rm -f "${go_pkg_dir}"
-
-  # TODO: This symlink should be relative.
-  ln -s "${OS_ROOT}" "${go_pkg_dir}"
-}
-
 # os::build::setup_env will check that the `go` commands is available in
 # ${PATH}. If not running on Travis, it will also check that the Go version is
 # good enough for the Kubernetes build.
-#
-# Input Vars:
-#   OS_EXTRA_GOPATH - If set, this is included in created GOPATH
-#   OS_NO_GODEPS - If set, we don't add 'Godeps/_workspace' to GOPATH
 #
 # Output Vars:
 #   export GOPATH - A modified GOPATH to our created tree along with extra
@@ -237,8 +281,6 @@ os::build::create_gopath_tree() {
 #   export GOBIN - This is actively unset if already set as we want binaries
 #     placed in a predictable place.
 os::build::setup_env() {
-  os::build::create_gopath_tree
-
   if [[ -z "$(which go)" ]]; then
     cat <<EOF
 
@@ -247,6 +289,12 @@ See http://golang.org/doc/install for installation instructions.
 
 EOF
     exit 2
+  fi
+
+  if [[ -z "$(which sha256sum)" ]]; then
+    sha256sum() {
+      return 0
+    }
   fi
 
   # Travis continuous build uses a head go release that doesn't report
@@ -266,23 +314,35 @@ EOF
       exit 2
     fi
   fi
+  export GOBIN="${OS_OUTPUT_BINPATH}"
 
-  GOPATH=${OS_GOPATH}
+  # use the regular gopath for building
+  if [[ -z "${OS_OUTPUT_GOPATH:-}" ]]; then
+    export GOPATH=${OS_ROOT}/Godeps/_workspace:${OS_GOPATH}
+    return
+  fi
+
+  # create a local GOPATH in _output
+  GOPATH="${OS_OUTPUT}/go"
+  local go_pkg_dir="${GOPATH}/src/${OS_GO_PACKAGE}"
+  local go_pkg_basedir=$(dirname "${go_pkg_dir}")
+
+  mkdir -p "${go_pkg_basedir}"
+  rm -f "${go_pkg_dir}"
+
+  # TODO: This symlink should be relative.
+  ln -s "${OS_ROOT}" "${go_pkg_dir}"
 
   # Append OS_EXTRA_GOPATH to the GOPATH if it is defined.
   if [[ -n ${OS_EXTRA_GOPATH:-} ]]; then
     GOPATH="${GOPATH}:${OS_EXTRA_GOPATH}"
   fi
-
   # Append the tree maintained by `godep` to the GOPATH unless OS_NO_GODEPS
   # is defined.
   if [[ -z ${OS_NO_GODEPS:-} ]]; then
     GOPATH="${GOPATH}:${OS_ROOT}/Godeps/_workspace"
   fi
   export GOPATH
-
-  # Unset GOBIN in case it already exists in the current session.
-  unset GOBIN
 }
 
 # This will take $@ from $GOPATH/bin and copy them to the appropriate
@@ -318,7 +378,7 @@ os::build::place_bins() {
       fi
 
       # Skip this directory if the platform has no binaries.
-      local full_binpath_src="${OS_GOPATH}/bin${platform_src}"
+      local full_binpath_src="${OS_OUTPUT_BINPATH}${platform_src}"
       if [[ ! -d "${full_binpath_src}" ]]; then
         continue
       fi
@@ -336,9 +396,12 @@ os::build::place_bins() {
         fi
       done
 
-      # Move the specified release binaries to the shared OS_OUTPUT_BINPATH.
+      # Move the specified release binaries to the shared binary output directory.
       for binary in "${binaries[@]}"; do
-        mv "${full_binpath_src}/${binary}" "${OS_OUTPUT_BINPATH}/${platform}/"
+        path="${full_binpath_src}/${binary}"
+        if [[ -f "${path}" ]]; then
+          mv "${path}" "${OS_OUTPUT_BINPATH}/${platform}/"
+        fi
       done
 
       # If no release archive was requested, we're done.
@@ -406,6 +469,9 @@ os::build::archive_zip() {
   local archive_name="${archive_name:-$default_name}"
   echo "++ Creating ${archive_name}"
   for file in "$@"; do
+    pushd "${release_binpath}" &> /dev/null
+      sha256sum "${file}"
+    popd &>/dev/null
     zip "${OS_LOCAL_RELEASEPATH}/${archive_name}" -qj "${release_binpath}/${file}"
   done
 }
@@ -417,8 +483,68 @@ os::build::archive_tar() {
   local archive_name="${archive_name:-$default_name}"
   echo "++ Creating ${archive_name}"
   pushd "${release_binpath}" &> /dev/null
+  find . -type f -exec sha256sum {} \;
   tar -czf "${OS_LOCAL_RELEASEPATH}/${archive_name}" --transform="s,^\.,${base_name}," $@
   popd &>/dev/null
+}
+
+# Checks if the filesystem on a partition that the provided path points to is
+# supporting hard links.
+#
+# Input:
+#  $1 - the path where the hardlinks support test will be done.
+# Returns:
+#  0 - if hardlinks are supported
+#  non-zero - if hardlinks aren't supported
+os::build::is_hardlink_supported() {
+  local path="$1"
+  # Determine if FS supports hard links
+  local temp_file=$(TMPDIR="${path}" mktemp)
+  ln "${temp_file}" "${temp_file}.link" &> /dev/null && unlink "${temp_file}.link" || local supported=$?
+  rm -f "${temp_file}"
+  return ${supported:-0}
+}
+
+# Extract a tar.gz compressed archive in a given directory. If the
+# archive contains hardlinks and the underlying filesystem is not
+# supporting hardlinks then the a hard dereference will be done.
+#
+# Input:
+#   $1 - path to archive file
+#   $2 - directory where the archive will be extracted
+os::build::extract_tar() {
+  local archive_file="$1"
+  local change_dir="$2"
+
+  local tar_flags="--strip-components=1"
+
+  # Unpack archive
+  echo "++ Extracting $(basename ${archive_file})"
+  if os::build::is_hardlink_supported "${change_dir}" ; then
+    # Ensure that tar won't try to set an owner when extracting to an
+    # nfs mount. Setting ownership on an nfs mount is likely to fail
+    # even for root.
+    local mount_type=$(df -P -T "${change_dir}" | tail -n +2 | awk '{print $2}')
+    if [[ "${mount_type}" = "nfs" ]]; then
+      tar_flags="${tar_flags} --no-same-owner"
+    fi
+    tar mxzf "${archive_file}" ${tar_flags} -C "${change_dir}"
+  else
+    local temp_dir=$(TMPDIR=/dev/shm/ mktemp -d)
+    tar mxzf "${archive_file}" ${tar_flags} -C "${temp_dir}"
+    pushd "${temp_dir}" &> /dev/null
+    tar cO --hard-dereference * | tar xf - -C "${change_dir}"
+    popd &>/dev/null
+    rm -rf "${temp_dir}"
+  fi
+}
+
+# os::build::release_sha calculates a SHA256 checksum over the contents of the
+# built release directory.
+os::build::release_sha() {
+  pushd "${OS_LOCAL_RELEASEPATH}" &> /dev/null
+  sha256sum * > CHECKSUM
+  popd &> /dev/null
 }
 
 # os::build::make_openshift_binary_symlinks makes symlinks for the openshift
@@ -445,26 +571,33 @@ os::build::detect_local_release_tars() {
 
   if [[ ! -d "${OS_LOCAL_RELEASEPATH}" ]]; then
     echo "There are no release artifacts in ${OS_LOCAL_RELEASEPATH}"
-    exit 2
+    return 2
   fi
   if [[ ! -f "${OS_LOCAL_RELEASEPATH}/.commit" ]]; then
     echo "There is no release .commit identifier ${OS_LOCAL_RELEASEPATH}"
-    exit 2
+    return 2
   fi
-  local primary=$(find ${OS_LOCAL_RELEASEPATH} -maxdepth 1 -type f -name openshift-origin-server-*-${platform}*)
+  local primary=$(find ${OS_LOCAL_RELEASEPATH} -maxdepth 1 -type f -name openshift-origin-server-*-${platform}* \( -name *.tar.gz -or -name *.zip \))
   if [[ $(echo "${primary}" | wc -l) -ne 1 || -z "${primary}" ]]; then
     echo "There should be exactly one ${platform} server tar in $OS_LOCAL_RELEASEPATH"
-    exit 2
+    return 2
   fi
 
-  local image=$(find ${OS_LOCAL_RELEASEPATH} -maxdepth 1 -type f -name openshift-origin-image*-${platform}*)
+  local client=$(find ${OS_LOCAL_RELEASEPATH} -maxdepth 1 -type f -name openshift-origin-client-tools-*-${platform}* \( -name *.tar.gz -or -name *.zip \))
+  if [[ $(echo "${client}" | wc -l) -ne 1 || -z "${primary}" ]]; then
+    echo "There should be exactly one ${platform} client tar in $OS_LOCAL_RELEASEPATH"
+    return 2
+  fi
+
+  local image=$(find ${OS_LOCAL_RELEASEPATH} -maxdepth 1 -type f -name openshift-origin-image*-${platform}* \( -name *.tar.gz -or -name *.zip \))
   if [[ $(echo "${image}" | wc -l) -ne 1 || -z "${image}" ]]; then
     echo "There should be exactly one ${platform} image tar in $OS_LOCAL_RELEASEPATH"
-    exit 3
+    return 2
   fi
 
   export OS_PRIMARY_RELEASE_TAR="${primary}"
   export OS_IMAGE_RELEASE_TAR="${image}"
+  export OS_CLIENT_RELEASE_TAR="${client}"
   export OS_RELEASE_COMMIT="$(cat ${OS_LOCAL_RELEASEPATH}/.commit)"
 }
 
@@ -492,6 +625,7 @@ os::build::os_version_vars() {
         OS_GIT_TREE_STATE="dirty"
       fi
     fi
+    OS_GIT_SHORT_VERSION="${OS_GIT_COMMIT}"
 
     # Use git describe to find the version based on annotated tags.
     if [[ -n ${OS_GIT_VERSION-} ]] || OS_GIT_VERSION=$("${git[@]}" describe "${OS_GIT_COMMIT}^{commit}" 2>/dev/null); then
@@ -499,6 +633,7 @@ os::build::os_version_vars() {
         # git describe --dirty only considers changes to existing files, but
         # that is problematic since new untracked .go files affect the build,
         # so use our idea of "dirty" from git status instead.
+        OS_GIT_SHORT_VERSION+="-dirty"
         OS_GIT_VERSION+="-dirty"
       fi
 
