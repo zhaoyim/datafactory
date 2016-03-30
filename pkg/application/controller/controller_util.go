@@ -59,3 +59,11 @@ func hasItem(items api.ItemList, item api.Item) bool {
 
 	return false
 }
+
+func getItemErrEventReason(appStatus api.ApplicationStatus, item api.Item) string {
+	return fmt.Sprintf("Application[%s] Handle Resource %s=%s", appStatus.Phase, item.Kind, item.Name)
+}
+
+func addItemEvent(item api.Item) string {
+	return fmt.Sprintf("Add %s=%s", item.Kind, item.Name)
+}

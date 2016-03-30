@@ -2,16 +2,17 @@ package controller
 
 import (
 	"fmt"
-	kapi "k8s.io/kubernetes/pkg/api"
-	"github.com/openshift/origin/pkg/application/api"
+
+	api "github.com/openshift/origin/pkg/application/api"
 	osclient "github.com/openshift/origin/pkg/client"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/kubernetes/pkg/fields"
 	"k8s.io/kubernetes/pkg/labels"
+	kapi "k8s.io/kubernetes/pkg/api"
 )
 
 func unloadServiceBrokerLabel(client osclient.Interface, application *api.Application, labelSelector labels.Selector) error {
-
-	resourceList, _ := client.ServiceBrokers().List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.ServiceBrokers().List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "ServiceBroker", Name: resource.Name}) {
@@ -27,7 +28,7 @@ func unloadServiceBrokerLabel(client osclient.Interface, application *api.Applic
 
 func unloadBackingServiceInstanceLabel(client osclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.BackingServiceInstances(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.BackingServiceInstances(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "BackingServiceInstance", Name: resource.Name}) {
@@ -42,8 +43,7 @@ func unloadBackingServiceInstanceLabel(client osclient.Interface, application *a
 }
 
 func unloadBuildLabel(client osclient.Interface, application *api.Application, labelSelector labels.Selector) error {
-
-	resourceList, _ := client.Builds(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.Builds(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "Build", Name: resource.Name}) {
@@ -59,7 +59,7 @@ func unloadBuildLabel(client osclient.Interface, application *api.Application, l
 
 func unloadBuildConfigLabel(client osclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.BuildConfigs(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.BuildConfigs(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "BuildConfig", Name: resource.Name}) {
@@ -75,7 +75,7 @@ func unloadBuildConfigLabel(client osclient.Interface, application *api.Applicat
 
 func unloadDeploymentConfigLabel(client osclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.DeploymentConfigs(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.DeploymentConfigs(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "DeploymentConfig", Name: resource.Name}) {
@@ -91,7 +91,7 @@ func unloadDeploymentConfigLabel(client osclient.Interface, application *api.App
 
 func unloadReplicationControllerLabel(client kclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.ReplicationControllers(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.ReplicationControllers(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "ReplicationController", Name: resource.Name}) {
@@ -107,7 +107,7 @@ func unloadReplicationControllerLabel(client kclient.Interface, application *api
 
 func unloadImageStreamLabel(client osclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.ImageStreams(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.ImageStreams(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "ImageStream", Name: resource.Name}) {
@@ -123,7 +123,7 @@ func unloadImageStreamLabel(client osclient.Interface, application *api.Applicat
 
 func unloadNodeLabel(client kclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.Nodes().List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.Nodes().List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "Node", Name: resource.Name}) {
@@ -139,7 +139,7 @@ func unloadNodeLabel(client kclient.Interface, application *api.Application, lab
 
 func unloadPodLabel(client kclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.Pods(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.Pods(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "Pod", Name: resource.Name}) {
@@ -155,7 +155,7 @@ func unloadPodLabel(client kclient.Interface, application *api.Application, labe
 
 func unloadServiceLabel(client kclient.Interface, application *api.Application, labelSelector labels.Selector) error {
 
-	resourceList, _ := client.Services(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector})
+	resourceList, _ := client.Services(application.Namespace).List(kapi.ListOptions{LabelSelector:labelSelector,FieldSelector: fields.Everything()})
 	errs := []error{}
 	for _, resource := range resourceList.Items {
 		if !hasItem(application.Spec.Items, api.Item{Kind: "Service", Name: resource.Name}) {
