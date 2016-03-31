@@ -1,7 +1,7 @@
 package validation
 
 import (
-	kapi "k8s.io/kubernetes/pkg/api"
+	//kapi "k8s.io/kubernetes/pkg/api"
 	oapi "github.com/openshift/origin/pkg/api"
 	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
 	"k8s.io/kubernetes/pkg/api/validation"
@@ -47,7 +47,8 @@ func ValidateBackingServiceInstanceUpdate(bsi *backingserviceinstanceapi.Backing
  	allErrs := validation.ValidateObjectMetaUpdate(&bsi.ObjectMeta, &older.ObjectMeta, field.NewPath("metadata"))
 	
  	allErrs = append(allErrs, ValidateBackingServiceInstance(bsi)...)
-
+	
+	/*
 	statusPath := field.NewPath("status")
 	if older.Status.Phase != bsi.Status.Phase {
 		allErrs = append(allErrs, field.Invalid(statusPath.Child("phase"), bsi.Status.Phase, "phase cannot be updated from external"))
@@ -57,6 +58,7 @@ func ValidateBackingServiceInstanceUpdate(bsi *backingserviceinstanceapi.Backing
 	if !kapi.Semantic.DeepEqual(bsi.Spec, older.Spec) {
 		allErrs = append(allErrs, field.Invalid(specPath, "content of spec is not printed out, please refer to the \"details\"", "spec is immutable"))
 	}
+	*/
 
 	return allErrs
 }
