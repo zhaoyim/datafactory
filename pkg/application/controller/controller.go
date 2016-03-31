@@ -2,7 +2,8 @@ package controller
 
 import (
 	"errors"
-	api "github.com/openshift/origin/pkg/application/api"
+	kapi "k8s.io/kubernetes/pkg/api"
+	"github.com/openshift/origin/pkg/application/api"
 	osclient "github.com/openshift/origin/pkg/client"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 	errutil "k8s.io/kubernetes/pkg/util/errors"
@@ -35,10 +36,10 @@ func (c *ApplicationController) Handle(application *api.Application) (err error)
 
 	case api.ApplicationTerminatingLabel:
 		if err := c.handleAllLabel(application); err != nil {
-			c.Recorder.Eventf(application, "DeleteApplicationEvent", "error: %s", err.Error())
+			c.Recorder.Eventf(application, kapi.EventTypeWarning, "DeleteApplicationEvent", "error: %s", err.Error())
 			return err
 		}
-		c.Recorder.Event(application, "DeleteApplicationEvent", "success", "delete application success")
+		c.Recorder.Event(application, kapi.EventTypeNormal, "DeleteApplicationEvent", "delete application success")
 
 	case api.ApplicationActive:
 		c.healthCheck(application)
@@ -58,11 +59,11 @@ func (c *ApplicationController) Handle(application *api.Application) (err error)
 
 		application.Status.Phase = api.ApplicationActive
 		if _, err := c.Client.Applications(application.Namespace).Update(application); err != nil {
-			c.Recorder.Eventf(application, "CreateApplicationEvent", "update application has error: %s", err.Error())
+			c.Recorder.Eventf(application, kapi.EventTypeWarning, "CreateApplicationEvent", "update application has error: %s", err.Error())
 			return err
 		}
 
-		c.Recorder.Event(application, "CreateApplicationEvent", "success", "create application success")
+		c.Recorder.Event(application, kapi.EventTypeNormal, "CreateApplicationEvent", "create application success")
 	}
 
 	return nil
@@ -118,7 +119,7 @@ func (c *ApplicationController) healthCheck(application *api.Application) {
 		c.Client.Applications(application.Namespace).Update(application)
 		return
 	}
-	c.Recorder.Event(application, "Appliation", "Health Check", "ok")
+	c.Recorder.Event(application, kapi.EventTypeNormal, "Appliation", "Health Check OK")
 }
 
 func (c *ApplicationController) preHandleAllLabel(application *api.Application) error {

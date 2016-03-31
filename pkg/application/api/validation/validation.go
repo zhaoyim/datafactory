@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"reflect"
 
 	"k8s.io/kubernetes/pkg/api/validation"
 	"k8s.io/kubernetes/pkg/util/validation/field"
@@ -150,25 +149,9 @@ func ValidateApplicationProxy(application *applicationapi.Application)  field.Er
 // ValidateApplicationUpdate tests to make sure a application update can be applied.  Modifies newApplication with immutable fields.
 func ValidateApplicationUpdate(newApplication *applicationapi.Application, oldApplication *applicationapi.Application)  field.ErrorList {
 	allErrs := validation.ValidateObjectMetaUpdate(&newApplication.ObjectMeta, &oldApplication.ObjectMeta,field.NewPath("metadata"))
-	//allErrs = append(allErrs, ValidateApplication(newApplication)...)
+	allErrs = append(allErrs, ValidateApplicationProxy(newApplication)...)
 
-	if !reflect.DeepEqual(newApplication.Spec.Finalizers, oldApplication.Spec.Finalizers) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("spec.finalizers"), oldApplication.Spec.Finalizers, "field is immutable"))
-	}
-	if !reflect.DeepEqual(newApplication.Status, oldApplication.Status) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("status"), oldApplication.Spec.Finalizers, "field is immutable"))
-	}
 
-	for name, value := range newApplication.Labels {
-		if value != oldApplication.Labels[name] {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, , try updating the namespace"))
-		}
-	}
-	for name, value := range oldApplication.Labels {
-		if _, inNew := newApplication.Labels[name]; !inNew {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, try updating the namespace"))
-		}
-	}
 
 	return allErrs
 }
