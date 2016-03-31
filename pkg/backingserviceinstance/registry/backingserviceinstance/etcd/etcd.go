@@ -40,9 +40,7 @@ type REST struct {
 func NewREST(s storage.Interface) *REST {
 	store := &etcdgeneric.Etcd{
 		NewFunc: func() runtime.Object {
-			bsi := &backingserviceinstanceapi.BackingServiceInstance{}
-			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseProvisioning
-			return bsi
+			return &backingserviceinstanceapi.BackingServiceInstance{}
 		},
 		NewListFunc: func() runtime.Object {
 			return &backingserviceinstanceapi.BackingServiceInstanceList{}

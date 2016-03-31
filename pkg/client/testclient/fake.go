@@ -120,9 +120,24 @@ func (c *Fake) Actions() []ktestclient.Action {
 
 var _ client.Interface = &Fake{}
 
+// Application provides a REST client for servicebroker
+func (c *Fake) Applications(namespace string) client.ApplicationInterface {
+	return nil // todo. here just to make compiling ok
+}
+
 // Projects provides a fake REST client for ServiceBrokers
 func (c *Fake) ServiceBrokers() client.ServiceBrokerInterface {
 	return &FakeServiceBrokers{Fake: c}
+}
+
+// BuildLogs provides a fake REST client for BackingServiceInstances
+func (c *Fake) BackingServices(namespace string) client.BackingServiceInterface {
+	return &FakeBackingServices{Fake: c}
+}
+
+// BuildLogs provides a fake REST client for BackingServiceInstances
+func (c *Fake) BackingServiceInstances(namespace string) client.BackingServiceInstanceInterface {
+	return &FakeBackingServiceInstances{Fake: c, Namespace: namespace}
 }
 
 // Builds provides a fake REST client for Builds
