@@ -1,18 +1,17 @@
 package etcd
 
 import (
+	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
+	"github.com/openshift/origin/pkg/servicebroker/registry/servicebroker"
 	kapi "k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/fields"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/registry/generic"
 	etcdgeneric "k8s.io/kubernetes/pkg/registry/generic/etcd"
+	"k8s.io/kubernetes/pkg/runtime"
 	"k8s.io/kubernetes/pkg/storage"
 	"k8s.io/kubernetes/pkg/watch"
-
-	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
-	"github.com/openshift/origin/pkg/servicebroker/registry/servicebroker"
-	"k8s.io/kubernetes/pkg/runtime"
-	"k8s.io/kubernetes/pkg/api/unversioned"
 )
 
 type REST struct {
@@ -23,7 +22,7 @@ type REST struct {
 func NewREST(s storage.Interface) *REST {
 	prefix := "/servicebrokers"
 	store := &etcdgeneric.Etcd{
-		NewFunc:     func() runtime.Object {
+		NewFunc: func() runtime.Object {
 			return &servicebrokerapi.ServiceBroker{}
 		},
 		NewListFunc: func() runtime.Object {
@@ -109,6 +108,6 @@ func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions
 }
 
 func (r *REST) Watch(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {
-	return r.store.Watch(ctx,options)
+	return r.store.Watch(ctx, options)
 
 }
