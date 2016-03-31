@@ -6,6 +6,7 @@ import (
 	osclient "github.com/openshift/origin/pkg/client"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 	errutil "k8s.io/kubernetes/pkg/util/errors"
+	"k8s.io/kubernetes/pkg/client/record"
 )
 
 // NamespaceController is responsible for participating in Kubernetes Namespace termination
@@ -15,6 +16,8 @@ type ApplicationController struct {
 	Client osclient.Interface
 	// KubeClient is a Kubernetes client.
 	KubeClient kclient.Interface
+
+	Recorder record.EventRecorder
 }
 
 type fatalError string
@@ -32,11 +35,13 @@ func (c *ApplicationController) Handle(application *api.Application) (err error)
 
 	case api.ApplicationTerminatingLabel:
 		if err := c.handleAllLabel(application); err != nil {
+			c.Recorder.Eventf(application, "DeleteApplicationEvent", "error: %s", err.Error())
 			return err
 		}
+		c.Recorder.Event(application, "DeleteApplicationEvent", "success", "delete application success")
 
 	case api.ApplicationActive:
-		c.unifyDaemon(application)
+		c.healthCheck(application)
 		return nil
 
 	case api.ApplicationActiveUpdate:
@@ -52,62 +57,68 @@ func (c *ApplicationController) Handle(application *api.Application) (err error)
 		}
 
 		application.Status.Phase = api.ApplicationActive
-		c.Client.Applications(application.Namespace).Update(application)
+		if _, err := c.Client.Applications(application.Namespace).Update(application); err != nil {
+			c.Recorder.Eventf(application, "CreateApplicationEvent", "update application has error: %s", err.Error())
+			return err
+		}
 
+		c.Recorder.Event(application, "CreateApplicationEvent", "success", "create application success")
 	}
 
 	return nil
 }
 
-func (c *ApplicationController) unifyDaemon(application *api.Application) {
+func (c *ApplicationController) healthCheck(application *api.Application) {
 	for i := range application.Spec.Items {
 		switch application.Spec.Items[i].Kind {
 		case "ServiceBroker":
 			resource, err := c.Client.ServiceBrokers().Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "BackingServiceInstance":
 			resource, err := c.Client.BackingServiceInstances(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "Build":
 			resource, err := c.Client.Builds(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "BuildConfig":
 			resource, err := c.Client.BuildConfigs(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "DeploymentConfig":
 			resource, err := c.Client.DeploymentConfigs(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "ReplicationController":
 			resource, err := c.KubeClient.ReplicationControllers(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "ImageStream":
 			resource, err := c.Client.ImageStreams(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "Node":
 			resource, err := c.KubeClient.Nodes().Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "Pod":
 			resource, err := c.KubeClient.Pods(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 
 		case "Service":
 			resource, err := c.KubeClient.Services(application.Namespace).Get(application.Spec.Items[i].Name)
-			errHandle(err, application, i, resource.Labels)
+			errHandle(err, application, i, resource.Labels, c.Recorder.Eventf)
 		}
 
 	}
 
 	if application.Status.Phase == api.ApplicationChecking {
 		c.Client.Applications(application.Namespace).Update(application)
+		return
 	}
+	c.Recorder.Event(application, "Appliation", "Health Check", "ok")
 }
 
 func (c *ApplicationController) preHandleAllLabel(application *api.Application) error {

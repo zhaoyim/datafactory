@@ -70,17 +70,4 @@ func (factory *ServiceBrokerControllerFactory) Create() controller.RunnableContr
 	}
 }
 
-// buildConfigLW is a ListWatcher implementation for BuildConfigs.
-type backingServiceLW struct {
-	client osclient.Interface
-}
 
-// List lists all BuildConfigs.
-func (lw *backingServiceLW) List() (runtime.Object, error) {
-	return lw.client.ServiceBrokers().List(kapi.ListOptions{})
-}
-
-// Watch watches all BuildConfigs.
-func (lw *backingServiceLW) Watch(resourceVersion string) (watch.Interface, error) {
-	return lw.client.ServiceBrokers().Watch(kapi.ListOptions{})
-}

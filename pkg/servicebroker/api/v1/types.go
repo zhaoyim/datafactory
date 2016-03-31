@@ -6,26 +6,29 @@ import (
 )
 
 const (
-	// These are internal finalizer values to Origin
+// These are internal finalizer values to Origin
 	FinalizerOrigin kapi.FinalizerName = "openshift.io/origin"
 
-	// ServiceBrokerNew is create by administrator.
+// ServiceBrokerNew is create by administrator.
 	ServiceBrokerNew ServiceBrokerPhase = "New"
 
-	// ServiceBrokerRunning indicates that servicebroker service working well.
+// ServiceBrokerRunning indicates that servicebroker service working well.
 	ServiceBrokerActive ServiceBrokerPhase = "Active"
 
-	// ServiceBrokerFailed indicates that servicebroker stopped.
+// ServiceBrokerFailed indicates that servicebroker stopped.
 	ServiceBrokerFailed ServiceBrokerPhase = "Failed"
 
 // ServiceBrokerDeleting indicates that servicebroker is going to be deleted.
 	ServiceBrokerDeleting ServiceBrokerPhase = "Deleting"
 
 // ServiceBrokerLastPingTime indicates that servicebroker last ping time.
-	ServiceBrokerLastPingTime string = "ServiceBroker/LastPing"
+	PingTimer string = "ServiceBroker/LastPing"
 
 // ServiceBrokerNewRetryTimes indicates that new servicebroker retry times.
 	ServiceBrokerNewRetryTimes string = "ServiceBroker/NewRetryTimes"
+
+// ServiceBrokerLastRefreshBSTime indicates that servicebroker last refresh backingservice time.
+	RefreshTimer string = "ServiceBroker/LastRefresh"
 )
 
 type ServiceBrokerPhase string

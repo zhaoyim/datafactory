@@ -12,7 +12,8 @@ import (
 
 	applicationapi "github.com/openshift/origin/pkg/application/api"
 	osclient "github.com/openshift/origin/pkg/client"
-	"github.com/openshift/origin/pkg/controller"
+	controller "github.com/openshift/origin/pkg/controller"
+	"k8s.io/kubernetes/pkg/client/record"
 )
 
 type ApplicationControllerFactory struct {
@@ -25,21 +26,25 @@ type ApplicationControllerFactory struct {
 // Create creates a ApplicationControllerFactory.
 func (factory *ApplicationControllerFactory) Create() controller.RunnableController {
 
+
 	applicationLW := &cache.ListWatch{
 		ListFunc: func(options kapi.ListOptions) (runtime.Object, error) {
 			return factory.Client.Applications(kapi.NamespaceAll).List(options)
-
 		},
 		WatchFunc: func(options kapi.ListOptions) (watch.Interface, error) {
 			return factory.Client.Applications(kapi.NamespaceAll).Watch(options)
 		},
 	}
 	queue := cache.NewFIFO(cache.MetaNamespaceKeyFunc)
-	cache.NewReflector(applicationLW, &applicationapi.Application{}, queue, 10 * time.Second).Run()
+	cache.NewReflector(applicationLW, &applicationapi.Application{}, queue, 30 * time.Second).Run()
+
+	eventBroadcaster := record.NewBroadcaster()
+	eventBroadcaster.StartRecordingToSink(factory.KubeClient.Events(""))
 
 	applicationController := &ApplicationController{
 		Client:     factory.Client,
 		KubeClient: factory.KubeClient,
+		Recorder:   eventBroadcaster.NewRecorder(kapi.EventSource{Component: "application"}),
 	}
 
 	return &controller.RetryController{

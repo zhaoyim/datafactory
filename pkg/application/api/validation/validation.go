@@ -137,6 +137,16 @@ func ValidateApplication(application *applicationapi.Application, oClient *oclie
 	return result
 }
 
+
+
+// ValidateApplication tests required fields for a Application.
+// This should only be called when creating a application (not on update),
+// since its name validation is more restrictive than default namespace name validation
+func ValidateApplicationProxy(application *applicationapi.Application)  field.ErrorList {
+	result := validation.ValidateObjectMeta(&application.ObjectMeta, true,  oapi.MinimalNameRequirements, field.NewPath("metadata"))
+	return result
+}
+
 // ValidateApplicationUpdate tests to make sure a application update can be applied.  Modifies newApplication with immutable fields.
 func ValidateApplicationUpdate(newApplication *applicationapi.Application, oldApplication *applicationapi.Application)  field.ErrorList {
 	allErrs := validation.ValidateObjectMetaUpdate(&newApplication.ObjectMeta, &oldApplication.ObjectMeta,field.NewPath("metadata"))

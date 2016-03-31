@@ -58,6 +58,21 @@ func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.
 
 // Matcher returns a generic matcher for a given label and field selector.
 // Matcher returns a generic matcher for a given label and field selector.
+
+func Matcher(label labels.Selector, field fields.Selector) generic.Matcher {
+	return &generic.SelectionPredicate{
+		Label: label,
+		Field: field,
+		GetAttrs: func(obj runtime.Object) (labels.Set, fields.Set, error) {
+			sb, ok := obj.(*api.ServiceBroker)
+			if !ok {
+				return nil, nil, fmt.Errorf("not a servicebroker")
+			}
+			return labels.Set(sb.ObjectMeta.Labels), api.ServiceBrokerToSelectableFields(sb), nil
+		},
+	}
+}
+/*
 func Matcher(label labels.Selector, field fields.Selector) generic.Matcher {
 	return generic.MatcherFunc(func(obj runtime.Object) (bool, error) {
 		sb, ok := obj.(*api.ServiceBroker)
@@ -67,6 +82,7 @@ func Matcher(label labels.Selector, field fields.Selector) generic.Matcher {
 		return label.Matches(labels.Set(sb.Labels)) && field.Matches(api.ServiceBrokerToSelectableFields(sb)), nil
 	})
 }
+*/
 
 
 func getAttrs(obj runtime.Object) (objLabels labels.Set, objFields fields.Set, err error) {

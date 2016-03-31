@@ -22,7 +22,7 @@ func newBackingService(name string, spec backingserviceapi.BackingServiceSpec) *
 }
 
 func backingServiceHandler(client osclient.Interface, backingService *backingserviceapi.BackingService) error {
-	_, err := client.BackingServices(BSNS).Get(backingService.Name)
+	newBs, err := client.BackingServices(BSNS).Get(backingService.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			if _, err := client.BackingServices(BSNS).Create(backingService); err != nil {
@@ -31,7 +31,7 @@ func backingServiceHandler(client osclient.Interface, backingService *backingser
 			}
 		}
 	} else {
-		if _, err := client.BackingServices(BSNS).Update(backingService); err != nil {
+		if _, err := client.BackingServices(BSNS).Update(newBs); err != nil {
 			glog.Errorln("servicebroker update backingservice err ", err)
 			return err
 		}

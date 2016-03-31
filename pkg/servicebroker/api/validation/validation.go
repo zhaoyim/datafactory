@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"reflect"
 
 	"k8s.io/kubernetes/pkg/api/validation"
 	"k8s.io/kubernetes/pkg/util/validation/field"
@@ -34,26 +33,9 @@ func ValidateServiceBroker(servicebroker *servicebrokerapi.ServiceBroker) field.
 // ValidateServiceBrokerUpdate tests to make sure a servicebroker update can be applied.  Modifies newServiceBroker with immutable fields.
 func ValidateServiceBrokerUpdate(newServiceBroker *servicebrokerapi.ServiceBroker, oldServiceBroker *servicebrokerapi.ServiceBroker) field.ErrorList {
 
-	allErrs :=validation.ValidateObjectMetaUpdate(&newServiceBroker.ObjectMeta, &oldServiceBroker.ObjectMeta, field.NewPath("metadata"))
+	allErrs := validation.ValidateObjectMetaUpdate(&newServiceBroker.ObjectMeta, &oldServiceBroker.ObjectMeta, field.NewPath("metadata"))
+
 	allErrs = append(allErrs, ValidateServiceBroker(newServiceBroker)...)
-
-	if !reflect.DeepEqual(newServiceBroker.Spec.Finalizers, oldServiceBroker.Spec.Finalizers) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("spec.finalizers"), oldServiceBroker.Spec.Finalizers, "field is immutable"))
-	}
-	if !reflect.DeepEqual(newServiceBroker.Status, oldServiceBroker.Status) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("status"), oldServiceBroker.Spec.Finalizers, "field is immutable"))
-	}
-
-	for name, value := range newServiceBroker.Labels {
-		if value != oldServiceBroker.Labels[name] {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, , try updating the namespace"))
-		}
-	}
-	for name, value := range oldServiceBroker.Labels {
-		if _, inNew := newServiceBroker.Labels[name]; !inNew {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("metadata.labels["+name+"]"), value, "field is immutable, try updating the namespace"))
-		}
-	}
 
 	return allErrs
 }

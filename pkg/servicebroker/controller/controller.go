@@ -10,6 +10,7 @@ import (
 	servicebrokerclient "github.com/openshift/origin/pkg/servicebroker/client"
 	"k8s.io/kubernetes/pkg/labels"
 	kapi "k8s.io/kubernetes/pkg/api"
+	kerrors "k8s.io/kubernetes/pkg/api/errors"
 	"strconv"
 	"time"
 )
@@ -43,7 +44,7 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 	switch sb.Status.Phase {
 	case servicebrokerapi.ServiceBrokerNew:
 		if getRetryTime(sb) <= 3 {
-			if Ping(sb, 10) {
+			if timeUp(servicebrokerapi.PingTimer, sb, 10) {
 				setRetryTime(sb)
 
 				services, err := c.ServiceBrokerClient.Catalog(sb.Spec.Url, sb.Spec.UserName, sb.Spec.Password)
@@ -80,8 +81,8 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 		c.Client.ServiceBrokers().Delete(sb.Name)
 		return nil
 	case servicebrokerapi.ServiceBrokerActive:
-		if Ping(sb, 60) {
-			_, err := c.ServiceBrokerClient.Catalog(sb.Spec.Url, sb.Spec.UserName, sb.Spec.Password)
+		if timeUp(servicebrokerapi.PingTimer, sb, 60) {
+			services, err := c.ServiceBrokerClient.Catalog(sb.Spec.Url, sb.Spec.UserName, sb.Spec.Password)
 			if err != nil {
 				sb.Status.Phase = servicebrokerapi.ServiceBrokerFailed
 				c.Client.ServiceBrokers().Update(sb)
@@ -90,11 +91,17 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 				return err
 			}
 
+			if timeUp(servicebrokerapi.RefreshTimer, sb, 300) {
+				for _, v := range services.Services {
+					backingServiceHandler(c.Client, newBackingService(sb.Name, v))
+				}
+			}
+
 			c.Client.ServiceBrokers().Update(sb)
 			return nil
 		}
 	case servicebrokerapi.ServiceBrokerFailed:
-		if Ping(sb, 60) {
+		if timeUp(servicebrokerapi.PingTimer, sb, 60) {
 			_, err := c.ServiceBrokerClient.Catalog(sb.Spec.Url, sb.Spec.UserName, sb.Spec.Password)
 			if err != nil {
 				c.Client.ServiceBrokers().Update(sb)
@@ -108,6 +115,20 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 			return nil
 		}
 
+	}
+
+	return nil
+}
+
+func (c *ServiceBrokerController) recoverBackingService(backingService *backingserviceapi.BackingService) error {
+	_, err := c.Client.BackingServices(BSNS).Get(backingService.Name)
+	if err != nil {
+		if kerrors.IsNotFound(err) {
+			if _, err := c.Client.BackingServices(BSNS).Create(backingService); err != nil {
+				return err
+			}
+			return nil
+		}
 	}
 
 	return nil
@@ -141,28 +162,28 @@ func (c *ServiceBrokerController) ActiveBackingService(serviceBrokerName string)
 	}
 }
 
-func Ping(sb *servicebrokerapi.ServiceBroker, pingSecond int64) bool {
+func timeUp(timeKind string, sb *servicebrokerapi.ServiceBroker, intervalSecond int64) bool {
 	if sb.Annotations == nil {
 		sb.Annotations = map[string]string{}
 	}
 
-	lastTimeStr := sb.Annotations[servicebrokerapi.ServiceBrokerLastPingTime]
+	lastTimeStr := sb.Annotations[timeKind]
 	if len(lastTimeStr) == 0 {
-		sb.Annotations[servicebrokerapi.ServiceBrokerLastPingTime] = fmt.Sprintf("%d", time.Now().UnixNano())
+		sb.Annotations[timeKind] = fmt.Sprintf("%d", time.Now().UnixNano())
 		return true
 	}
 
 	lastPing, err := strconv.Atoi(lastTimeStr)
 	if err != nil {
-		sb.Annotations[servicebrokerapi.ServiceBrokerLastPingTime] = fmt.Sprintf("%d", time.Now().UnixNano())
+		sb.Annotations[timeKind] = fmt.Sprintf("%d", time.Now().UnixNano())
 		return false
 	}
 
-	if (time.Now().UnixNano()-int64(lastPing))/1e9 < pingSecond {
+	if (time.Now().UnixNano() - int64(lastPing)) / 1e9 < intervalSecond {
 		return false
 	}
 
-	sb.Annotations[servicebrokerapi.ServiceBrokerLastPingTime] = fmt.Sprintf("%d", time.Now().UnixNano())
+	sb.Annotations[timeKind] = fmt.Sprintf("%d", time.Now().UnixNano())
 	return true
 }
 

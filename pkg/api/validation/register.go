@@ -4,6 +4,8 @@ import (
 	_ "github.com/openshift/origin/pkg/api/install"
 
 	authorizationvalidation "github.com/openshift/origin/pkg/authorization/api/validation"
+
+	applicationvalidation "github.com/openshift/origin/pkg/application/api/validation"
 	backingservicevalidation "github.com/openshift/origin/pkg/backingservice/api/validation"
 	backingserviceinstancevalidation "github.com/openshift/origin/pkg/backingserviceinstance/api/validation"
 	buildvalidation "github.com/openshift/origin/pkg/build/api/validation"
@@ -17,7 +19,9 @@ import (
 	templatevalidation "github.com/openshift/origin/pkg/template/api/validation"
 	uservalidation "github.com/openshift/origin/pkg/user/api/validation"
 	extvalidation "k8s.io/kubernetes/pkg/apis/extensions/validation"
+	applicationvalidation "github.com/openshift/origin/pkg/application/api/validation"
 
+	applicationapi "github.com/openshift/origin/pkg/application/api"
 	authorizationapi "github.com/openshift/origin/pkg/authorization/api"
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
@@ -93,8 +97,11 @@ func registerAll() {
 	Validator.MustRegister(&userapi.Identity{}, uservalidation.ValidateIdentity, uservalidation.ValidateIdentityUpdate)
 	Validator.MustRegister(&userapi.UserIdentityMapping{}, uservalidation.ValidateUserIdentityMapping, uservalidation.ValidateUserIdentityMappingUpdate)
 	Validator.MustRegister(&userapi.Group{}, uservalidation.ValidateGroup, uservalidation.ValidateGroupUpdate)
+	Validator.MustRegister(&applicationapi.Application{}, applicationvalidation.ValidateApplication, applicationvalidation.ValidateApplicationUpdate)
 	Validator.MustRegister(&servicebrokerapi.ServiceBroker{}, servicebrokervalidation.ValidateServiceBroker, servicebrokervalidation.ValidateServiceBrokerUpdate)
 	Validator.MustRegister(&backingserviceapi.BackingService{}, backingservicevalidation.ValidateBackingService, backingservicevalidation.ValidateBackingServiceUpdate)
 	Validator.MustRegister(&backingserviceinstanceapi.BackingServiceInstance{}, backingserviceinstancevalidation.ValidateBackingServiceInstance, backingserviceinstancevalidation.ValidateBackingServiceInstanceUpdate)
 	Validator.MustRegister(&backingserviceinstanceapi.BindingRequestOptions{}, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequestOptions, backingserviceinstancevalidation.ValidateBackingServiceInstanceBindingRequestOptionsUpdate)
+
 }
+
