@@ -287,10 +287,16 @@ func (appDescriber *ApplicationDescriber) Describe(namespace, name string) (stri
 		itemDescriberStr += printItem(item.Kind, item.Name, itemCreateTime)
 	}
 
-	return describeApplication(application, itemDescriberStr)
+	events, err := appDescriber.kubeClient.Events(namespace).Search(application)
+	if events == nil {
+		events = &kapi.EventList{}
+	}
+
+
+	return describeApplication(application, itemDescriberStr, events)
 }
 
-func describeApplication(app *applicationapi.Application, itemStr string) (string, error) {
+func describeApplication(app *applicationapi.Application, itemStr string, events *kapi.EventList) (string, error) {
 
 	return tabbedString(func(out *tabwriter.Writer) error {
 		formatString(out, "Name", app.Name)
@@ -301,8 +307,8 @@ func describeApplication(app *applicationapi.Application, itemStr string) (strin
 		//todo 查看 DeletionTimestamp 如何生成
 		formatString(out, "Items", itemStr)
 		formatString(out, "Status", app.Status.Phase)
-		formatString(out, "Event", "todo")
-		//todo 查看Event 如何输出
+
+		kctl.DescribeEvents(events, out)
 		return nil
 	})
 }
