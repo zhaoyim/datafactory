@@ -4,13 +4,14 @@ import (
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 
 	"fmt"
+	"github.com/golang/glog"
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 	osclient "github.com/openshift/origin/pkg/client"
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 	servicebrokerclient "github.com/openshift/origin/pkg/servicebroker/client"
-	"k8s.io/kubernetes/pkg/labels"
 	kapi "k8s.io/kubernetes/pkg/api"
 	kerrors "k8s.io/kubernetes/pkg/api/errors"
+	"k8s.io/kubernetes/pkg/labels"
 	"strconv"
 	"time"
 )
@@ -77,6 +78,7 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 		}
 
 	case servicebrokerapi.ServiceBrokerDeleting:
+		glog.Info("Inavtinging Bs", sb.Name)
 		c.inActiveBackingService(sb.Name)
 		c.Client.ServiceBrokers().Delete(sb.Name)
 		return nil
@@ -137,7 +139,7 @@ func (c *ServiceBrokerController) recoverBackingService(backingService *backings
 func (c *ServiceBrokerController) inActiveBackingService(serviceBrokerName string) {
 	selector, _ := labels.Parse(servicebrokerapi.ServiceBrokerLabel + "=" + serviceBrokerName)
 
-	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector:selector})
+	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector: selector})
 	if err == nil {
 		for _, bsvc := range bsList.Items {
 			if bsvc.Status.Phase != backingserviceapi.BackingServicePhaseInactive {
@@ -145,13 +147,15 @@ func (c *ServiceBrokerController) inActiveBackingService(serviceBrokerName strin
 				c.Client.BackingServices(BSNS).Update(&bsvc)
 			}
 		}
+	} else {
+		glog.Error("can't find bs of sb", serviceBrokerName)
 	}
 }
 
 func (c *ServiceBrokerController) ActiveBackingService(serviceBrokerName string) {
 	selector, _ := labels.Parse(servicebrokerapi.ServiceBrokerLabel + "=" + serviceBrokerName)
 
-	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector:selector})
+	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector: selector})
 	if err == nil {
 		for _, bsvc := range bsList.Items {
 			if bsvc.Status.Phase != backingserviceapi.BackingServicePhaseActive {
@@ -179,7 +183,7 @@ func timeUp(timeKind string, sb *servicebrokerapi.ServiceBroker, intervalSecond 
 		return false
 	}
 
-	if (time.Now().UnixNano() - int64(lastPing)) / 1e9 < intervalSecond {
+	if (time.Now().UnixNano()-int64(lastPing))/1e9 < intervalSecond {
 		return false
 	}
 

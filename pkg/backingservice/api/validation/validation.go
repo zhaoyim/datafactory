@@ -22,7 +22,7 @@ func BackingServicetName(name string, prefix bool) (bool, string) {
 // ValidateBackingService tests required fields for a BackingService.
 func ValidateBackingService(bs *backingserviceapi.BackingService) field.ErrorList {
 
-	allErrs :=validation.ValidateObjectMeta(&bs.ObjectMeta, true, BackingServicetName, field.NewPath("metadata"))
+	allErrs := validation.ValidateObjectMeta(&bs.ObjectMeta, true, BackingServicetName, field.NewPath("metadata"))
 
 	return allErrs
 }
@@ -34,8 +34,5 @@ func ValidateBackingServiceUpdate(bs *backingserviceapi.BackingService, older *b
 
 	allErrs = append(allErrs, ValidateBackingService(bs)...)
 
-	if older.Status.Phase != bs.Status.Phase {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("status.Phase"), bs.Status.Phase, "phase cannot be updated from a terminal state"))
-	}
 	return allErrs
 }

@@ -31,6 +31,7 @@ func backingServiceHandler(client osclient.Interface, backingService *backingser
 			}
 		}
 	} else {
+		newBs.Status.Phase = backingserviceapi.BackingServicePhaseActive
 		if _, err := client.BackingServices(BSNS).Update(newBs); err != nil {
 			glog.Errorln("servicebroker update backingservice err ", err)
 			return err
