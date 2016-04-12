@@ -38,9 +38,11 @@ var ApplicationItemSupportKinds = []string{
 
 type ApplicationPhase string
 
+// Application describe an Application
 type Application struct {
 	unversioned.TypeMeta `json:",inline"`
-	kapi.ObjectMeta      `json:"metadata,omitempty"`
+	// Standard object's metadata.
+	kapi.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec defines the behavior of the Namespace.
 	Spec ApplicationSpec `json:"spec,omitempty" description:"spec defines the behavior of the Application"`
@@ -49,36 +51,43 @@ type Application struct {
 	Status ApplicationStatus `json:"status,omitempty" description:"status describes the current status of a Application; read-only"`
 }
 
+// ApplicationList describe an ApplicationList
 type ApplicationList struct {
 	unversioned.TypeMeta `json:",inline"`
+	// Standard object's metadata.
 	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// Items is a list of applications
 	Items []Application `json:"items" description:"list of Applications"`
 }
 
+// ApplicationSpec describes the attributes on a Application
 type ApplicationSpec struct {
+	// name defines the name of a Application
 	Name string `json:"name" description:"name defines the name of a Application"`
-	//Description string   `json:"description" description:"description defines the description of a Application"`
-	//ImageUrl    string   `json:"imageUrl" description:"imageUrl defines the image url of a Application"`
+	// items defines the resources to be labeled in a Application
 	Items ItemList `json:"items" description:"items defines the resources to be labeled in a Application"`
-
-	Destory bool `json:"destoryOption" description:"items defines the resources to be removed in a Application"`
+	//destory defines the resources to be removed in a Application
+	Destory bool `json:"destoryOption" description:"destory defines the resources to be removed in a Application"`
 	// Finalizers is an opaque list of values that must be empty to permanently remove object from storage
 	Finalizers []kapi.FinalizerName `json:"finalizers,omitempty" description:"an opaque list of values that must be empty to permanently remove object from storage"`
 }
 
 // ApplicationStatus is information about the current status of a Application
 type ApplicationStatus struct {
+	// phase is the current lifecycle phase of the Application
 	Phase ApplicationPhase `json:"phase,omitempty" description:"phase is the current lifecycle phase of the Application"`
 }
 
 type ItemList []Item
 
+// Item  describe an application item
 type Item struct {
-	Kind   string `json:"kind" description:"kind defines the item kind of a item in Application"`
-	Name   string `json:"name" description:"name defines the item name of a item in Application"`
-
+	// kind defines the item kind of a item in Application
+	Kind string `json:"kind" description:"kind defines the item kind of a item in Application"`
+	// name defines the item name of a item in Application
+	Name string `json:"name" description:"name defines the item name of a item in Application"`
+	// status defines a operate to the item label
 	Status string `json:"status,omitempty" description:"status defines a operate to the item label"`
 }
 

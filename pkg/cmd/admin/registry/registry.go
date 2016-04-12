@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/errors"
-	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/kubernetes/pkg/client/restclient"
 	kclientcmd "k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
 	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"k8s.io/kubernetes/pkg/runtime"
@@ -57,13 +57,13 @@ NOTE: This command is intended to simplify the tasks of setting up a Docker regi
   $ %[1]s %[2]s --dry-run
 
   # See what the registry will look like if created
-  $ %[1]s %[2]s -o json --credentials=/path/to/registry-user.kubeconfig
+  $ %[1]s %[2]s -o yaml
 
-  # Create a registry if it does not exist with two replicas
-  $ %[1]s %[2]s --replicas=2 --credentials=/path/to/registry-user.kubeconfig
+  # Create a registry with two replicas if it does not exist
+  $ %[1]s %[2]s --replicas=2
 
-  # Use a different registry image and see the registry configuration
-  $ %[1]s %[2]s -o yaml --images=myrepo/docker-registry:mytag --credentials=/path/to/registry-user.kubeconfig`
+  # Use a different registry image
+  $ %[1]s %[2]s --images=myrepo/docker-registry:mytag`
 )
 
 type RegistryConfig struct {
@@ -154,6 +154,9 @@ func NewCmdRegistry(f *clientcmd.Factory, parentName, name string, out io.Writer
 
 	// autocompletion hints
 	cmd.MarkFlagFilename("credentials", "kubeconfig")
+
+	// Deprecate credentials
+	cmd.Flags().MarkDeprecated("credentials", "use --service-account to specify the service account the registry will use to make API calls")
 
 	kcmdutil.AddPrinterFlags(cmd)
 
@@ -254,7 +257,7 @@ func RunCmdRegistry(f *clientcmd.Factory, cmd *cobra.Command, out io.Writer, cfg
 		if err != nil {
 			return fmt.Errorf("registry does not exist; the provided credentials %q could not be used: %v", cfg.Credentials, err)
 		}
-		if err := kclient.LoadTLSFiles(config); err != nil {
+		if err := restclient.LoadTLSFiles(config); err != nil {
 			return fmt.Errorf("registry does not exist; the provided credentials %q could not load certificate info: %v", cfg.Credentials, err)
 		}
 		insecure := "false"
@@ -337,6 +340,7 @@ func RunCmdRegistry(f *clientcmd.Factory, cmd *cobra.Command, out io.Writer, cfg
 				Name:         "registry-storage",
 				VolumeSource: kapi.VolumeSource{},
 			}),
+			ServiceAccountName: cfg.ServiceAccount,
 		},
 	}
 	if mountHost {
@@ -367,7 +371,6 @@ func RunCmdRegistry(f *clientcmd.Factory, cmd *cobra.Command, out io.Writer, cfg
 				},
 			},
 		)
-		podTemplate.Spec.ServiceAccountName = cfg.ServiceAccount
 	}
 
 	objects = append(objects, &deployapi.DeploymentConfig{
@@ -402,12 +405,8 @@ func RunCmdRegistry(f *clientcmd.Factory, cmd *cobra.Command, out io.Writer, cfg
 	list := &kapi.List{Items: objects}
 
 	if output {
-		list.Items, err = cmdutil.ConvertItemsForDisplayFromDefaultCommand(cmd, list.Items)
-		if err != nil {
-			return err
-		}
-
-		if err := f.PrintObject(cmd, list, out); err != nil {
+		fn := cmdutil.VersionedPrintObject(f.PrintObject, cmd, out)
+		if err := fn(list); err != nil {
 			return fmt.Errorf("unable to print object: %v", err)
 		}
 		return nil

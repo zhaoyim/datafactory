@@ -22,6 +22,7 @@
   "globals": {
     "daovoice": true,
     "angular": false,
+    "ansi_up": false,
     "c3": false,
     "d3": false,
     "hawtioPluginLoader": false,

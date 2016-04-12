@@ -143,7 +143,7 @@ func CreateEdgeRoute(f *clientcmd.Factory, out io.Writer, cmd *cobra.Command, ar
 		RESTMapper:   mapper,
 		ClientMapper: resource.ClientMapperFunc(f.ClientForMapping),
 	}
-	info, err := resourceMapper.InfoForObject(route)
+	info, err := resourceMapper.InfoForObject(route, nil)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func CreatePassthroughRoute(f *clientcmd.Factory, out io.Writer, cmd *cobra.Comm
 		RESTMapper:   mapper,
 		ClientMapper: resource.ClientMapperFunc(f.ClientForMapping),
 	}
-	info, err := resourceMapper.InfoForObject(route)
+	info, err := resourceMapper.InfoForObject(route, nil)
 	if err != nil {
 		return err
 	}
@@ -346,7 +346,7 @@ func CreateReencryptRoute(f *clientcmd.Factory, out io.Writer, cmd *cobra.Comman
 		RESTMapper:   mapper,
 		ClientMapper: resource.ClientMapperFunc(f.ClientForMapping),
 	}
-	info, err := resourceMapper.InfoForObject(route)
+	info, err := resourceMapper.InfoForObject(route, nil)
 	if err != nil {
 		return err
 	}
@@ -416,12 +416,12 @@ func resolveServiceName(f *clientcmd.Factory, resource string) (string, error) {
 		return "", fmt.Errorf("you need to provide a service name via --service")
 	}
 	mapper, _ := f.Object()
-	rType, name, err := cmdutil.ResolveResource("services", resource, mapper)
+	rType, name, err := cmdutil.ResolveResource(kapi.Resource("services"), resource, mapper)
 	if err != nil {
 		return "", err
 	}
-	if rType != "services" {
-		return "", fmt.Errorf("cannot expose %s as routes", rType)
+	if rType != kapi.Resource("services") {
+		return "", fmt.Errorf("cannot expose %v as routes", rType)
 	}
 	return name, nil
 }

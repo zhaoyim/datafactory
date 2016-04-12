@@ -27,7 +27,12 @@ angular.module('openshiftConsole')
         // this webkit bug with user-select: none;
         //   https://bugs.webkit.org/show_bug.cgi?id=80159
         line.firstChild.setAttribute('data-line-number', lineNumber);
-        line.lastChild.appendChild(document.createTextNode(text));
+
+        // Escape ANSI color codes
+        var escaped = ansi_up.escape_for_html(text);
+        var html = ansi_up.ansi_to_html(escaped);
+        var linkifiedHTML = ansi_up.linkify(html);
+        line.lastChild.innerHTML = linkifiedHTML;
 
         return line;
       };
@@ -45,7 +50,8 @@ angular.module('openshiftConsole')
           context: '=',
           options: '=?',
           chromeless: '=?',
-          run: '=?'         // boolean, logs will not run until this is truthy
+          empty: '=?',        // boolean, let the parent know when the log is empty
+          run: '=?'           // boolean, logs will not run until this is truthy
         },
         controller: [
           '$scope',
@@ -59,6 +65,7 @@ angular.module('openshiftConsole')
             var $affixableNode;
             var html = document.documentElement;
 
+            $scope.empty = true;
 
             // are we going to scroll the window, or the DOM node?
             var detectScrollableNode = function() {
@@ -141,9 +148,29 @@ angular.module('openshiftConsole')
               }
             };
 
+            var fillHeight = function(animate) {
+              var content = $('.log-view-output');
+              var contentTop = content.offset().top;
+              if (contentTop < 0) {
+                // Content top is off the page already.
+                return;
+              }
+
+              var fill = Math.floor($(window).height() - contentTop);
+              if (!$scope.chromeless) {
+                // Add some bottom margin if not chromeless.
+                fill = fill - 35;
+              }
+              if (animate) {
+                content.animate({ 'min-height': fill +'px' }, 'fast');
+              } else {
+                content.css('min-height', fill + 'px');
+              }
+            };
 
             // roll up & debounce the various fns to call on resize
             var onResize = _.debounce(function() {
+              fillHeight(true);
               // update scroll handlers
               detectScrollableNode();
               attachScrollEvents();
@@ -152,7 +179,6 @@ angular.module('openshiftConsole')
               // toggle off the follow behavior if the user resizes the window
               onScroll();
             }, 100);
-
 
             $win.on('resize', onResize);
 
@@ -248,11 +274,14 @@ angular.module('openshiftConsole')
 
               streamer.onMessage(function(msg, raw, cumulativeBytes) {
                 // ensures the digest loop will catch the state change.
-                if($scope.state !== 'logs') {
-                  $scope.$evalAsync(function() {
+                $scope.$evalAsync(function() {
+                  $scope.empty = false;
+                  if($scope.state !== 'logs') {
                     $scope.state = 'logs';
-                  });
-                }
+                    // setTimeout so that the log content is visible to correctly calculate fill height.
+                    setTimeout(fillHeight);
+                  }
+                });
 
                 if (options.limitBytes && cumulativeBytes >= options.limitBytes) {
                   $scope.$evalAsync(function() {

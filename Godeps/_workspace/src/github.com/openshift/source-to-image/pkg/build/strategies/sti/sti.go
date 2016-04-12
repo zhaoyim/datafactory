@@ -83,7 +83,7 @@ func New(req *api.Config, overrides build.Overrides) (*STI, error) {
 		}
 	}
 
-	inst := scripts.NewInstaller(req.BuilderImage, req.ScriptsURL, docker, req.PullAuthentication)
+	inst := scripts.NewInstaller(req.BuilderImage, req.ScriptsURL, req.ScriptDownloadProxyConfig, docker, req.PullAuthentication)
 
 	b := &STI{
 		installer:         inst,
@@ -101,14 +101,14 @@ func New(req *api.Config, overrides build.Overrides) (*STI, error) {
 		scriptsURL:        map[string]string{},
 	}
 
-	// The sources are downloaded using the GIT downloader.
+	// The sources are downloaded using the Git downloader.
 	// TODO: Add more SCM in future.
 	// TODO: explicit decision made to customize processing for usage specifically vs.
 	// leveraging overrides; also, we ultimately want to simplify s2i usage a good bit,
 	// which would lead to replacing this quick short circuit (so this change is tactical)
 	b.source = overrides.Downloader
 	if b.source == nil && !req.Usage {
-		downloader, sourceURL, err := scm.DownloaderForSource(req.Source)
+		downloader, sourceURL, err := scm.DownloaderForSource(req.Source, req.ForceCopy)
 		if err != nil {
 			return nil, err
 		}
@@ -217,6 +217,24 @@ func (b *STI) Prepare(config *api.Config) error {
 		return err
 	}
 	optional := b.installer.InstallOptional(b.optionalScripts, config.WorkingDir)
+
+	// If a ScriptsURL was specified, but no scripts were downloaded from it, throw an error
+	if len(config.ScriptsURL) > 0 {
+		failedCount := 0
+		for _, result := range required {
+			if includes(result.FailedSources, scripts.ScriptURLHandler) {
+				failedCount++
+			}
+		}
+		for _, result := range optional {
+			if includes(result.FailedSources, scripts.ScriptURLHandler) {
+				failedCount++
+			}
+		}
+		if failedCount == len(required)+len(optional) {
+			return fmt.Errorf("Could not download any scripts from URL %v", config.ScriptsURL)
+		}
+	}
 
 	for _, r := range append(required, optional...) {
 		if r.Error == nil {
@@ -412,7 +430,6 @@ func (b *STI) Save(config *api.Config) (err error) {
 
 	go dockerpkg.StreamContainerIO(errReader, nil, glog.Error)
 	err = b.docker.RunContainer(opts)
-
 	if e, ok := err.(errors.ContainerError); ok {
 		return errors.NewSaveArtifactsError(image, e.Output, err)
 	}
@@ -513,8 +530,8 @@ func (b *STI) Execute(command string, user string, config *api.Config) error {
 		close(injectionComplete)
 	}
 
+	wg := sync.WaitGroup{}
 	if !config.LayeredBuild {
-		wg := sync.WaitGroup{}
 		wg.Add(1)
 		uploadDir := filepath.Join(config.WorkingDir, "upload")
 		// TODO: be able to pass a stream directly to the Docker build to avoid the double temp hit
@@ -571,6 +588,10 @@ func (b *STI) Execute(command string, user string, config *api.Config) error {
 	go dockerpkg.StreamContainerIO(errReader, &errOutput, glog.Error)
 
 	err = b.docker.RunContainer(opts)
+	if util.IsTimeoutError(err) {
+		// Cancel waiting for source input if the container timeouts
+		wg.Done()
+	}
 	if e, ok := err.(errors.ContainerError); ok {
 		return errors.NewContainerError(config.BuilderImage, e.ErrorCode, errOutput)
 	}
@@ -590,4 +611,13 @@ func isMissingRequirements(text string) bool {
 	tar, _ := regexp.MatchString(`.*tar.*not found`, text)
 	sh, _ := regexp.MatchString(`.*/bin/sh.*no such file or directory`, text)
 	return tar || sh
+}
+
+func includes(arr []string, str string) bool {
+	for _, s := range arr {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }

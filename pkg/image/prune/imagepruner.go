@@ -358,7 +358,7 @@ func addImageStreamsToGraph(g graph.Graph, streams *imageapi.ImageStreamList, al
 					continue
 				}
 
-				glog.V(4).Infof("Adding edge (kind=%d) from %q to %q", kind, imageStreamNode.UniqueName.UniqueName(), imageNode.UniqueName.UniqueName())
+				glog.V(4).Infof("Adding edge (kind=%s) from %q to %q", kind, imageStreamNode.UniqueName.UniqueName(), imageNode.UniqueName.UniqueName())
 				g.AddEdge(imageStreamNode, imageNode, kind)
 
 				glog.V(4).Infof("Adding stream->layer references")
@@ -600,11 +600,11 @@ func subgraphWithoutPrunableImages(g graph.Graph, prunableImageIDs graph.NodeSet
 		func(g graph.Interface, node gonum.Node) bool {
 			return !prunableImageIDs.Has(node.ID())
 		},
-		func(g graph.Interface, head, tail gonum.Node, edgeKinds sets.String) bool {
-			if prunableImageIDs.Has(head.ID()) {
+		func(g graph.Interface, from, to gonum.Node, edgeKinds sets.String) bool {
+			if prunableImageIDs.Has(from.ID()) {
 				return false
 			}
-			if prunableImageIDs.Has(tail.ID()) {
+			if prunableImageIDs.Has(to.ID()) {
 				return false
 			}
 			return true
@@ -916,11 +916,24 @@ func deleteFromRegistry(registryClient *http.Client, url string) error {
 		}
 		defer resp.Body.Close()
 
+		// TODO: investigate why we're getting non-existent layers, for now we're logging
+		// them out and continue working
+		if resp.StatusCode == http.StatusNotFound {
+			glog.Warningf("Unable to prune layer %s, returned %v", url, resp.Status)
+			return nil
+		}
+		// non-2xx/3xx response doesn't cause an error, so we need to check for it
+		// manually and return it to caller
+		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+			return fmt.Errorf(resp.Status)
+		}
 		if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusAccepted {
 			glog.V(1).Infof("Unexpected status code in response: %d", resp.StatusCode)
-			decoder := json.NewDecoder(resp.Body)
 			var response errcode.Errors
-			decoder.Decode(&response)
+			decoder := json.NewDecoder(resp.Body)
+			if err := decoder.Decode(&response); err != nil {
+				return err
+			}
 			glog.V(1).Infof("Response: %#v", response)
 			return &response
 		}

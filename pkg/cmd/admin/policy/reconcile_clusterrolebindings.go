@@ -10,11 +10,12 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	kapierrors "k8s.io/kubernetes/pkg/api/errors"
 	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
+	"k8s.io/kubernetes/pkg/util/sets"
 
 	authorizationapi "github.com/openshift/origin/pkg/authorization/api"
 	"github.com/openshift/origin/pkg/client"
 	"github.com/openshift/origin/pkg/cmd/server/bootstrappolicy"
-	ocmdutil "github.com/openshift/origin/pkg/cmd/util"
+	cmdutil "github.com/openshift/origin/pkg/cmd/util"
 	"github.com/openshift/origin/pkg/cmd/util/clientcmd"
 	uservalidation "github.com/openshift/origin/pkg/user/api/validation"
 )
@@ -23,6 +24,10 @@ import (
 const ReconcileClusterRoleBindingsRecommendedName = "reconcile-cluster-role-bindings"
 
 type ReconcileClusterRoleBindingsOptions struct {
+	// RolesToReconcile says which roles should have their default bindings reconciled.
+	// An empty or nil slice means reconcile all of them.
+	RolesToReconcile []string
+
 	Confirmed bool
 	Union     bool
 
@@ -71,7 +76,7 @@ func NewCmdReconcileClusterRoleBindings(name, fullName string, f *clientcmd.Fact
 	excludeGroups := []string{}
 
 	cmd := &cobra.Command{
-		Use:     name,
+		Use:     name + " [ClusterRoleName]...",
 		Short:   "Replace cluster role bindings to match the recommended bootstrap policy",
 		Long:    reconcileBindingsLong,
 		Example: fmt.Sprintf(reconcileBindingsExample, fullName),
@@ -102,10 +107,6 @@ func NewCmdReconcileClusterRoleBindings(name, fullName string, f *clientcmd.Fact
 }
 
 func (o *ReconcileClusterRoleBindingsOptions) Complete(cmd *cobra.Command, f *clientcmd.Factory, args []string, excludeUsers, excludeGroups []string) error {
-	if len(args) != 0 {
-		return kcmdutil.UsageError(cmd, "no arguments are allowed")
-	}
-
 	oclient, _, err := f.Clients()
 	if err != nil {
 		return err
@@ -115,6 +116,22 @@ func (o *ReconcileClusterRoleBindingsOptions) Complete(cmd *cobra.Command, f *cl
 	o.Output = kcmdutil.GetFlagString(cmd, "output")
 
 	o.ExcludeSubjects = authorizationapi.BuildSubjects(excludeUsers, excludeGroups, uservalidation.ValidateUserName, uservalidation.ValidateGroupName)
+
+	mapper, _ := f.Object()
+	for _, resourceString := range args {
+		resource, name, err := cmdutil.ResolveResource(authorizationapi.Resource("clusterroles"), resourceString, mapper)
+		if err != nil {
+			return err
+		}
+		if resource != authorizationapi.Resource("clusterroles") {
+			return fmt.Errorf("%v is not a valid resource type for this command", resource)
+		}
+		if len(name) == 0 {
+			return fmt.Errorf("%s did not contain a name", resourceString)
+		}
+
+		o.RolesToReconcile = append(o.RolesToReconcile, name)
+	}
 
 	return nil
 }
@@ -145,12 +162,8 @@ func (o *ReconcileClusterRoleBindingsOptions) RunReconcileClusterRoleBindings(cm
 		for _, item := range changedClusterRoleBindings {
 			list.Items = append(list.Items, item)
 		}
-		list.Items, err = ocmdutil.ConvertItemsForDisplayFromDefaultCommand(cmd, list.Items)
-		if err != nil {
-			return err
-		}
-
-		if err := f.Factory.PrintObject(cmd, list, o.Out); err != nil {
+		fn := cmdutil.VersionedPrintObject(f.PrintObject, cmd, o.Out)
+		if err := fn(list); err != nil {
 			return err
 		}
 	}
@@ -167,9 +180,15 @@ func (o *ReconcileClusterRoleBindingsOptions) RunReconcileClusterRoleBindings(cm
 func (o *ReconcileClusterRoleBindingsOptions) ChangedClusterRoleBindings() ([]*authorizationapi.ClusterRoleBinding, error) {
 	changedRoleBindings := []*authorizationapi.ClusterRoleBinding{}
 
+	rolesToReconcile := sets.NewString(o.RolesToReconcile...)
+	rolesNotFound := sets.NewString(o.RolesToReconcile...)
 	bootstrapClusterRoleBindings := bootstrappolicy.GetBootstrapClusterRoleBindings()
 	for i := range bootstrapClusterRoleBindings {
 		expectedClusterRoleBinding := &bootstrapClusterRoleBindings[i]
+		if (len(rolesToReconcile) > 0) && !rolesToReconcile.Has(expectedClusterRoleBinding.RoleRef.Name) {
+			continue
+		}
+		rolesNotFound.Delete(expectedClusterRoleBinding.RoleRef.Name)
 
 		actualClusterRoleBinding, err := o.RoleBindingClient.Get(expectedClusterRoleBinding.Name)
 		if kapierrors.IsNotFound(err) {
@@ -191,6 +210,11 @@ func (o *ReconcileClusterRoleBindingsOptions) ChangedClusterRoleBindings() ([]*a
 		if updatedClusterRoleBinding, needsUpdating := computeUpdatedBinding(*expectedClusterRoleBinding, *actualClusterRoleBinding, o.ExcludeSubjects, o.Union); needsUpdating {
 			changedRoleBindings = append(changedRoleBindings, updatedClusterRoleBinding)
 		}
+	}
+
+	if len(rolesNotFound) != 0 {
+		// return the known changes and the error so that a caller can decide if he wants a partial update
+		return changedRoleBindings, fmt.Errorf("did not find requested cluster role %s", rolesNotFound.List())
 	}
 
 	return changedRoleBindings, nil

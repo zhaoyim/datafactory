@@ -123,6 +123,13 @@ function configure_os_server {
 function start_os_server {
 	local sudo="${USE_SUDO:+sudo}"
 
+	local use_latest_images
+	if [[ -n "${USE_LATEST_IMAGES:-}" ]]; then
+		use_latest_images="true"
+	else
+		use_latest_images="false"
+	fi
+
 	echo "[INFO] `openshift version`"
 	echo "[INFO] Server logs will be at:    ${LOG_DIR}/openshift.log"
 	echo "[INFO] Test artifacts will be in: ${ARTIFACT_DIR}"
@@ -140,6 +147,7 @@ function start_os_server {
 	 --master-config=${MASTER_CONFIG_DIR}/master-config.yaml \
 	 --node-config=${NODE_CONFIG_DIR}/node-config.yaml \
 	 --loglevel=4 \
+	 --latest-images="${use_latest_images}" \
 	&>"${LOG_DIR}/openshift.log" &
 	export OS_PID=$!
 
@@ -558,7 +566,15 @@ function cleanup_openshift {
 			fi
 		fi
 
+		echo "[INFO] Pruning etcd data directory..."
+		sudo rm -rf "${ETCD_DATA_DIR}"
+
 		set -u
+	fi
+
+	if grep -q 'no Docker socket found' "${LOG_DIR}/openshift.log"; then 
+		# the Docker daemon crashed, we need the logs
+		journalctl --unit docker.service --since -4hours > "${LOG_DIR}/docker.log"
 	fi
 
 	delete_empty_logs
@@ -590,8 +606,7 @@ function create_valid_file {
 # install the router for the extended tests
 function install_router {
 	echo "[INFO] Installing the router"
-	echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"router"}}' | oc create -f - --config="${ADMIN_KUBECONFIG}"
-	oc get scc privileged -o json --config="${ADMIN_KUBECONFIG}" | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f - --config="${ADMIN_KUBECONFIG}"
+	oadm policy add-scc-to-user privileged -z router --config="${ADMIN_KUBECONFIG}"
         # Create a TLS certificate for the router
         if [[ -n "${CREATE_ROUTER_CERT:-}" ]]; then
             echo "[INFO] Generating router TLS certificate"
@@ -604,7 +619,7 @@ function install_router {
                 ${MASTER_CONFIG_DIR}/ca.crt > ${MASTER_CONFIG_DIR}/router.pem
             ROUTER_DEFAULT_CERT="--default-cert=${MASTER_CONFIG_DIR}/router.pem"
         fi
-        openshift admin router --create --credentials="${MASTER_CONFIG_DIR}/openshift-router.kubeconfig" --config="${ADMIN_KUBECONFIG}" --images="${USE_IMAGES}" --service-account=router ${ROUTER_DEFAULT_CERT-}
+        openshift admin router --config="${ADMIN_KUBECONFIG}" --images="${USE_IMAGES}" --service-account=router ${ROUTER_DEFAULT_CERT-}
 
         # Set the SYN eater to make router reloads more robust
         if [[ -n "${DROP_SYN_DURING_RESTART:-}" ]]; then
@@ -619,7 +634,7 @@ function install_router {
 function install_registry {
 	# The --mount-host option is provided to reuse local storage.
 	echo "[INFO] Installing the registry"
-	openshift admin registry --create --credentials="${MASTER_CONFIG_DIR}/openshift-registry.kubeconfig" --config="${ADMIN_KUBECONFIG}" --images="${USE_IMAGES}"
+	openshift admin registry --config="${ADMIN_KUBECONFIG}" --images="${USE_IMAGES}"
 }
 
 function wait_for_registry {

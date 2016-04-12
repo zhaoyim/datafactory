@@ -34,7 +34,7 @@ import (
 	resource "k8s.io/kubernetes/pkg/api/resource"
 	unversioned "k8s.io/kubernetes/pkg/api/unversioned"
 	apiv1 "k8s.io/kubernetes/pkg/api/v1"
-	v1beta1 "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
+	batchv1 "k8s.io/kubernetes/pkg/apis/batch/v1"
 	conversion "k8s.io/kubernetes/pkg/conversion"
 	runtime "k8s.io/kubernetes/pkg/runtime"
 	reflect "reflect"
@@ -7580,6 +7580,30 @@ func Convert_api_ConfigMapKeySelector_To_v1_ConfigMapKeySelector(in *api.ConfigM
 	return autoConvert_api_ConfigMapKeySelector_To_v1_ConfigMapKeySelector(in, out, s)
 }
 
+func autoConvert_api_ConfigMapVolumeSource_To_v1_ConfigMapVolumeSource(in *api.ConfigMapVolumeSource, out *apiv1.ConfigMapVolumeSource, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*api.ConfigMapVolumeSource))(in)
+	}
+	if err := Convert_api_LocalObjectReference_To_v1_LocalObjectReference(&in.LocalObjectReference, &out.LocalObjectReference, s); err != nil {
+		return err
+	}
+	if in.Items != nil {
+		out.Items = make([]apiv1.KeyToPath, len(in.Items))
+		for i := range in.Items {
+			if err := Convert_api_KeyToPath_To_v1_KeyToPath(&in.Items[i], &out.Items[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Items = nil
+	}
+	return nil
+}
+
+func Convert_api_ConfigMapVolumeSource_To_v1_ConfigMapVolumeSource(in *api.ConfigMapVolumeSource, out *apiv1.ConfigMapVolumeSource, s conversion.Scope) error {
+	return autoConvert_api_ConfigMapVolumeSource_To_v1_ConfigMapVolumeSource(in, out, s)
+}
+
 func autoConvert_api_Container_To_v1_Container(in *api.Container, out *apiv1.Container, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*api.Container))(in)
@@ -8047,6 +8071,19 @@ func Convert_api_ISCSIVolumeSource_To_v1_ISCSIVolumeSource(in *api.ISCSIVolumeSo
 	return autoConvert_api_ISCSIVolumeSource_To_v1_ISCSIVolumeSource(in, out, s)
 }
 
+func autoConvert_api_KeyToPath_To_v1_KeyToPath(in *api.KeyToPath, out *apiv1.KeyToPath, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*api.KeyToPath))(in)
+	}
+	out.Key = in.Key
+	out.Path = in.Path
+	return nil
+}
+
+func Convert_api_KeyToPath_To_v1_KeyToPath(in *api.KeyToPath, out *apiv1.KeyToPath, s conversion.Scope) error {
+	return autoConvert_api_KeyToPath_To_v1_KeyToPath(in, out, s)
+}
+
 func autoConvert_api_Lifecycle_To_v1_Lifecycle(in *api.Lifecycle, out *apiv1.Lifecycle, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*api.Lifecycle))(in)
@@ -8274,7 +8311,7 @@ func autoConvert_api_PodTemplateSpec_To_v1_PodTemplateSpec(in *api.PodTemplateSp
 	if err := Convert_api_ObjectMeta_To_v1_ObjectMeta(&in.ObjectMeta, &out.ObjectMeta, s); err != nil {
 		return err
 	}
-	if err := v1beta1.Convert_api_PodSpec_To_v1_PodSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := batchv1.Convert_api_PodSpec_To_v1_PodSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
 	return nil
@@ -8454,6 +8491,12 @@ func autoConvert_api_SecurityContext_To_v1_SecurityContext(in *api.SecurityConte
 	} else {
 		out.RunAsNonRoot = nil
 	}
+	if in.ReadOnlyRootFilesystem != nil {
+		out.ReadOnlyRootFilesystem = new(bool)
+		*out.ReadOnlyRootFilesystem = *in.ReadOnlyRootFilesystem
+	} else {
+		out.ReadOnlyRootFilesystem = nil
+	}
 	return nil
 }
 
@@ -8480,7 +8523,7 @@ func autoConvert_api_Volume_To_v1_Volume(in *api.Volume, out *apiv1.Volume, s co
 		defaulting.(func(*api.Volume))(in)
 	}
 	out.Name = in.Name
-	if err := v1beta1.Convert_api_VolumeSource_To_v1beta1_VolumeSource(&in.VolumeSource, &out.VolumeSource, s); err != nil {
+	if err := apiv1.Convert_api_VolumeSource_To_v1_VolumeSource(&in.VolumeSource, &out.VolumeSource, s); err != nil {
 		return err
 	}
 	return nil
@@ -8670,6 +8713,15 @@ func autoConvert_api_VolumeSource_To_v1_VolumeSource(in *api.VolumeSource, out *
 	} else {
 		out.AzureFile = nil
 	}
+	// unable to generate simple pointer conversion for api.ConfigMapVolumeSource -> v1.ConfigMapVolumeSource
+	if in.ConfigMap != nil {
+		out.ConfigMap = new(apiv1.ConfigMapVolumeSource)
+		if err := Convert_api_ConfigMapVolumeSource_To_v1_ConfigMapVolumeSource(in.ConfigMap, out.ConfigMap, s); err != nil {
+			return err
+		}
+	} else {
+		out.ConfigMap = nil
+	}
 	return nil
 }
 
@@ -8788,6 +8840,30 @@ func autoConvert_v1_ConfigMapKeySelector_To_api_ConfigMapKeySelector(in *apiv1.C
 
 func Convert_v1_ConfigMapKeySelector_To_api_ConfigMapKeySelector(in *apiv1.ConfigMapKeySelector, out *api.ConfigMapKeySelector, s conversion.Scope) error {
 	return autoConvert_v1_ConfigMapKeySelector_To_api_ConfigMapKeySelector(in, out, s)
+}
+
+func autoConvert_v1_ConfigMapVolumeSource_To_api_ConfigMapVolumeSource(in *apiv1.ConfigMapVolumeSource, out *api.ConfigMapVolumeSource, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*apiv1.ConfigMapVolumeSource))(in)
+	}
+	if err := Convert_v1_LocalObjectReference_To_api_LocalObjectReference(&in.LocalObjectReference, &out.LocalObjectReference, s); err != nil {
+		return err
+	}
+	if in.Items != nil {
+		out.Items = make([]api.KeyToPath, len(in.Items))
+		for i := range in.Items {
+			if err := Convert_v1_KeyToPath_To_api_KeyToPath(&in.Items[i], &out.Items[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Items = nil
+	}
+	return nil
+}
+
+func Convert_v1_ConfigMapVolumeSource_To_api_ConfigMapVolumeSource(in *apiv1.ConfigMapVolumeSource, out *api.ConfigMapVolumeSource, s conversion.Scope) error {
+	return autoConvert_v1_ConfigMapVolumeSource_To_api_ConfigMapVolumeSource(in, out, s)
 }
 
 func autoConvert_v1_Container_To_api_Container(in *apiv1.Container, out *api.Container, s conversion.Scope) error {
@@ -9257,6 +9333,19 @@ func Convert_v1_ISCSIVolumeSource_To_api_ISCSIVolumeSource(in *apiv1.ISCSIVolume
 	return autoConvert_v1_ISCSIVolumeSource_To_api_ISCSIVolumeSource(in, out, s)
 }
 
+func autoConvert_v1_KeyToPath_To_api_KeyToPath(in *apiv1.KeyToPath, out *api.KeyToPath, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*apiv1.KeyToPath))(in)
+	}
+	out.Key = in.Key
+	out.Path = in.Path
+	return nil
+}
+
+func Convert_v1_KeyToPath_To_api_KeyToPath(in *apiv1.KeyToPath, out *api.KeyToPath, s conversion.Scope) error {
+	return autoConvert_v1_KeyToPath_To_api_KeyToPath(in, out, s)
+}
+
 func autoConvert_v1_Lifecycle_To_api_Lifecycle(in *apiv1.Lifecycle, out *api.Lifecycle, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*apiv1.Lifecycle))(in)
@@ -9489,7 +9578,7 @@ func autoConvert_v1_PodTemplateSpec_To_api_PodTemplateSpec(in *apiv1.PodTemplate
 	if err := Convert_v1_ObjectMeta_To_api_ObjectMeta(&in.ObjectMeta, &out.ObjectMeta, s); err != nil {
 		return err
 	}
-	if err := v1beta1.Convert_v1_PodSpec_To_api_PodSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := batchv1.Convert_v1_PodSpec_To_api_PodSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
 	return nil
@@ -9651,6 +9740,12 @@ func autoConvert_v1_SecurityContext_To_api_SecurityContext(in *apiv1.SecurityCon
 	} else {
 		out.RunAsNonRoot = nil
 	}
+	if in.ReadOnlyRootFilesystem != nil {
+		out.ReadOnlyRootFilesystem = new(bool)
+		*out.ReadOnlyRootFilesystem = *in.ReadOnlyRootFilesystem
+	} else {
+		out.ReadOnlyRootFilesystem = nil
+	}
 	return nil
 }
 
@@ -9677,7 +9772,7 @@ func autoConvert_v1_Volume_To_api_Volume(in *apiv1.Volume, out *api.Volume, s co
 		defaulting.(func(*apiv1.Volume))(in)
 	}
 	out.Name = in.Name
-	if err := v1beta1.Convert_v1beta1_VolumeSource_To_api_VolumeSource(&in.VolumeSource, &out.VolumeSource, s); err != nil {
+	if err := apiv1.Convert_v1_VolumeSource_To_api_VolumeSource(&in.VolumeSource, &out.VolumeSource, s); err != nil {
 		return err
 	}
 	return nil
@@ -9867,6 +9962,15 @@ func autoConvert_v1_VolumeSource_To_api_VolumeSource(in *apiv1.VolumeSource, out
 	} else {
 		out.AzureFile = nil
 	}
+	// unable to generate simple pointer conversion for v1.ConfigMapVolumeSource -> api.ConfigMapVolumeSource
+	if in.ConfigMap != nil {
+		out.ConfigMap = new(api.ConfigMapVolumeSource)
+		if err := Convert_v1_ConfigMapVolumeSource_To_api_ConfigMapVolumeSource(in.ConfigMap, out.ConfigMap, s); err != nil {
+			return err
+		}
+	} else {
+		out.ConfigMap = nil
+	}
 	// in.Metadata has no peer in out
 	return nil
 }
@@ -9920,6 +10024,7 @@ func init() {
 		autoConvert_api_ClusterRoleList_To_v1_ClusterRoleList,
 		autoConvert_api_ClusterRole_To_v1_ClusterRole,
 		autoConvert_api_ConfigMapKeySelector_To_v1_ConfigMapKeySelector,
+		autoConvert_api_ConfigMapVolumeSource_To_v1_ConfigMapVolumeSource,
 		autoConvert_api_ContainerPort_To_v1_ContainerPort,
 		autoConvert_api_Container_To_v1_Container,
 		autoConvert_api_CustomBuildStrategy_To_v1_CustomBuildStrategy,
@@ -9987,6 +10092,7 @@ func init() {
 		autoConvert_api_InstanceProvisioning_To_v1_InstanceProvisioning,
 		autoConvert_api_IsPersonalSubjectAccessReview_To_v1_IsPersonalSubjectAccessReview,
 		autoConvert_api_Item_To_v1_Item,
+		autoConvert_api_KeyToPath_To_v1_KeyToPath,
 		autoConvert_api_LastOperation_To_v1_LastOperation,
 		autoConvert_api_LifecycleHook_To_v1_LifecycleHook,
 		autoConvert_api_Lifecycle_To_v1_Lifecycle,
@@ -10121,6 +10227,7 @@ func init() {
 		autoConvert_v1_ClusterRoleList_To_api_ClusterRoleList,
 		autoConvert_v1_ClusterRole_To_api_ClusterRole,
 		autoConvert_v1_ConfigMapKeySelector_To_api_ConfigMapKeySelector,
+		autoConvert_v1_ConfigMapVolumeSource_To_api_ConfigMapVolumeSource,
 		autoConvert_v1_ContainerPort_To_api_ContainerPort,
 		autoConvert_v1_Container_To_api_Container,
 		autoConvert_v1_CustomBuildStrategy_To_api_CustomBuildStrategy,
@@ -10188,6 +10295,7 @@ func init() {
 		autoConvert_v1_InstanceProvisioning_To_api_InstanceProvisioning,
 		autoConvert_v1_IsPersonalSubjectAccessReview_To_api_IsPersonalSubjectAccessReview,
 		autoConvert_v1_Item_To_api_Item,
+		autoConvert_v1_KeyToPath_To_api_KeyToPath,
 		autoConvert_v1_LastOperation_To_api_LastOperation,
 		autoConvert_v1_LifecycleHook_To_api_LifecycleHook,
 		autoConvert_v1_Lifecycle_To_api_Lifecycle,

@@ -5,9 +5,11 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api/v1"
 )
 
+// BackingServiceInstance describe a BackingServiceInstance
 type BackingServiceInstance struct {
 	unversioned.TypeMeta `json:",inline"`
-	kapi.ObjectMeta      `json:"metadata,omitempty"`
+	// Standard object's metadata.
+	kapi.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec defines the behavior of the Namespace.
 	Spec BackingServiceInstanceSpec `json:"spec,omitempty" description:"spec defines the behavior of the BackingServiceInstance"`
@@ -16,8 +18,10 @@ type BackingServiceInstance struct {
 	Status BackingServiceInstanceStatus `json:"status,omitempty" description:"status describes the current status of a Project; read-only"`
 }
 
+// BackingServiceInstanceList describe a list of BackingServiceInstance
 type BackingServiceInstanceList struct {
 	unversioned.TypeMeta `json:",inline"`
+	// Standard object's metadata.
 	unversioned.ListMeta `json:"metadata,omitempty"`
 
 	// Items is a list of routes
@@ -40,12 +44,19 @@ type BackingServiceInstanceSpec struct {
 	Tags                   []string          `json:"tags, omitempty"`
 }
 */
+
+// BackingServiceInstanceSpec describes the attributes on a BackingServiceInstance
 type BackingServiceInstanceSpec struct {
+	// description of an instance.
 	InstanceProvisioning `json:"provisioning, omitempty"`
-	Binding              []InstanceBinding `json:"binding, omitempty"`
-	Bound                int               `json:"bound, omitempty"`
-	InstanceID           string            `json:"instance_id, omitempty"`
-	Tags                 []string          `json:"tags, omitempty"`
+	// bindings of an instance
+	Binding []InstanceBinding `json:"binding, omitempty"`
+	// binding number of an instance
+	Bound int `json:"bound, omitempty"`
+	// id of an instance
+	InstanceID string `json:"instance_id, omitempty"`
+	// tags of an instance
+	Tags []string `json:"tags, omitempty"`
 }
 
 /*
@@ -60,33 +71,52 @@ type InstanceProvisioning struct {
 }
 */
 
+// InstanceProvisioning describe an InstanceProvisioning detail
 type InstanceProvisioning struct {
-	DashboardUrl           string            `json:"dashboard_url, omitempty"`
-	BackingServiceName     string            `json:"backingservice_name, omitempty"`
-	BackingServiceSpecID   string            `json:"backingservice_spec_id, omitempty"`
-	BackingServicePlanGuid string            `json:"backingservice_plan_guid, omitempty"`
-	BackingServicePlanName string            `json:"backingservice_plan_name, omitempty"`
-	Parameters             map[string]string `json:"parameters, omitempty"`
+	// dashboard url of an instance
+	DashboardUrl string `json:"dashboard_url, omitempty"`
+	// bs name of an instance
+	BackingServiceName string `json:"backingservice_name, omitempty"`
+	// bs id of an instance
+	BackingServiceSpecID string `json:"backingservice_spec_id, omitempty"`
+	// bs plan id of an instance
+	BackingServicePlanGuid string `json:"backingservice_plan_guid, omitempty"`
+	// bs plan name of an instance
+	BackingServicePlanName string `json:"backingservice_plan_name, omitempty"`
+	// parameters of an instance
+	Parameters map[string]string `json:"parameters, omitempty"`
 }
 
+// InstanceBinding describe an instance binding.
 type InstanceBinding struct {
-	BoundTime            *unversioned.Time `json:"bound_time,omitempty"`
-	BindUuid             string            `json:"bind_uuid, omitempty"`
-	BindDeploymentConfig string            `json:"bind_deploymentconfig, omitempty"`
-	Credentials          map[string]string `json:"credentials, omitempty"`
+	// bound time of an instance binding
+	BoundTime *unversioned.Time `json:"bound_time,omitempty"`
+	// bind uid of an instance binding
+	BindUuid string `json:"bind_uuid, omitempty"`
+	// deploymentconfig of an binding.
+	BindDeploymentConfig string `json:"bind_deploymentconfig, omitempty"`
+	// credentials of an instance binding
+	Credentials map[string]string `json:"credentials, omitempty"`
 }
 
+// BackingServiceInstanceStatus describe the status of a BackingServiceInstance
 type BackingServiceInstanceStatus struct {
-	Phase  BackingServiceInstancePhase  `json:"phase, omitempty"`
+	// phase is the current lifecycle phase of the instance
+	Phase BackingServiceInstancePhase `json:"phase, omitempty"`
+	// action is the action of the instance
 	Action BackingServiceInstanceAction `json:"action, omitempty"`
-
+	//last operation  of a instance provisioning
 	LastOperation *LastOperation `json:"last_operation, omitempty"`
 }
 
+// LastOperation describe last operation of an instance provisioning
 type LastOperation struct {
-	State                    string `json:"state"`
-	Description              string `json:"description"`
-	AsyncPollIntervalSeconds int    `json:"async_poll_interval_seconds, omitempty"`
+	// state of last operation
+	State string `json:"state"`
+	// description of last operation
+	Description string `json:"description"`
+	// async_poll_interval_seconds of a last operation
+	AsyncPollIntervalSeconds int `json:"async_poll_interval_seconds, omitempty"`
 }
 
 type BackingServiceInstancePhase string
@@ -121,11 +151,15 @@ const BindKind_DeploymentConfig = "DeploymentConfig"
 //	DeploymentConfigName string `json:"deployment_name, omitempty"`
 //}
 
+// BindingRequestOptions describe a BindingRequestOptions.
 type BindingRequestOptions struct {
 	unversioned.TypeMeta `json:",inline"`
-	kapi.ObjectMeta      `json:"metadata,omitempty"`
-
-	BindKind            string `json:"bindKind, omitempty"`
+	// Standard object's metadata.
+	kapi.ObjectMeta `json:"metadata,omitempty"`
+	// bind kind is bindking of an instance binding
+	BindKind string `json:"bindKind, omitempty"`
+	// bindResourceVersion is bindResourceVersion of an instance binding.
 	BindResourceVersion string `json:"bindResourceVersion, omitempty"`
-	ResourceName        string `json:"resourceName, omitempty"`
+	// resourceName of an instance binding
+	ResourceName string `json:"resourceName, omitempty"`
 }

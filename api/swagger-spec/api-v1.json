@@ -51,7 +51,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -94,7 +95,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -103,7 +105,7 @@
     ]
    },
    {
-    "path": "/api/v1/namespaces/{namespace}/componentstatuses",
+    "path": "/api/v1/componentstatuses",
     "description": "API at /api/v1",
     "operations": [
      {
@@ -153,11 +155,11 @@
         "allowMultiple": false
        },
        {
-        "type": "string",
-        "paramType": "path",
-        "name": "namespace",
-        "description": "object name and auth scope, such as for teams and projects",
-        "required": true,
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
         "allowMultiple": false
        }
       ],
@@ -169,7 +171,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -178,7 +181,7 @@
     ]
    },
    {
-    "path": "/api/v1/namespaces/{namespace}/componentstatuses/{name}",
+    "path": "/api/v1/componentstatuses/{name}",
     "description": "API at /api/v1",
     "operations": [
      {
@@ -198,14 +201,6 @@
        {
         "type": "string",
         "paramType": "path",
-        "name": "namespace",
-        "description": "object name and auth scope, such as for teams and projects",
-        "required": true,
-        "allowMultiple": false
-       },
-       {
-        "type": "string",
-        "paramType": "path",
         "name": "name",
         "description": "name of the ComponentStatus",
         "required": true,
@@ -220,7 +215,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -229,14 +225,14 @@
     ]
    },
    {
-    "path": "/api/v1/componentstatuses",
+    "path": "/api/v1/namespaces/{namespace}/configmaps",
     "description": "API at /api/v1",
     "operations": [
      {
-      "type": "v1.ComponentStatusList",
+      "type": "v1.ConfigMapList",
       "method": "GET",
-      "summary": "list objects of kind ComponentStatus",
-      "nickname": "listComponentStatus",
+      "summary": "list or watch objects of kind ConfigMap",
+      "nickname": "listNamespacedConfigMap",
       "parameters": [
        {
         "type": "string",
@@ -277,13 +273,749 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
        {
         "code": 200,
         "message": "OK",
-        "responseModel": "v1.ComponentStatusList"
+        "responseModel": "v1.ConfigMapList"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "v1.ConfigMap",
+      "method": "POST",
+      "summary": "create a ConfigMap",
+      "nickname": "createNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "v1.ConfigMap",
+        "paramType": "body",
+        "name": "body",
+        "description": "",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.ConfigMap"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of ConfigMap",
+      "nickname": "deletecollectionNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     }
+    ]
+   },
+   {
+    "path": "/api/v1/watch/namespaces/{namespace}/configmaps",
+    "description": "API at /api/v1",
+    "operations": [
+     {
+      "type": "json.WatchEvent",
+      "method": "GET",
+      "summary": "watch individual changes to a list of ConfigMap",
+      "nickname": "watchNamespacedConfigMapList",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "json.WatchEvent"
+       }
+      ],
+      "produces": [
+       "application/json"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     }
+    ]
+   },
+   {
+    "path": "/api/v1/namespaces/{namespace}/configmaps/{name}",
+    "description": "API at /api/v1",
+    "operations": [
+     {
+      "type": "v1.ConfigMap",
+      "method": "GET",
+      "summary": "read the specified ConfigMap",
+      "nickname": "readNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "name",
+        "description": "name of the ConfigMap",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.ConfigMap"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "v1.ConfigMap",
+      "method": "PUT",
+      "summary": "replace the specified ConfigMap",
+      "nickname": "replaceNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "v1.ConfigMap",
+        "paramType": "body",
+        "name": "body",
+        "description": "",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "name",
+        "description": "name of the ConfigMap",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.ConfigMap"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "v1.ConfigMap",
+      "method": "PATCH",
+      "summary": "partially update the specified ConfigMap",
+      "nickname": "patchNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "unversioned.Patch",
+        "paramType": "body",
+        "name": "body",
+        "description": "",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "name",
+        "description": "name of the ConfigMap",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.ConfigMap"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "application/json-patch+json",
+       "application/merge-patch+json",
+       "application/strategic-merge-patch+json"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete a ConfigMap",
+      "nickname": "deleteNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "v1.DeleteOptions",
+        "paramType": "body",
+        "name": "body",
+        "description": "",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "name",
+        "description": "name of the ConfigMap",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     }
+    ]
+   },
+   {
+    "path": "/api/v1/watch/namespaces/{namespace}/configmaps/{name}",
+    "description": "API at /api/v1",
+    "operations": [
+     {
+      "type": "json.WatchEvent",
+      "method": "GET",
+      "summary": "watch changes to an object of kind ConfigMap",
+      "nickname": "watchNamespacedConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "name",
+        "description": "name of the ConfigMap",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "json.WatchEvent"
+       }
+      ],
+      "produces": [
+       "application/json"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     }
+    ]
+   },
+   {
+    "path": "/api/v1/configmaps",
+    "description": "API at /api/v1",
+    "operations": [
+     {
+      "type": "v1.ConfigMapList",
+      "method": "GET",
+      "summary": "list or watch objects of kind ConfigMap",
+      "nickname": "listConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.ConfigMapList"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "v1.ConfigMap",
+      "method": "POST",
+      "summary": "create a ConfigMap",
+      "nickname": "createConfigMap",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "v1.ConfigMap",
+        "paramType": "body",
+        "name": "body",
+        "description": "",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.ConfigMap"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     }
+    ]
+   },
+   {
+    "path": "/api/v1/watch/configmaps",
+    "description": "API at /api/v1",
+    "operations": [
+     {
+      "type": "json.WatchEvent",
+      "method": "GET",
+      "summary": "watch individual changes to a list of ConfigMap",
+      "nickname": "watchConfigMapList",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "json.WatchEvent"
        }
       ],
       "produces": [
@@ -346,6 +1078,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -362,7 +1102,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -407,7 +1148,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of Endpoints",
+      "nickname": "deletecollectionNamespacedEndpoints",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -466,6 +1286,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -509,6 +1337,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -533,7 +1377,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -586,7 +1431,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -639,7 +1485,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -694,7 +1541,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -749,6 +1597,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -834,6 +1690,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -844,7 +1708,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -881,7 +1746,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -936,6 +1802,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -1007,6 +1881,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -1023,7 +1905,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1068,7 +1951,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of Event",
+      "nickname": "deletecollectionNamespacedEvent",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1127,6 +2089,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -1170,6 +2140,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -1194,7 +2180,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1247,7 +2234,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1300,7 +2288,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -1355,7 +2344,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1410,6 +2400,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -1495,6 +2493,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -1505,7 +2511,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1542,7 +2549,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1597,6 +2605,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -1668,6 +2684,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -1684,7 +2708,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1729,7 +2754,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of LimitRange",
+      "nickname": "deletecollectionNamespacedLimitRange",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1788,6 +2892,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -1831,6 +2943,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -1855,7 +2983,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1908,7 +3037,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -1961,7 +3091,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -2016,7 +3147,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2071,6 +3203,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -2156,6 +3296,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -2166,7 +3314,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2203,7 +3352,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2258,6 +3408,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -2327,6 +3485,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -2337,7 +3503,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2374,7 +3541,78 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of Namespace",
+      "nickname": "deletecollectionNamespacedNamespace",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2431,6 +3669,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -2468,6 +3714,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "name",
@@ -2484,7 +3746,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2529,7 +3792,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2574,7 +3838,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -2621,7 +3886,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2676,6 +3942,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -2747,7 +4021,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2798,7 +4073,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2855,6 +4131,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -2865,7 +4149,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2902,7 +4187,78 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of Node",
+      "nickname": "deletecollectionNamespacedNode",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -2959,6 +4315,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -2996,6 +4360,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "name",
@@ -3012,7 +4392,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3057,7 +4438,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3102,7 +4484,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -3149,7 +4532,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3208,6 +4592,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "name",
@@ -3233,7 +4625,7 @@
     ]
    },
    {
-    "path": "/api/v1/proxy/nodes/{name}/{path:*}",
+    "path": "/api/v1/proxy/nodes/{name}/{path}",
     "description": "API at /api/v1",
     "operations": [
      {
@@ -3599,7 +4991,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3658,6 +5051,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -3674,7 +5075,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3719,7 +5121,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of PersistentVolumeClaim",
+      "nickname": "deletecollectionNamespacedPersistentVolumeClaim",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3778,6 +5259,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -3821,6 +5310,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -3845,7 +5350,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3898,7 +5404,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -3951,7 +5458,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -4006,7 +5514,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4061,6 +5570,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -4146,6 +5663,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -4156,7 +5681,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4193,7 +5719,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4248,6 +5775,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -4319,7 +5854,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4376,6 +5912,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -4386,7 +5930,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4423,7 +5968,78 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of PersistentVolume",
+      "nickname": "deletecollectionNamespacedPersistentVolume",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4480,6 +6096,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -4517,6 +6141,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "name",
@@ -4533,7 +6173,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4578,7 +6219,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4623,7 +6265,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -4670,7 +6313,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4725,6 +6369,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -4796,7 +6448,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4855,6 +6508,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -4871,7 +6532,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4916,7 +6578,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of Pod",
+      "nickname": "deletecollectionNamespacedPod",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -4975,6 +6716,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -5018,6 +6767,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -5042,7 +6807,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -5095,7 +6861,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -5148,7 +6915,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -5203,7 +6971,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -5262,6 +7031,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -5295,7 +7072,7 @@
     ]
    },
    {
-    "path": "/api/v1/proxy/namespaces/{namespace}/pods/{name}/{path:*}",
+    "path": "/api/v1/proxy/namespaces/{namespace}/pods/{name}/{path}",
     "description": "API at /api/v1",
     "operations": [
      {
@@ -5763,6 +7540,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -5773,7 +7558,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -5810,7 +7596,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -5865,6 +7652,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -6082,7 +7877,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -6295,7 +8091,7 @@
         "allowMultiple": false
        },
        {
-        "type": "*int64",
+        "type": "integer",
         "paramType": "query",
         "name": "sinceSeconds",
         "description": "A relative time in seconds before the current time from which to show logs. If this value precedes the time a pod was started, only logs since the pod start will be returned. If this value is in the future, no logs will be returned. Only one of sinceSeconds or sinceTime may be specified.",
@@ -6319,7 +8115,7 @@
         "allowMultiple": false
        },
        {
-        "type": "*int64",
+        "type": "integer",
         "paramType": "query",
         "name": "tailLines",
         "description": "If set, the number of lines from the end of the logs to show. If not specified, logs are shown from the creation of the container or sinceSeconds or sinceTime",
@@ -6327,7 +8123,7 @@
         "allowMultiple": false
        },
        {
-        "type": "*int64",
+        "type": "integer",
         "paramType": "query",
         "name": "limitBytes",
         "description": "If set, the number of bytes to read from the server before terminating the log output. This may not display a complete final line of logging, and may return slightly more or slightly less than the specified limit.",
@@ -6359,7 +8155,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -6668,7 +8465,7 @@
     ]
    },
    {
-    "path": "/api/v1/namespaces/{namespace}/pods/{name}/proxy/{path:*}",
+    "path": "/api/v1/namespaces/{namespace}/pods/{name}/proxy/{path}",
     "description": "API at /api/v1",
     "operations": [
      {
@@ -7000,7 +8797,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7059,6 +8857,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -7075,7 +8881,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7120,7 +8927,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of PodTemplate",
+      "nickname": "deletecollectionNamespacedPodTemplate",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7179,6 +9065,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -7222,6 +9116,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -7246,7 +9156,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7299,7 +9210,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7352,7 +9264,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -7407,7 +9320,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7462,6 +9376,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -7547,6 +9469,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -7557,7 +9487,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7594,7 +9525,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7649,6 +9581,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -7720,6 +9660,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -7736,7 +9684,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7781,7 +9730,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of ReplicationController",
+      "nickname": "deletecollectionNamespacedReplicationController",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7840,6 +9868,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -7883,6 +9919,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -7907,7 +9959,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -7960,7 +10013,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8013,7 +10067,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -8068,7 +10123,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8123,6 +10179,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -8208,6 +10272,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -8218,7 +10290,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8255,7 +10328,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8310,6 +10384,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -8381,7 +10463,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8440,6 +10523,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -8456,7 +10547,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8501,7 +10593,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of ResourceQuota",
+      "nickname": "deletecollectionNamespacedResourceQuota",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8560,6 +10731,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -8603,6 +10782,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -8627,7 +10822,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8680,7 +10876,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8733,7 +10930,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -8788,7 +10986,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8843,6 +11042,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -8928,6 +11135,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -8938,7 +11153,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -8975,7 +11191,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9030,6 +11247,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -9101,7 +11326,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9160,6 +11386,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -9176,7 +11410,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9221,7 +11456,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of Secret",
+      "nickname": "deletecollectionNamespacedSecret",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9280,6 +11594,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -9323,6 +11645,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -9347,7 +11685,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9400,7 +11739,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9453,7 +11793,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -9508,7 +11849,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9563,6 +11905,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -9648,6 +11998,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -9658,7 +12016,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9695,7 +12054,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9750,6 +12110,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -9819,6 +12187,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -9829,7 +12205,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9866,7 +12243,78 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of SecurityContextConstraints",
+      "nickname": "deletecollectionNamespacedSecurityContextConstraints",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -9923,6 +12371,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -9960,6 +12416,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "name",
@@ -9976,7 +12448,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10021,7 +12494,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10066,7 +12540,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -10113,7 +12588,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10168,6 +12644,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -10247,6 +12731,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -10263,7 +12755,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10308,7 +12801,86 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     },
+     {
+      "type": "unversioned.Status",
+      "method": "DELETE",
+      "summary": "delete collection of ServiceAccount",
+      "nickname": "deletecollectionNamespacedServiceAccount",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "labelSelector",
+        "description": "A selector to restrict the list of returned objects by their labels. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "fieldSelector",
+        "description": "A selector to restrict the list of returned objects by their fields. Defaults to everything.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "watch",
+        "description": "Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "resourceVersion",
+        "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "unversioned.Status"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10367,6 +12939,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -10410,6 +12990,22 @@
         "allowMultiple": false
        },
        {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "export",
+        "description": "Should this value be exported.  Export strips fields that a user can not specify.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "boolean",
+        "paramType": "query",
+        "name": "exact",
+        "description": "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -10434,7 +13030,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10487,7 +13084,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10540,7 +13138,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -10595,7 +13194,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10650,6 +13250,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -10735,6 +13343,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -10745,7 +13361,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10782,7 +13399,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10837,6 +13455,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        }
@@ -10908,6 +13534,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -10924,7 +13558,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -10969,7 +13604,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -11024,6 +13660,14 @@
         "paramType": "query",
         "name": "resourceVersion",
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
         "required": false,
         "allowMultiple": false
        },
@@ -11095,7 +13739,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -11148,7 +13793,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -11201,7 +13847,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "application/json-patch+json",
@@ -11248,7 +13895,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -11307,6 +13955,14 @@
         "allowMultiple": false
        },
        {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
         "type": "string",
         "paramType": "path",
         "name": "namespace",
@@ -11340,7 +13996,7 @@
     ]
    },
    {
-    "path": "/api/v1/proxy/namespaces/{namespace}/services/{name}/{path:*}",
+    "path": "/api/v1/proxy/namespaces/{namespace}/services/{name}/{path}",
     "description": "API at /api/v1",
     "operations": [
      {
@@ -11808,6 +14464,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -11818,7 +14482,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -11855,7 +14520,8 @@
        }
       ],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
        "*/*"
@@ -11912,6 +14578,14 @@
         "description": "When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history.",
         "required": false,
         "allowMultiple": false
+       },
+       {
+        "type": "integer",
+        "paramType": "query",
+        "name": "timeoutSeconds",
+        "description": "Timeout for the list/watch call.",
+        "required": false,
+        "allowMultiple": false
        }
       ],
       "responseMessages": [
@@ -11931,6 +14605,66 @@
     ]
    },
    {
+    "path": "/api/v1/namespaces/{namespace}/services/{name}/status",
+    "description": "API at /api/v1",
+    "operations": [
+     {
+      "type": "v1.Service",
+      "method": "PUT",
+      "summary": "replace status of the specified Service",
+      "nickname": "replaceNamespacedServiceStatus",
+      "parameters": [
+       {
+        "type": "string",
+        "paramType": "query",
+        "name": "pretty",
+        "description": "If 'true', then the output is pretty printed.",
+        "required": false,
+        "allowMultiple": false
+       },
+       {
+        "type": "v1.Service",
+        "paramType": "body",
+        "name": "body",
+        "description": "",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "namespace",
+        "description": "object name and auth scope, such as for teams and projects",
+        "required": true,
+        "allowMultiple": false
+       },
+       {
+        "type": "string",
+        "paramType": "path",
+        "name": "name",
+        "description": "name of the Service",
+        "required": true,
+        "allowMultiple": false
+       }
+      ],
+      "responseMessages": [
+       {
+        "code": 200,
+        "message": "OK",
+        "responseModel": "v1.Service"
+       }
+      ],
+      "produces": [
+       "application/json",
+       "application/yaml"
+      ],
+      "consumes": [
+       "*/*"
+      ]
+     }
+    ]
+   },
+   {
     "path": "/api/v1",
     "description": "API at /api/v1",
     "operations": [
@@ -11941,10 +14675,12 @@
       "nickname": "getAPIResources",
       "parameters": [],
       "produces": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ],
       "consumes": [
-       "application/json"
+       "application/json",
+       "application/yaml"
       ]
      }
     ]
@@ -12159,6 +14895,180 @@
      }
     }
    },
+   "v1.ConfigMapList": {
+    "id": "v1.ConfigMapList",
+    "description": "ConfigMapList is a resource containing a list of ConfigMap objects.",
+    "properties": {
+     "kind": {
+      "type": "string",
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
+     },
+     "apiVersion": {
+      "type": "string",
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#resources"
+     },
+     "metadata": {
+      "$ref": "unversioned.ListMeta",
+      "description": "More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata"
+     },
+     "items": {
+      "type": "array",
+      "items": {
+       "$ref": "v1.ConfigMap"
+      },
+      "description": "Items is the list of ConfigMaps."
+     }
+    }
+   },
+   "v1.ConfigMap": {
+    "id": "v1.ConfigMap",
+    "description": "ConfigMap holds configuration data for pods to consume.",
+    "properties": {
+     "kind": {
+      "type": "string",
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
+     },
+     "apiVersion": {
+      "type": "string",
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#resources"
+     },
+     "metadata": {
+      "$ref": "v1.ObjectMeta",
+      "description": "Standard object's metadata. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata"
+     },
+     "data": {
+      "type": "any",
+      "description": "Data contains the configuration data. Each key must be a valid DNS_SUBDOMAIN with an optional leading dot."
+     }
+    }
+   },
+   "unversioned.Status": {
+    "id": "unversioned.Status",
+    "description": "Status is a return value for calls that don't return other objects.",
+    "properties": {
+     "kind": {
+      "type": "string",
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
+     },
+     "apiVersion": {
+      "type": "string",
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#resources"
+     },
+     "metadata": {
+      "$ref": "unversioned.ListMeta",
+      "description": "Standard list metadata. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
+     },
+     "status": {
+      "type": "string",
+      "description": "Status of the operation. One of: \"Success\" or \"Failure\". More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#spec-and-status"
+     },
+     "message": {
+      "type": "string",
+      "description": "A human-readable description of the status of this operation."
+     },
+     "reason": {
+      "type": "string",
+      "description": "A machine-readable description of why this operation is in the \"Failure\" status. If this value is empty there is no information available. A Reason clarifies an HTTP status code but does not override it."
+     },
+     "details": {
+      "$ref": "unversioned.StatusDetails",
+      "description": "Extended data associated with the reason.  Each reason may define its own extended details. This field is optional and the data returned is not guaranteed to conform to any schema except that defined by the reason type."
+     },
+     "code": {
+      "type": "integer",
+      "format": "int32",
+      "description": "Suggested HTTP return code for this status, 0 if not set."
+     }
+    }
+   },
+   "unversioned.StatusDetails": {
+    "id": "unversioned.StatusDetails",
+    "description": "StatusDetails is a set of additional properties that MAY be set by the server to provide additional information about a response. The Reason field of a Status object defines what attributes will be set. Clients must ignore fields that do not match the defined type of each attribute, and should assume that any attribute may be empty, invalid, or under defined.",
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "The name attribute of the resource associated with the status StatusReason (when there is a single name which can be described)."
+     },
+     "group": {
+      "type": "string",
+      "description": "The group attribute of the resource associated with the status StatusReason."
+     },
+     "kind": {
+      "type": "string",
+      "description": "The kind attribute of the resource associated with the status StatusReason. On some operations may differ from the requested resource Kind. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
+     },
+     "causes": {
+      "type": "array",
+      "items": {
+       "$ref": "unversioned.StatusCause"
+      },
+      "description": "The Causes array includes more details associated with the StatusReason failure. Not all StatusReasons may provide detailed causes."
+     },
+     "retryAfterSeconds": {
+      "type": "integer",
+      "format": "int32",
+      "description": "If specified, the time in seconds before the operation should be retried."
+     }
+    }
+   },
+   "unversioned.StatusCause": {
+    "id": "unversioned.StatusCause",
+    "description": "StatusCause provides more information about an api.Status failure, including cases when multiple errors are encountered.",
+    "properties": {
+     "reason": {
+      "type": "string",
+      "description": "A machine-readable description of the cause of the error. If this value is empty there is no information available."
+     },
+     "message": {
+      "type": "string",
+      "description": "A human-readable description of the cause of the error.  This field may be presented as-is to a reader."
+     },
+     "field": {
+      "type": "string",
+      "description": "The field of the resource that has caused this error, as named by its JSON serialization. May include dot and postfix notation for nested attributes. Arrays are zero-indexed.  Fields may appear more than once in an array of causes due to fields having multiple errors. Optional.\n\nExamples:\n  \"name\" - the field \"name\" on the current resource\n  \"items[0].name\" - the field \"name\" on the first array entry in \"items\""
+     }
+    }
+   },
+   "json.WatchEvent": {
+    "id": "json.WatchEvent",
+    "properties": {
+     "type": {
+      "type": "string",
+      "description": "the type of watch event; may be ADDED, MODIFIED, DELETED, or ERROR"
+     },
+     "object": {
+      "type": "string",
+      "description": "the object being watched; will match the type of the resource endpoint or be a Status object if the type is ERROR"
+     }
+    }
+   },
+   "unversioned.Patch": {
+    "id": "unversioned.Patch",
+    "description": "Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.",
+    "properties": {}
+   },
+   "v1.DeleteOptions": {
+    "id": "v1.DeleteOptions",
+    "description": "DeleteOptions may be provided when deleting an API object",
+    "required": [
+     "gracePeriodSeconds"
+    ],
+    "properties": {
+     "kind": {
+      "type": "string",
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
+     },
+     "apiVersion": {
+      "type": "string",
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#resources"
+     },
+     "gracePeriodSeconds": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately."
+     }
+    }
+   },
    "v1.EndpointsList": {
     "id": "v1.EndpointsList",
     "description": "EndpointsList is a list of endpoints.",
@@ -12281,129 +15191,6 @@
      }
     }
    },
-   "json.WatchEvent": {
-    "id": "json.WatchEvent",
-    "properties": {
-     "type": {
-      "type": "string",
-      "description": "the type of watch event; may be ADDED, MODIFIED, DELETED, or ERROR"
-     },
-     "object": {
-      "type": "string",
-      "description": "the object being watched; will match the type of the resource endpoint or be a Status object if the type is ERROR"
-     }
-    }
-   },
-   "unversioned.Patch": {
-    "id": "unversioned.Patch",
-    "description": "Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.",
-    "properties": {}
-   },
-   "unversioned.Status": {
-    "id": "unversioned.Status",
-    "description": "Status is a return value for calls that don't return other objects.",
-    "properties": {
-     "kind": {
-      "type": "string",
-      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
-     },
-     "apiVersion": {
-      "type": "string",
-      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#resources"
-     },
-     "metadata": {
-      "$ref": "unversioned.ListMeta",
-      "description": "Standard list metadata. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
-     },
-     "status": {
-      "type": "string",
-      "description": "Status of the operation. One of: \"Success\" or \"Failure\". More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#spec-and-status"
-     },
-     "message": {
-      "type": "string",
-      "description": "A human-readable description of the status of this operation."
-     },
-     "reason": {
-      "type": "string",
-      "description": "A machine-readable description of why this operation is in the \"Failure\" status. If this value is empty there is no information available. A Reason clarifies an HTTP status code but does not override it."
-     },
-     "details": {
-      "$ref": "unversioned.StatusDetails",
-      "description": "Extended data associated with the reason.  Each reason may define its own extended details. This field is optional and the data returned is not guaranteed to conform to any schema except that defined by the reason type."
-     },
-     "code": {
-      "type": "integer",
-      "format": "int32",
-      "description": "Suggested HTTP return code for this status, 0 if not set."
-     }
-    }
-   },
-   "unversioned.StatusDetails": {
-    "id": "unversioned.StatusDetails",
-    "description": "StatusDetails is a set of additional properties that MAY be set by the server to provide additional information about a response. The Reason field of a Status object defines what attributes will be set. Clients must ignore fields that do not match the defined type of each attribute, and should assume that any attribute may be empty, invalid, or under defined.",
-    "properties": {
-     "name": {
-      "type": "string",
-      "description": "The name attribute of the resource associated with the status StatusReason (when there is a single name which can be described)."
-     },
-     "kind": {
-      "type": "string",
-      "description": "The kind attribute of the resource associated with the status StatusReason. On some operations may differ from the requested resource Kind. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
-     },
-     "causes": {
-      "type": "array",
-      "items": {
-       "$ref": "unversioned.StatusCause"
-      },
-      "description": "The Causes array includes more details associated with the StatusReason failure. Not all StatusReasons may provide detailed causes."
-     },
-     "retryAfterSeconds": {
-      "type": "integer",
-      "format": "int32",
-      "description": "If specified, the time in seconds before the operation should be retried."
-     }
-    }
-   },
-   "unversioned.StatusCause": {
-    "id": "unversioned.StatusCause",
-    "description": "StatusCause provides more information about an api.Status failure, including cases when multiple errors are encountered.",
-    "properties": {
-     "reason": {
-      "type": "string",
-      "description": "A machine-readable description of the cause of the error. If this value is empty there is no information available."
-     },
-     "message": {
-      "type": "string",
-      "description": "A human-readable description of the cause of the error.  This field may be presented as-is to a reader."
-     },
-     "field": {
-      "type": "string",
-      "description": "The field of the resource that has caused this error, as named by its JSON serialization. May include dot and postfix notation for nested attributes. Arrays are zero-indexed.  Fields may appear more than once in an array of causes due to fields having multiple errors. Optional.\n\nExamples:\n  \"name\" - the field \"name\" on the current resource\n  \"items[0].name\" - the field \"name\" on the first array entry in \"items\""
-     }
-    }
-   },
-   "v1.DeleteOptions": {
-    "id": "v1.DeleteOptions",
-    "description": "DeleteOptions may be provided when deleting an API object",
-    "required": [
-     "gracePeriodSeconds"
-    ],
-    "properties": {
-     "kind": {
-      "type": "string",
-      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#types-kinds"
-     },
-     "apiVersion": {
-      "type": "string",
-      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#resources"
-     },
-     "gracePeriodSeconds": {
-      "type": "integer",
-      "format": "int64",
-      "description": "The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately."
-     }
-    }
-   },
    "v1.EventList": {
     "id": "v1.EventList",
     "description": "EventList is a list of events.",
@@ -12480,6 +15267,10 @@
       "type": "integer",
       "format": "int32",
       "description": "The number of times this event has occurred."
+     },
+     "type": {
+      "type": "string",
+      "description": "Type of this event (Normal, Warning), new types could be added in the future"
      }
     }
    },
@@ -12753,10 +15544,17 @@
    "v1.NodeStatus": {
     "id": "v1.NodeStatus",
     "description": "NodeStatus is information about the current status of a node.",
+    "required": [
+     "images"
+    ],
     "properties": {
      "capacity": {
       "type": "any",
-      "description": "Capacity represents the available resources of a node. More info: http://releases.k8s.io/HEAD/docs/user-guide/persistent-volumes.md#capacity for more details."
+      "description": "Capacity represents the total resources of a node. More info: http://releases.k8s.io/HEAD/docs/user-guide/persistent-volumes.md#capacity for more details."
+     },
+     "allocatable": {
+      "type": "any",
+      "description": "Allocatable represents the resources of a node that are available for scheduling. Defaults to Capacity."
      },
      "phase": {
       "type": "string",
@@ -12783,6 +15581,13 @@
      "nodeInfo": {
       "$ref": "v1.NodeSystemInfo",
       "description": "Set of ids/uuids to uniquely identify the node. More info: http://releases.k8s.io/HEAD/docs/admin/node.md#node-info"
+     },
+     "images": {
+      "type": "array",
+      "items": {
+       "$ref": "v1.ContainerImage"
+      },
+      "description": "List of container images on this node"
      }
     }
    },
@@ -12796,7 +15601,7 @@
     "properties": {
      "type": {
       "type": "string",
-      "description": "Type of node condition, currently only Ready."
+      "description": "Type of node condition."
      },
      "status": {
       "type": "string",
@@ -12907,6 +15712,27 @@
      "kubeProxyVersion": {
       "type": "string",
       "description": "KubeProxy Version reported by the node."
+     }
+    }
+   },
+   "v1.ContainerImage": {
+    "id": "v1.ContainerImage",
+    "description": "Describe a container image",
+    "required": [
+     "repoTags"
+    ],
+    "properties": {
+     "repoTags": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Names by which this image is known. e.g. [\"gcr.io/google_containers/hyperkube:v1.0.7\", \"dockerhub.io/google_containers/hyperkube:v1.0.7\"]"
+     },
+     "size": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The size of the image in bytes."
      }
     }
    },
@@ -13130,6 +15956,14 @@
       "$ref": "v1.FlockerVolumeSource",
       "description": "Flocker represents a Flocker volume attached to a kubelet's host machine and exposed to the pod for its usage. This depends on the Flocker control service being running"
      },
+     "flexVolume": {
+      "$ref": "v1.FlexVolumeSource",
+      "description": "FlexVolume represents a generic volume resource that is provisioned/attached using a exec based plugin. This is an alpha feature and may change in future."
+     },
+     "azureFile": {
+      "$ref": "v1.AzureFileVolumeSource",
+      "description": "AzureFile represents an Azure File Service mount on the host and bind mount to the pod."
+     },
      "accessModes": {
       "type": "array",
       "items": {
@@ -13149,10 +15983,9 @@
    },
    "v1.GCEPersistentDiskVolumeSource": {
     "id": "v1.GCEPersistentDiskVolumeSource",
-    "description": "GCEPersistentDiskVolumeSource represents a Persistent Disk resource in Google Compute Engine.\n\nA GCE PD must exist and be formatted before mounting to a container. The disk must also be in the same GCE project and zone as the kubelet. A GCE PD can only be mounted as read/write once.",
+    "description": "Represents a Persistent Disk resource in Google Compute Engine.\n\nA GCE PD must exist and be formatted before mounting to a container. The disk must also be in the same GCE project and zone as the kubelet. A GCE PD can only be mounted as read/write once. GCE PDs support ownership management and SELinux relabeling.",
     "required": [
-     "pdName",
-     "fsType"
+     "pdName"
     ],
     "properties": {
      "pdName": {
@@ -13161,7 +15994,7 @@
      },
      "fsType": {
       "type": "string",
-      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#gcepersistentdisk"
+      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#gcepersistentdisk"
      },
      "partition": {
       "type": "integer",
@@ -13176,10 +16009,9 @@
    },
    "v1.AWSElasticBlockStoreVolumeSource": {
     "id": "v1.AWSElasticBlockStoreVolumeSource",
-    "description": "Represents a persistent disk resource in AWS.\n\nAn Amazon Elastic Block Store (EBS) must already be created, formatted, and reside in the same AWS zone as the kubelet before it can be mounted. Note: Amazon EBS volumes can be mounted to only one instance at a time.",
+    "description": "Represents a Persistent Disk resource in AWS.\n\nAn AWS EBS disk must exist and be formatted before mounting to a container. The disk must also be in the same AWS zone as the kubelet. An AWS EBS disk can only be mounted as read/write once. AWS EBS volumes support ownership management and SELinux relabeling.",
     "required": [
-     "volumeID",
-     "fsType"
+     "volumeID"
     ],
     "properties": {
      "volumeID": {
@@ -13188,7 +16020,7 @@
      },
      "fsType": {
       "type": "string",
-      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#awselasticblockstore"
+      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#awselasticblockstore"
      },
      "partition": {
       "type": "integer",
@@ -13203,7 +16035,7 @@
    },
    "v1.HostPathVolumeSource": {
     "id": "v1.HostPathVolumeSource",
-    "description": "HostPathVolumeSource represents bare host directory volume.",
+    "description": "Represents a host path mapped into a pod. Host path volumes do not support ownership management or SELinux relabeling.",
     "required": [
      "path"
     ],
@@ -13216,7 +16048,7 @@
    },
    "v1.GlusterfsVolumeSource": {
     "id": "v1.GlusterfsVolumeSource",
-    "description": "GlusterfsVolumeSource represents a Glusterfs Mount that lasts the lifetime of a pod.",
+    "description": "Represents a Glusterfs mount that lasts the lifetime of a pod. Glusterfs volumes do not support ownership management or SELinux relabeling.",
     "required": [
      "endpoints",
      "path"
@@ -13238,7 +16070,7 @@
    },
    "v1.NFSVolumeSource": {
     "id": "v1.NFSVolumeSource",
-    "description": "NFSVolumeSource represents an NFS mount that lasts the lifetime of a pod",
+    "description": "Represents an NFS mount that lasts the lifetime of a pod. NFS volumes do not support ownership management or SELinux relabeling.",
     "required": [
      "server",
      "path"
@@ -13260,7 +16092,7 @@
    },
    "v1.RBDVolumeSource": {
     "id": "v1.RBDVolumeSource",
-    "description": "RBDVolumeSource represents a Rados Block Device Mount that lasts the lifetime of a pod",
+    "description": "Represents a Rados Block Device mount that lasts the lifetime of a pod. RBD volumes support ownership management and SELinux relabeling.",
     "required": [
      "monitors",
      "image",
@@ -13283,7 +16115,7 @@
      },
      "fsType": {
       "type": "string",
-      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#rbd"
+      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#rbd"
      },
      "pool": {
       "type": "string",
@@ -13319,12 +16151,11 @@
    },
    "v1.ISCSIVolumeSource": {
     "id": "v1.ISCSIVolumeSource",
-    "description": "ISCSIVolumeSource describes an ISCSI Disk can only be mounted as read/write once.",
+    "description": "Represents an ISCSI disk. ISCSI volumes can only be mounted as read/write once. ISCSI volumes support ownership management and SELinux relabeling.",
     "required": [
      "targetPortal",
      "iqn",
-     "lun",
-     "fsType"
+     "lun"
     ],
     "properties": {
      "targetPortal": {
@@ -13340,9 +16171,13 @@
       "format": "int32",
       "description": "iSCSI target lun number."
      },
+     "iscsiInterface": {
+      "type": "string",
+      "description": "Optional: Defaults to 'default' (tcp). iSCSI interface name that uses an iSCSI transport."
+     },
      "fsType": {
       "type": "string",
-      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#iscsi"
+      "description": "Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#iscsi"
      },
      "readOnly": {
       "type": "boolean",
@@ -13352,7 +16187,7 @@
    },
    "v1.CinderVolumeSource": {
     "id": "v1.CinderVolumeSource",
-    "description": "CinderVolumeSource represents a cinder volume resource in Openstack. A Cinder volume must exist before mounting to a container. The volume must also be in the same region as the kubelet.",
+    "description": "Represents a cinder volume resource in Openstack. A Cinder volume must exist before mounting to a container. The volume must also be in the same region as the kubelet. Cinder volumes support ownership management and SELinux relabeling.",
     "required": [
      "volumeID"
     ],
@@ -13363,7 +16198,7 @@
      },
      "fsType": {
       "type": "string",
-      "description": "Required: Filesystem type to mount. Must be a filesystem type supported by the host operating system. Only ext3 and ext4 are allowed More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md"
+      "description": "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md"
      },
      "readOnly": {
       "type": "boolean",
@@ -13373,7 +16208,7 @@
    },
    "v1.CephFSVolumeSource": {
     "id": "v1.CephFSVolumeSource",
-    "description": "CephFSVolumeSource represents a Ceph Filesystem Mount that lasts the lifetime of a pod",
+    "description": "Represents a Ceph Filesystem mount that lasts the lifetime of a pod Cephfs volumes do not support ownership management or SELinux relabeling.",
     "required": [
      "monitors"
     ],
@@ -13384,6 +16219,10 @@
        "type": "string"
       },
       "description": "Required: Monitors is a collection of Ceph monitors More info: http://releases.k8s.io/HEAD/examples/cephfs/README.md#how-to-use-it"
+     },
+     "path": {
+      "type": "string",
+      "description": "Optional: Used as the mounted root, rather than the full Ceph tree, default is /"
      },
      "user": {
       "type": "string",
@@ -13405,11 +16244,10 @@
    },
    "v1.FCVolumeSource": {
     "id": "v1.FCVolumeSource",
-    "description": "A Fibre Channel Disk can only be mounted as read/write once.",
+    "description": "Represents a Fibre Channel volume. Fibre Channel volumes can only be mounted as read/write once. Fibre Channel volumes support ownership management and SELinux relabeling.",
     "required": [
      "targetWWNs",
-     "lun",
-     "fsType"
+     "lun"
     ],
     "properties": {
      "targetWWNs": {
@@ -13426,7 +16264,7 @@
      },
      "fsType": {
       "type": "string",
-      "description": "Required: Filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. \"ext4\", \"xfs\", \"ntfs\""
+      "description": "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified."
      },
      "readOnly": {
       "type": "boolean",
@@ -13436,7 +16274,7 @@
    },
    "v1.FlockerVolumeSource": {
     "id": "v1.FlockerVolumeSource",
-    "description": "FlockerVolumeSource represents a Flocker volume mounted by the Flocker agent.",
+    "description": "Represents a Flocker volume mounted by the Flocker agent. Flocker volumes do not support ownership management or SELinux relabeling.",
     "required": [
      "datasetName"
     ],
@@ -13444,6 +16282,57 @@
      "datasetName": {
       "type": "string",
       "description": "Required: the volume name. This is going to be store on metadata -\u003e name on the payload for Flocker"
+     }
+    }
+   },
+   "v1.FlexVolumeSource": {
+    "id": "v1.FlexVolumeSource",
+    "description": "FlexVolume represents a generic volume resource that is provisioned/attached using a exec based plugin. This is an alpha feature and may change in future.",
+    "required": [
+     "driver"
+    ],
+    "properties": {
+     "driver": {
+      "type": "string",
+      "description": "Driver is the name of the driver to use for this volume."
+     },
+     "fsType": {
+      "type": "string",
+      "description": "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. \"ext4\", \"xfs\", \"ntfs\". The default filesystem depends on FlexVolume script."
+     },
+     "secretRef": {
+      "$ref": "v1.LocalObjectReference",
+      "description": "Optional: SecretRef is reference to the authentication secret for User, default is empty."
+     },
+     "readOnly": {
+      "type": "boolean",
+      "description": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts."
+     },
+     "options": {
+      "type": "any",
+      "description": "Optional: Extra command options if any."
+     }
+    }
+   },
+   "v1.AzureFileVolumeSource": {
+    "id": "v1.AzureFileVolumeSource",
+    "description": "AzureFile represents an Azure File Service mount on the host and bind mount to the pod.",
+    "required": [
+     "secretName",
+     "shareName"
+    ],
+    "properties": {
+     "secretName": {
+      "type": "string",
+      "description": "the name of secret that contains Azure Storage Account Name and Key"
+     },
+     "shareName": {
+      "type": "string",
+      "description": "Share Name"
+     },
+     "readOnly": {
+      "type": "boolean",
+      "description": "Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts."
      }
     }
    },
@@ -13564,7 +16453,7 @@
      },
      "host": {
       "type": "string",
-      "description": "deprecated, use nodeName instead"
+      "description": "DeprecatedHost is a request to schedule this pod onto a specific node"
      },
      "serviceAccountName": {
       "type": "string",
@@ -13658,6 +16547,10 @@
       "$ref": "v1.RBDVolumeSource",
       "description": "RBD represents a Rados Block Device mount on the host that shares a pod's lifetime. More info: http://releases.k8s.io/HEAD/examples/rbd/README.md"
      },
+     "flexVolume": {
+      "$ref": "v1.FlexVolumeSource",
+      "description": "FlexVolume represents a generic volume resource that is provisioned/attached using a exec based plugin. This is an alpha feature and may change in future."
+     },
      "cinder": {
       "$ref": "v1.CinderVolumeSource",
       "description": "Cinder represents a cinder volume attached and mounted on kubelets host machine More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md"
@@ -13678,14 +16571,19 @@
       "$ref": "v1.FCVolumeSource",
       "description": "FC represents a Fibre Channel resource that is attached to a kubelet's host machine and then exposed to the pod."
      },
+     "azureFile": {
+      "$ref": "v1.AzureFileVolumeSource",
+      "description": "AzureFile represents an Azure File Service mount on the host and bind mount to the pod."
+     },
      "metadata": {
-      "$ref": "v1.MetadataVolumeSource"
+      "$ref": "v1.MetadataVolumeSource",
+      "description": "Metadata represents metadata about the pod that should populate this volume NOTE: Deprecated in favor of DownwardAPI"
      }
     }
    },
    "v1.EmptyDirVolumeSource": {
     "id": "v1.EmptyDirVolumeSource",
-    "description": "EmptyDirVolumeSource is temporary directory that shares a pod's lifetime.",
+    "description": "Represents an empty directory for a pod. Empty directory volumes support ownership management and SELinux relabeling.",
     "properties": {
      "medium": {
       "type": "string",
@@ -13695,10 +16593,9 @@
    },
    "v1.GitRepoVolumeSource": {
     "id": "v1.GitRepoVolumeSource",
-    "description": "GitRepoVolumeSource represents a volume that is pulled from git when the pod is created.",
+    "description": "Represents a volume that is populated with the contents of a git repository. Git repo volumes do not support ownership management. Git repo volumes support SELinux relabeling.",
     "required": [
-     "repository",
-     "revision"
+     "repository"
     ],
     "properties": {
      "repository": {
@@ -13708,19 +16605,20 @@
      "revision": {
       "type": "string",
       "description": "Commit hash for the specified revision."
+     },
+     "directory": {
+      "type": "string",
+      "description": "Target directory name. Must not contain or start with '..'.  If '.' is supplied, the volume directory will be the git repository.  Otherwise, if specified, the volume will contain the git repository in the subdirectory with the given name."
      }
     }
    },
    "v1.SecretVolumeSource": {
     "id": "v1.SecretVolumeSource",
-    "description": "SecretVolumeSource adapts a Secret into a VolumeSource. More info: http://releases.k8s.io/HEAD/docs/design/secrets.md",
-    "required": [
-     "secretName"
-    ],
+    "description": "Adapts a Secret into a volume.\n\nThe contents of the target Secret's Data field will be presented in a volume as files using the keys in the Data field as the file names. Secret volumes support ownership management and SELinux relabeling.",
     "properties": {
      "secretName": {
       "type": "string",
-      "description": "SecretName is the name of a secret in the pod's namespace. More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#secrets"
+      "description": "Name of the secret in the pod's namespace to use. More info: http://releases.k8s.io/HEAD/docs/user-guide/volumes.md#secrets"
      }
     }
    },
@@ -13743,7 +16641,7 @@
    },
    "v1.DownwardAPIVolumeSource": {
     "id": "v1.DownwardAPIVolumeSource",
-    "description": "DownwardAPIVolumeSource represents a volume containing downward API info",
+    "description": "DownwardAPIVolumeSource represents a volume containing downward API info. Downward API volumes support ownership management and SELinux relabeling.",
     "properties": {
      "items": {
       "type": "array",
@@ -13791,18 +16689,20 @@
    },
    "v1.MetadataVolumeSource": {
     "id": "v1.MetadataVolumeSource",
+    "description": "MetadataVolumeSource represents a volume containing metadata about a pod. NOTE: Deprecated in favor of DownwardAPIVolumeSource",
     "properties": {
      "items": {
       "type": "array",
       "items": {
        "$ref": "v1.MetadataFile"
       },
-      "description": "list of metadata files"
+      "description": "Items is a list of metadata file name"
      }
     }
    },
    "v1.MetadataFile": {
     "id": "v1.MetadataFile",
+    "description": "MetadataFile expresses information about a file holding pod metadata. NOTE: Deprecated in favor of DownwardAPIVolumeFile",
     "required": [
      "name",
      "fieldRef"
@@ -13810,11 +16710,11 @@
     "properties": {
      "name": {
       "type": "string",
-      "description": "the name of the file to be created"
+      "description": "Required: Name is the name of the file"
      },
      "fieldRef": {
       "$ref": "v1.ObjectFieldSelector",
-      "description": "selects a field of the pod. Supported fields: metadata.annotations, metadata.labels, metadata.name, metadata.namespace"
+      "description": "Required: Selects a field of the pod: only annotations, labels, name and namespace are supported."
      }
     }
    },
@@ -13969,13 +16869,52 @@
    "v1.EnvVarSource": {
     "id": "v1.EnvVarSource",
     "description": "EnvVarSource represents a source for the value of an EnvVar.",
-    "required": [
-     "fieldRef"
-    ],
     "properties": {
      "fieldRef": {
       "$ref": "v1.ObjectFieldSelector",
-      "description": "Selects a field of the pod. Only name and namespace are supported."
+      "description": "Selects a field of the pod; only name and namespace are supported."
+     },
+     "configMapKeyRef": {
+      "$ref": "v1.ConfigMapKeySelector",
+      "description": "Selects a key of a ConfigMap."
+     },
+     "secretKeyRef": {
+      "$ref": "v1.SecretKeySelector",
+      "description": "Selects a key of a secret in the pod's namespace"
+     }
+    }
+   },
+   "v1.ConfigMapKeySelector": {
+    "id": "v1.ConfigMapKeySelector",
+    "description": "Selects a key from a ConfigMap.",
+    "required": [
+     "key"
+    ],
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "Name of the referent. More info: http://releases.k8s.io/HEAD/docs/user-guide/identifiers.md#names"
+     },
+     "key": {
+      "type": "string",
+      "description": "The key to select."
+     }
+    }
+   },
+   "v1.SecretKeySelector": {
+    "id": "v1.SecretKeySelector",
+    "description": "SecretKeySelector selects a key of a Secret.",
+    "required": [
+     "key"
+    ],
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "Name of the referent. More info: http://releases.k8s.io/HEAD/docs/user-guide/identifiers.md#names"
+     },
+     "key": {
+      "type": "string",
+      "description": "The key of the secret to select from.  Must be a valid secret key."
      }
     }
    },
@@ -14003,7 +16942,7 @@
    },
    "v1.Probe": {
     "id": "v1.Probe",
-    "description": "Probe describes a liveness probe to be examined to the container.",
+    "description": "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
     "properties": {
      "exec": {
       "$ref": "v1.ExecAction",
@@ -14019,13 +16958,28 @@
      },
      "initialDelaySeconds": {
       "type": "integer",
-      "format": "int64",
+      "format": "int32",
       "description": "Number of seconds after the container has started before liveness probes are initiated. More info: http://releases.k8s.io/HEAD/docs/user-guide/pod-states.md#container-probes"
      },
      "timeoutSeconds": {
       "type": "integer",
-      "format": "int64",
-      "description": "Number of seconds after which liveness probes timeout. Defaults to 1 second. More info: http://releases.k8s.io/HEAD/docs/user-guide/pod-states.md#container-probes"
+      "format": "int32",
+      "description": "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. More info: http://releases.k8s.io/HEAD/docs/user-guide/pod-states.md#container-probes"
+     },
+     "periodSeconds": {
+      "type": "integer",
+      "format": "int32",
+      "description": "How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1."
+     },
+     "successThreshold": {
+      "type": "integer",
+      "format": "int32",
+      "description": "Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness. Minimum value is 1."
+     },
+     "failureThreshold": {
+      "type": "integer",
+      "format": "int32",
+      "description": "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1."
      }
     }
    },
@@ -14059,11 +17013,36 @@
      },
      "host": {
       "type": "string",
-      "description": "Host name to connect to, defaults to the pod IP."
+      "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead."
      },
      "scheme": {
       "type": "string",
       "description": "Scheme to use for connecting to the host. Defaults to HTTP."
+     },
+     "httpHeaders": {
+      "type": "array",
+      "items": {
+       "$ref": "v1.HTTPHeader"
+      },
+      "description": "Custom headers to set in the request. HTTP allows repeated headers."
+     }
+    }
+   },
+   "v1.HTTPHeader": {
+    "id": "v1.HTTPHeader",
+    "description": "HTTPHeader describes a custom header to be used in HTTP probes",
+    "required": [
+     "name",
+     "value"
+    ],
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "The header field name"
+     },
+     "value": {
+      "type": "string",
+      "description": "The header field value"
      }
     }
    },
@@ -14642,8 +17621,19 @@
      "hard": {
       "type": "any",
       "description": "Hard is the set of desired hard limits for each named resource. More info: http://releases.k8s.io/HEAD/docs/design/admission_control_resource_quota.md#admissioncontrol-plugin-resourcequota"
+     },
+     "scopes": {
+      "type": "array",
+      "items": {
+       "$ref": "v1.ResourceQuotaScope"
+      },
+      "description": "A collection of filters that must match each object tracked by a quota. If not specified, the quota matches all objects."
      }
     }
+   },
+   "v1.ResourceQuotaScope": {
+    "id": "v1.ResourceQuotaScope",
+    "properties": {}
    },
    "v1.ResourceQuotaStatus": {
     "id": "v1.ResourceQuotaStatus",
@@ -14715,6 +17705,7 @@
    },
    "v1.SecurityContextConstraintsList": {
     "id": "v1.SecurityContextConstraintsList",
+    "description": "SecurityContextConstraintsList is a list of SecurityContextConstraints objects",
     "required": [
      "items"
     ],
@@ -14740,6 +17731,7 @@
    },
    "v1.SecurityContextConstraints": {
     "id": "v1.SecurityContextConstraints",
+    "description": "SecurityContextConstraints governs the ability to make requests that affect the SecurityContext that will be applied to a container.",
     "required": [
      "priority",
      "allowPrivilegedContainer",
@@ -14767,91 +17759,92 @@
      "priority": {
       "type": "integer",
       "format": "int32",
-      "description": "determines which SCC is used when multiple SCCs allow a particular pod; higher priority SCCs are preferred"
+      "description": "Priority influences the sort order of SCCs when evaluating which SCCs to try first for a given pod request based on access in the Users and Groups fields.  The higher the int, the higher priority.  If scores for multiple SCCs are equal they will be sorted by name."
      },
      "allowPrivilegedContainer": {
       "type": "boolean",
-      "description": "allow containers to run as privileged"
+      "description": "AllowPrivilegedContainer determines if a container can request to be run as privileged."
      },
      "defaultAddCapabilities": {
       "type": "array",
       "items": {
        "$ref": "v1.Capability"
       },
-      "description": "capabilities that are added by default but may be dropped"
+      "description": "DefaultAddCapabilities is the default set of capabilities that will be added to the container unless the pod spec specifically drops the capability.  You may not list a capabiility in both DefaultAddCapabilities and RequiredDropCapabilities."
      },
      "requiredDropCapabilities": {
       "type": "array",
       "items": {
        "$ref": "v1.Capability"
       },
-      "description": "capabilities that will be dropped by default and may not be added"
+      "description": "RequiredDropCapabilities are the capabilities that will be dropped from the container.  These are required to be dropped and cannot be added."
      },
      "allowedCapabilities": {
       "type": "array",
       "items": {
        "$ref": "v1.Capability"
       },
-      "description": "capabilities that are allowed to be added"
+      "description": "AllowedCapabilities is a list of capabilities that can be requested to add to the container. Capabilities in this field maybe added at the pod author's discretion. You must not list a capability in both AllowedCapabilities and RequiredDropCapabilities."
      },
      "allowHostDirVolumePlugin": {
       "type": "boolean",
-      "description": "allow the use of the host dir volume plugin"
+      "description": "AllowHostDirVolumePlugin determines if the policy allow containers to use the HostDir volume plugin"
      },
      "allowHostNetwork": {
       "type": "boolean",
-      "description": "allow the use of the hostNetwork in the pod spec"
+      "description": "AllowHostNetwork determines if the policy allows the use of HostNetwork in the pod spec."
      },
      "allowHostPorts": {
       "type": "boolean",
-      "description": "allow the use of the host ports in the containers"
+      "description": "AllowHostPorts determines if the policy allows host ports in the containers."
      },
      "allowHostPID": {
       "type": "boolean",
-      "description": "allow the use of the host pid in the containers"
+      "description": "AllowHostPID determines if the policy allows host pid in the containers."
      },
      "allowHostIPC": {
       "type": "boolean",
-      "description": "allow the use of the host ipc in the containers"
+      "description": "AllowHostIPC determines if the policy allows host ipc in the containers."
      },
      "seLinuxContext": {
       "$ref": "v1.SELinuxContextStrategyOptions",
-      "description": "strategy used to generate SELinuxOptions"
+      "description": "SELinuxContext is the strategy that will dictate what labels will be set in the SecurityContext."
      },
      "runAsUser": {
       "$ref": "v1.RunAsUserStrategyOptions",
-      "description": "strategy used to generate RunAsUser"
+      "description": "RunAsUser is the strategy that will dictate what RunAsUser is used in the SecurityContext."
      },
      "supplementalGroups": {
       "$ref": "v1.SupplementalGroupsStrategyOptions",
-      "description": "strategy used to generate supplemental groups"
+      "description": "SupplementalGroups is the strategy that will dictate what supplemental groups are used by the SecurityContext."
      },
      "fsGroup": {
       "$ref": "v1.FSGroupStrategyOptions",
-      "description": "strategy used to generate fsGroup"
+      "description": "FSGroup is the strategy that will dictate what fs group is used by the SecurityContext."
      },
      "users": {
       "type": "array",
       "items": {
        "type": "string"
       },
-      "description": "users allowed to use this SecurityContextConstraints"
+      "description": "The users who have permissions to use this security context constraints"
      },
      "groups": {
       "type": "array",
       "items": {
        "type": "string"
       },
-      "description": "groups allowed to use this SecurityContextConstraints"
+      "description": "The groups that have permission to use this security context constraints"
      }
     }
    },
    "v1.SELinuxContextStrategyOptions": {
     "id": "v1.SELinuxContextStrategyOptions",
+    "description": "SELinuxContextStrategyOptions defines the strategy type and any options used to create the strategy.",
     "properties": {
      "type": {
       "type": "string",
-      "description": "strategy used to generate the SELinux context"
+      "description": "Type is the strategy that will dictate what SELinux context is used in the SecurityContext."
      },
      "seLinuxOptions": {
       "$ref": "v1.SELinuxOptions",
@@ -14861,72 +17854,76 @@
    },
    "v1.RunAsUserStrategyOptions": {
     "id": "v1.RunAsUserStrategyOptions",
+    "description": "RunAsUserStrategyOptions defines the strategy type and any options used to create the strategy.",
     "properties": {
      "type": {
       "type": "string",
-      "description": "strategy used to generate RunAsUser"
+      "description": "Type is the strategy that will dictate what RunAsUser is used in the SecurityContext."
      },
      "uid": {
       "type": "integer",
       "format": "int64",
-      "description": "the uid to always run as; required for MustRunAs"
+      "description": "UID is the user id that containers must run as.  Required for the MustRunAs strategy if not using namespace/service account allocated uids."
      },
      "uidRangeMin": {
       "type": "integer",
       "format": "int64",
-      "description": "min value for range based allocators"
+      "description": "UIDRangeMin defines the min value for a strategy that allocates by range."
      },
      "uidRangeMax": {
       "type": "integer",
       "format": "int64",
-      "description": "max value for range based allocators"
+      "description": "UIDRangeMax defines the max value for a strategy that allocates by range."
      }
     }
    },
    "v1.SupplementalGroupsStrategyOptions": {
     "id": "v1.SupplementalGroupsStrategyOptions",
+    "description": "SupplementalGroupsStrategyOptions defines the strategy type and options used to create the strategy.",
     "properties": {
      "type": {
       "type": "string",
-      "description": "strategy used to generate supplemental groups"
+      "description": "Type is the strategy that will dictate what supplemental groups is used in the SecurityContext."
      },
      "ranges": {
       "type": "array",
       "items": {
        "$ref": "v1.IDRange"
       },
-      "description": "ranges of allowable IDs for supplemental groups"
+      "description": "Ranges are the allowed ranges of supplemental groups.  If you would like to force a single supplemental group then supply a single range with the same start and end."
      }
     }
    },
    "v1.IDRange": {
     "id": "v1.IDRange",
+    "description": "IDRange provides a min/max of an allowed range of IDs.",
     "properties": {
      "min": {
       "type": "integer",
       "format": "int64",
-      "description": "min value for the range"
+      "description": "Min is the start of the range, inclusive."
      },
      "max": {
       "type": "integer",
       "format": "int64",
-      "description": "min value for the range"
+      "description": "Max is the end of the range, inclusive."
      }
     }
    },
    "v1.FSGroupStrategyOptions": {
     "id": "v1.FSGroupStrategyOptions",
+    "description": "FSGroupStrategyOptions defines the strategy type and options used to create the strategy.",
     "properties": {
      "type": {
       "type": "string",
-      "description": "strategy used to generate fsGroup"
+      "description": "Type is the strategy that will dictate what FSGroup is used in the SecurityContext."
      },
      "ranges": {
       "type": "array",
       "items": {
        "$ref": "v1.IDRange"
       },
-      "description": "ranges of allowable IDs for fsGroup"
+      "description": "Ranges are the allowed ranges of fs groups.  If you would like to force a single fs group then supply a single range with the same start and end."
      }
     }
    },
@@ -15064,7 +18061,7 @@
      },
      "portalIP": {
       "type": "string",
-      "description": "deprecated, use clusterIP instead"
+      "description": "DeprecatedPortalIP"
      },
      "clusterIP": {
       "type": "string",
@@ -15120,7 +18117,7 @@
      },
      "targetPort": {
       "type": "string",
-      "description": "Number or name of the port to access on the pods targeted by the service. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME. If this is a string, it will be looked up as a named port in the target Pod's container ports. If this is not specified, the value of Port is used (an identity map). Defaults to the service port. More info: http://releases.k8s.io/HEAD/docs/user-guide/services.md#defining-a-service"
+      "description": "Number or name of the port to access on the pods targeted by the service. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME. If this is a string, it will be looked up as a named port in the target Pod's container ports. If this is not specified, the value of the 'port' field is used (an identity map). This field is ignored for services with clusterIP=None, and should be omitted or set equal to the 'port' field. More info: http://releases.k8s.io/HEAD/docs/user-guide/services.md#defining-a-service"
      },
      "nodePort": {
       "type": "integer",

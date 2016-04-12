@@ -696,6 +696,36 @@ angular.module('openshiftConsole')
       return numRestarts;
     };
   })
+  .filter('isTerminating', function() {
+    return function(resource) {
+      return _.has(resource, 'metadata.deletionTimestamp');
+    };
+  })
+  .filter('isPullingImage', function() {
+    return function(pod) {
+      if (!pod) {
+        return false;
+      }
+
+      var phase = _.get(pod, 'status.phase');
+      if (phase !== 'Pending') {
+        return false;
+      }
+
+      var containerStatuses = _.get(pod, 'status.containerStatuses');
+      if (!containerStatuses) {
+        return false;
+      }
+
+      var containerPulling = function(containerStatus) {
+        // TODO: Update to use the pulling reason when available. We assume
+        // ContainerCreating === pulling, which might not be true.
+        return _.get(containerStatus, 'state.waiting.reason') === 'ContainerCreating';
+      };
+
+      return _.some(containerStatuses, containerPulling);
+    };
+  })
   .filter('newestResource', function() {
     return function(resources) {
       var newest = null;
@@ -779,16 +809,8 @@ angular.module('openshiftConsole')
       }
     };
   })
-  .filter('humanizeKind', function () {
-    return function(kind) {
-      if (!kind) {
-        return kind;
-      }
-
-      // ReplicationController -> Replication Controller
-      // https://lodash.com/docs#startCase
-      return _.startCase(kind);
-    };
+  .filter('humanizeKind', function (startCaseFilter) {
+    return startCaseFilter;
   })
   .filter('humanizeQuotaResource', function() {
     return function(resourceType) {
@@ -798,8 +820,10 @@ angular.module('openshiftConsole')
 
       var nameFormatMap = {
         'configmaps': 'Config Maps',
+        'cpu': 'CPU (Request)',
         'limits.cpu': 'CPU (Limit)',
         'limits.memory': 'Memory (Limit)',
+        'memory': 'Memory (Request)',
         'openshift.io/imagesize': 'Image Size',
         'openshift.io/imagestreamsize': 'Image Stream Size',
         'openshift.io/projectimagessize': 'Project Image Size',
@@ -862,11 +886,11 @@ angular.module('openshiftConsole')
   .filter('podStatus', function() {
     // Return results that match kubernetes/pkg/kubectl/resource_printer.go
     return function(pod) {
-      if (!pod || (!pod.deletionTimestamp && !pod.status)) {
+      if (!pod || (!pod.metadata.deletionTimestamp && !pod.status)) {
         return '';
       }
 
-      if (pod.deletionTimestamp) {
+      if (pod.metadata.deletionTimestamp) {
         return 'Terminating';
       }
 
