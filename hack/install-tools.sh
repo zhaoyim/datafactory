@@ -9,7 +9,14 @@ source "${OS_ROOT}/hack/common.sh"
 GO_VERSION=($(go version))
 echo "Detected go version: $(go version)"
 
-go get golang.org/x/tools/cmd/cover github.com/tools/godep golang.org/x/tools/cmd/vet
+echo "get go tools"
+echo "get godep"
+go get github.com/tools/godep
+echo "get vet"
+go get golang.org/x/tools/cmd/vet
+echo "get cover"
+go get golang.org/x/tools/cmd/cover 
+echo "get tools finished."
 
 # Check out a stable commit for go vet in order to version lock it to something we can work with
 pushd $GOPATH/src/golang.org/x/tools >/dev/null 2>&1
