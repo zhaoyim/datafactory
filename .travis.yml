@@ -11,7 +11,4 @@ install:
 script:
   - make verify
 
-notifications:
-  irc: "chat.freenode.net#openshift-dev"
-
 sudo: false
