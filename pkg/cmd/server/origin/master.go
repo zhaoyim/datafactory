@@ -373,8 +373,8 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 	}
 
 	applicationStorage := application.NewREST(c.EtcdHelper, c.PrivilegedLoopbackOpenShiftClient, c.PrivilegedLoopbackKubernetesClient)
-	serviceBrokerStorage := servicebroker.NewREST(c.EtcdHelper)
-	backingServiceStorage := backingservice.NewREST(c.EtcdHelper)
+	serviceBrokerStorage := servicebroker.NewREST(c.EtcdHelper, c.BackingServiceInstanceControllerClients())
+	backingServiceStorage := backingservice.NewREST(c.EtcdHelper, c.BackingServiceInstanceControllerClients())
 
 	buildStorage, buildDetailsStorage := buildetcd.NewREST(c.EtcdHelper)
 	buildRegistry := buildregistry.NewRegistry(buildStorage)
