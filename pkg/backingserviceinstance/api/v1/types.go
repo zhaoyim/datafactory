@@ -162,4 +162,5 @@ type BindingRequestOptions struct {
 	BindResourceVersion string `json:"bindResourceVersion, omitempty"`
 	// resourceName of an instance binding
 	ResourceName string `json:"resourceName, omitempty"`
+
 }
