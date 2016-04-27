@@ -140,11 +140,19 @@ func NewBindingREST(bsir backingserviceinstanceregistry.Registry, dcr deployconf
 type BindingREST struct {
 	backingServiceInstanceRegistry backingserviceinstanceregistry.Registry
 	deployConfigRegistry           deployconfigregistry.Registry
-	//store *etcdgeneric.Etcd
+	store *etcdgeneric.Etcd
 }
 
 func (r *BindingREST) New() runtime.Object {
 	return &backingserviceinstanceapi.BindingRequestOptions{}
+}
+
+func (r *BindingREST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
+	return r.store.Get(ctx, name)
+}
+
+func (r *BindingREST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
+	return r.store.List(ctx,options)
 }
 
 func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error) {
