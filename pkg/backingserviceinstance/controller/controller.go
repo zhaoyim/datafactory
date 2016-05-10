@@ -487,8 +487,8 @@ func basicAuthStr(username, password string) string {
 
 var InvalidCharFinder = regexp.MustCompile("[^a-zA-Z0-9]")
 
-func deploymentconfig_env_prefix(bsiName string) string {
-	return strings.ToUpper(fmt.Sprintf("BSI_%s_", InvalidCharFinder.ReplaceAllLiteralString(bsiName, "")))
+func deploymentconfig_env_prefix(bsName, bsiName string) string {
+	return strings.ToUpper(fmt.Sprintf("BSI_%s_%s_", InvalidCharFinder.ReplaceAllLiteralString(bsName, ""), InvalidCharFinder.ReplaceAllLiteralString(bsiName, "")))
 }
 
 func deploymentconfig_env_name(prefix string, envName string) string {
@@ -573,7 +573,7 @@ func (c *BackingServiceInstanceController) deploymentconfig_modify_envs(dcname s
 		}
 	}
 
-	env_prefix := deploymentconfig_env_prefix(bsi.Name)
+	env_prefix := deploymentconfig_env_prefix(bsi.Spec.BackingServiceName, bsi.Name)
 	containers := dc.Spec.Template.Spec.Containers
 
 	if toInject {
