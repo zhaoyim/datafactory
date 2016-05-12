@@ -1559,6 +1559,9 @@ func autoConvert_api_BackingServiceInstanceSpec_To_v1_BackingServiceInstanceSpec
 	if err := Convert_api_InstanceProvisioning_To_v1_InstanceProvisioning(&in.InstanceProvisioning, &out.InstanceProvisioning, s); err != nil {
 		return err
 	}
+	if err := Convert_api_UserProvidedService_To_v1_UserProvidedService(&in.UserProvidedService, &out.UserProvidedService, s); err != nil {
+		return err
+	}
 	if in.Binding != nil {
 		out.Binding = make([]backingserviceinstanceapiv1.InstanceBinding, len(in.Binding))
 		for i := range in.Binding {
@@ -1693,6 +1696,25 @@ func Convert_api_LastOperation_To_v1_LastOperation(in *backingserviceinstanceapi
 	return autoConvert_api_LastOperation_To_v1_LastOperation(in, out, s)
 }
 
+func autoConvert_api_UserProvidedService_To_v1_UserProvidedService(in *backingserviceinstanceapi.UserProvidedService, out *backingserviceinstanceapiv1.UserProvidedService, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.UserProvidedService))(in)
+	}
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
+	return nil
+}
+
+func Convert_api_UserProvidedService_To_v1_UserProvidedService(in *backingserviceinstanceapi.UserProvidedService, out *backingserviceinstanceapiv1.UserProvidedService, s conversion.Scope) error {
+	return autoConvert_api_UserProvidedService_To_v1_UserProvidedService(in, out, s)
+}
+
 func autoConvert_v1_BackingServiceInstance_To_api_BackingServiceInstance(in *backingserviceinstanceapiv1.BackingServiceInstance, out *backingserviceinstanceapi.BackingServiceInstance, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*backingserviceinstanceapiv1.BackingServiceInstance))(in)
@@ -1742,6 +1764,9 @@ func autoConvert_v1_BackingServiceInstanceSpec_To_api_BackingServiceInstanceSpec
 		defaulting.(func(*backingserviceinstanceapiv1.BackingServiceInstanceSpec))(in)
 	}
 	if err := Convert_v1_InstanceProvisioning_To_api_InstanceProvisioning(&in.InstanceProvisioning, &out.InstanceProvisioning, s); err != nil {
+		return err
+	}
+	if err := Convert_v1_UserProvidedService_To_api_UserProvidedService(&in.UserProvidedService, &out.UserProvidedService, s); err != nil {
 		return err
 	}
 	if in.Binding != nil {
@@ -1876,6 +1901,25 @@ func autoConvert_v1_LastOperation_To_api_LastOperation(in *backingserviceinstanc
 
 func Convert_v1_LastOperation_To_api_LastOperation(in *backingserviceinstanceapiv1.LastOperation, out *backingserviceinstanceapi.LastOperation, s conversion.Scope) error {
 	return autoConvert_v1_LastOperation_To_api_LastOperation(in, out, s)
+}
+
+func autoConvert_v1_UserProvidedService_To_api_UserProvidedService(in *backingserviceinstanceapiv1.UserProvidedService, out *backingserviceinstanceapi.UserProvidedService, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.UserProvidedService))(in)
+	}
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
+	return nil
+}
+
+func Convert_v1_UserProvidedService_To_api_UserProvidedService(in *backingserviceinstanceapiv1.UserProvidedService, out *backingserviceinstanceapi.UserProvidedService, s conversion.Scope) error {
+	return autoConvert_v1_UserProvidedService_To_api_UserProvidedService(in, out, s)
 }
 
 func autoConvert_api_BinaryBuildRequestOptions_To_v1_BinaryBuildRequestOptions(in *buildapi.BinaryBuildRequestOptions, out *buildapiv1.BinaryBuildRequestOptions, s conversion.Scope) error {
@@ -10175,6 +10219,7 @@ func init() {
 		autoConvert_api_Template_To_v1_Template,
 		autoConvert_api_UserIdentityMapping_To_v1_UserIdentityMapping,
 		autoConvert_api_UserList_To_v1_UserList,
+		autoConvert_api_UserProvidedService_To_v1_UserProvidedService,
 		autoConvert_api_User_To_v1_User,
 		autoConvert_api_VolumeMount_To_v1_VolumeMount,
 		autoConvert_api_VolumeSource_To_v1_VolumeSource,
@@ -10378,6 +10423,7 @@ func init() {
 		autoConvert_v1_Template_To_api_Template,
 		autoConvert_v1_UserIdentityMapping_To_api_UserIdentityMapping,
 		autoConvert_v1_UserList_To_api_UserList,
+		autoConvert_v1_UserProvidedService_To_api_UserProvidedService,
 		autoConvert_v1_User_To_api_User,
 		autoConvert_v1_VolumeMount_To_api_VolumeMount,
 		autoConvert_v1_VolumeSource_To_api_VolumeSource,

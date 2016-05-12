@@ -41,11 +41,17 @@ type BackingServiceInstanceSpec struct {
 
 type BackingServiceInstanceSpec struct {
 	InstanceProvisioning
+	UserProvidedService
 	Binding    []InstanceBinding
 	Bound      int
 	Tags       []string
 	InstanceID string
 	// InstanceID is blank means to delete (when len(Parameters) > 0)
+}
+
+
+type UserProvidedService struct{
+	Credentials map[string]string
 }
 
 /*
