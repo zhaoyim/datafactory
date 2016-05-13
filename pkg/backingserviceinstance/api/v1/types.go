@@ -142,6 +142,8 @@ const (
 	BindDeploymentConfigBinding   string = "binding"
 	BindDeploymentConfigUnbinding string = "unbinding"
 	BindDeploymentConfigBound     string = "bound"
+
+	UPS string = "USER-PROVIDED-SERVICE"
 )
 
 //=====================================================
