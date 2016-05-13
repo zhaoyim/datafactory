@@ -12,6 +12,7 @@ import (
 	osclient "github.com/openshift/origin/pkg/client"
 	"io/ioutil"
 	kapi "k8s.io/kubernetes/pkg/api"
+	kerrors "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/client/record"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
@@ -196,10 +197,11 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 			}
 			}
 			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
-			/*
-				default:
-					return fmt.Errorf("action '%s' should never happen under status '%s'", bsi.Status.Action, bsi.Status.Phase)
-			*/
+
+		default:
+			glog.Info("check dc healthy.")
+			c.check_dc_healthy(bsi)
+
 		}
 
 	}
@@ -539,6 +541,40 @@ func (c *BackingServiceInstanceController) deploymentconfig_inject_envs_ups(dc s
 func (c *BackingServiceInstanceController) deploymentconfig_clear_envs_ups(dc string, bsi *backingserviceinstanceapi.BackingServiceInstance, b *backingserviceinstanceapi.InstanceBinding) error {
 	return c.deploymentconfig_modify_envs_ups(dc, bsi, b, false)
 }
+
+
+func (c *BackingServiceInstanceController) check_dc_healthy(bsi *backingserviceinstanceapi.BackingServiceInstance) {
+	if bsi.Spec.Bound < 1{
+		return
+	}
+	for _, binding := range bsi.Spec.Binding{
+		dc, err := c.Client.DeploymentConfigs(bsi.Namespace).Get(binding.BindDeploymentConfig)
+		if err != nil {
+			if kerrors.IsNotFound(err) {
+				glog.Infof("dc %s is not found.", binding.BindDeploymentConfig)
+			}else{
+				glog.Error(err.Error())
+			}
+		}else{
+			if dc.Annotations["backingservice.instance/"+bsi.Name] != "bound"{
+				glog.Infof("rebind envs in to dc %s",binding.BindDeploymentConfig)
+				if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+					err = c.deploymentconfig_inject_envs_ups(binding.BindDeploymentConfig, bsi, &binding)
+					if err != nil {
+						glog.Error(err.Error())
+					}
+				}else{
+					err = c.deploymentconfig_inject_envs(binding.BindDeploymentConfig, bsi, &binding)
+					if err != nil {
+						glog.Error(err.Error())
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
 // return exists or not
 func env_get(envs []kapi.EnvVar, envName string) (bool, string) {
 	for i := len(envs) - 1; i >= 0; i-- {
@@ -619,6 +655,9 @@ func (c *BackingServiceInstanceController) deploymentconfig_modify_envs_ups(dcna
 				_, containers[i].Env = modifyVcapServicesEnvNameEnv(containers[i].Env, backingserviceinstanceapi.UPS, vsp, "")
 			}
 		}
+		if dc.Annotations == nil{
+			dc.Annotations = make(map[string]string)
+		}
 		dc.Annotations["backingservice.instance/"+bsi.Name] = "bound"
 	} else {
 		for i := range containers {
@@ -686,6 +725,9 @@ func (c *BackingServiceInstanceController) deploymentconfig_modify_envs(dcname s
 				_, containers[i].Env = modifyVcapServicesEnvNameEnv(containers[i].Env, bs.Name, vsp, "")
 			}
 		}
+		if dc.Annotations == nil{
+			dc.Annotations = make(map[string]string)
+		}
 		dc.Annotations["backingservice.instance/"+bsi.Name] = "bound"
 	} else {
 		for i := range containers {
@@ -736,7 +778,7 @@ func modifyVcapServicesEnvNameEnv(env []kapi.EnvVar, bsName string, vsp *VcapSer
 
 	json_env = string(json_data)
 
-	glog.Infof("new ", VcapServicesEnvName, " = ", json_env)
+	glog.Info("new ", VcapServicesEnvName, " = ", json_env)
 
 	return env_set(env, VcapServicesEnvName, json_env)
 }
