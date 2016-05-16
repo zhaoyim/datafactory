@@ -22,17 +22,17 @@ func newBackingService(name string, spec backingserviceapi.BackingServiceSpec) *
 }
 
 func backingServiceHandler(client osclient.Interface, backingService *backingserviceapi.BackingService) error {
-	newBs, err := client.BackingServices(BSNS).Get(backingService.Name)
+	newBs, err := client.BackingServices(backingserviceapi.BSNS).Get(backingService.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			if _, err := client.BackingServices(BSNS).Create(backingService); err != nil {
+			if _, err := client.BackingServices(backingserviceapi.BSNS).Create(backingService); err != nil {
 				glog.Errorln("servicebroker create backingservice err ", err)
 				return err
 			}
 		}
 	} else {
 		newBs.Status.Phase = backingserviceapi.BackingServicePhaseActive
-		if _, err := client.BackingServices(BSNS).Update(newBs); err != nil {
+		if _, err := client.BackingServices(backingserviceapi.BSNS).Update(newBs); err != nil {
 			glog.Errorln("servicebroker update backingservice err ", err)
 			return err
 		}

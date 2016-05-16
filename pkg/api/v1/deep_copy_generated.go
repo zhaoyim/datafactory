@@ -968,6 +968,9 @@ func deepCopy_v1_BackingServiceInstanceSpec(in backingserviceinstanceapiv1.Backi
 	if err := deepCopy_v1_InstanceProvisioning(in.InstanceProvisioning, &out.InstanceProvisioning, c); err != nil {
 		return err
 	}
+	if err := deepCopy_v1_UserProvidedService(in.UserProvidedService, &out.UserProvidedService, c); err != nil {
+		return err
+	}
 	if in.Binding != nil {
 		out.Binding = make([]backingserviceinstanceapiv1.InstanceBinding, len(in.Binding))
 		for i := range in.Binding {
@@ -1066,6 +1069,18 @@ func deepCopy_v1_LastOperation(in backingserviceinstanceapiv1.LastOperation, out
 	out.State = in.State
 	out.Description = in.Description
 	out.AsyncPollIntervalSeconds = in.AsyncPollIntervalSeconds
+	return nil
+}
+
+func deepCopy_v1_UserProvidedService(in backingserviceinstanceapiv1.UserProvidedService, out *backingserviceinstanceapiv1.UserProvidedService, c *conversion.Cloner) error {
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
 	return nil
 }
 
@@ -3661,6 +3676,7 @@ func init() {
 		deepCopy_v1_InstanceBinding,
 		deepCopy_v1_InstanceProvisioning,
 		deepCopy_v1_LastOperation,
+		deepCopy_v1_UserProvidedService,
 		deepCopy_v1_BinaryBuildRequestOptions,
 		deepCopy_v1_BinaryBuildSource,
 		deepCopy_v1_Build,

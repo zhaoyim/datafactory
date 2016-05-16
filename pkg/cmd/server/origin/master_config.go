@@ -507,6 +507,9 @@ func (c *MasterConfig) DeploymentConfigChangeControllerClients() (*osclient.Clie
 	return c.PrivilegedLoopbackOpenShiftClient, c.PrivilegedLoopbackKubernetesClient
 }
 
+func (c *MasterConfig) BackingServiceInstanceControllerClients() *osclient.Client {
+	return c.PrivilegedLoopbackOpenShiftClient
+}
 // DeploymentImageChangeTriggerControllerClient returns the deploymentConfig image change controller client object
 func (c *MasterConfig) DeploymentImageChangeTriggerControllerClient() *osclient.Client {
 	return c.PrivilegedLoopbackOpenShiftClient

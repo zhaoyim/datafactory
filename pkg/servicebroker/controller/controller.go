@@ -27,7 +27,6 @@ type ServiceBrokerController struct {
 	ServiceBrokerClient servicebrokerclient.Interface
 }
 
-const BSNS = "openshift"
 
 type fatalError string
 
@@ -123,10 +122,10 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 }
 
 func (c *ServiceBrokerController) recoverBackingService(backingService *backingserviceapi.BackingService) error {
-	_, err := c.Client.BackingServices(BSNS).Get(backingService.Name)
+	_, err := c.Client.BackingServices(backingserviceapi.BSNS).Get(backingService.Name)
 	if err != nil {
 		if kerrors.IsNotFound(err) {
-			if _, err := c.Client.BackingServices(BSNS).Create(backingService); err != nil {
+			if _, err := c.Client.BackingServices(backingserviceapi.BSNS).Create(backingService); err != nil {
 				return err
 			}
 			return nil
@@ -139,12 +138,12 @@ func (c *ServiceBrokerController) recoverBackingService(backingService *backings
 func (c *ServiceBrokerController) inActiveBackingService(serviceBrokerName string) {
 	selector, _ := labels.Parse(servicebrokerapi.ServiceBrokerLabel + "=" + serviceBrokerName)
 
-	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector: selector})
+	bsList, err := c.Client.BackingServices(backingserviceapi.BSNS).List(kapi.ListOptions{LabelSelector: selector})
 	if err == nil {
 		for _, bsvc := range bsList.Items {
 			if bsvc.Status.Phase != backingserviceapi.BackingServicePhaseInactive {
 				bsvc.Status.Phase = backingserviceapi.BackingServicePhaseInactive
-				c.Client.BackingServices(BSNS).Update(&bsvc)
+				c.Client.BackingServices(backingserviceapi.BSNS).Update(&bsvc)
 			}
 		}
 	} else {
@@ -155,12 +154,12 @@ func (c *ServiceBrokerController) inActiveBackingService(serviceBrokerName strin
 func (c *ServiceBrokerController) ActiveBackingService(serviceBrokerName string) {
 	selector, _ := labels.Parse(servicebrokerapi.ServiceBrokerLabel + "=" + serviceBrokerName)
 
-	bsList, err := c.Client.BackingServices(BSNS).List(kapi.ListOptions{LabelSelector: selector})
+	bsList, err := c.Client.BackingServices(backingserviceapi.BSNS).List(kapi.ListOptions{LabelSelector: selector})
 	if err == nil {
 		for _, bsvc := range bsList.Items {
 			if bsvc.Status.Phase != backingserviceapi.BackingServicePhaseActive {
 				bsvc.Status.Phase = backingserviceapi.BackingServicePhaseActive
-				c.Client.BackingServices(BSNS).Update(&bsvc)
+				c.Client.BackingServices(backingserviceapi.BSNS).Update(&bsvc)
 			}
 		}
 	}

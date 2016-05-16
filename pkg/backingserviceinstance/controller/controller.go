@@ -12,6 +12,7 @@ import (
 	osclient "github.com/openshift/origin/pkg/client"
 	"io/ioutil"
 	kapi "k8s.io/kubernetes/pkg/api"
+	kerrors "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/client/record"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
@@ -43,10 +44,14 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	//c.recorder.Eventf(bsi, "Debug", "bsi handler called.%s", bsi.Name)
 
 	changed := false
-
-	bs, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
+	bs := &backingserviceapi.BackingService{}
+	if bsi.Annotations[backingserviceinstanceapi.UPS] != "true" {
+	bsp, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
 	if err != nil {
 		return err
+	}else{
+		bs = bsp
+	}
 	}
 
 	switch bsi.Status.Phase {
@@ -115,10 +120,10 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		svcinstance, err := servicebroker_create_instance(serviceinstance, bsInstanceID, servicebroker)
 		if err != nil {
 			result = err
-			c.recorder.Eventf(bsi,kapi.EventTypeWarning, "Provisioning", err.Error())
+			c.recorder.Eventf(bsi, kapi.EventTypeWarning, "Provisioning", err.Error())
 			break
 		} else {
-			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Provisioning", "bsi provisioning done, instanceid: %s", bsInstanceID)
+			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Provisioning", "bsi provisioning done, instanceid: %s", bsInstanceID)
 			glog.Infoln("bsi provisioning servicebroker_create_instance done, ", bsi.Name)
 		}
 
@@ -139,38 +144,64 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	case backingserviceinstanceapi.BackingServiceInstancePhaseUnbound:
 		switch bsi.Status.Action {
 		case backingserviceinstanceapi.BackingServiceInstanceActionToDelete:
+			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+				glog.Infoln(backingserviceinstanceapi.UPS, " bsi deleted ", bsi.Name)
 
-			if result = c.deleteInstance(bs, bsi); result == nil {
+				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseDeleted
+
+				bsi.Status.Action = ""
 				changed = true
+			} else {
+				if result = c.deleteInstance(bs, bsi); result == nil {
+					changed = true
+				}
 			}
-			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Deleting", "instance:%s [%v]", bsi.Name, changed)
+			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Deleting", "instance:%s [%v]", bsi.Name, changed)
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
-
 			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
-			if result = c.bindInstance(dcname, bs, bsi); result == nil {
-				changed = true
+			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+				if result = c.bindInstanceUPS(dcname, bsi); result == nil {
+					changed = true
+				}
+			}else {
+				if result = c.bindInstance(dcname, bs, bsi); result == nil {
+					changed = true
+				}
 			}
-			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
-
+			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 		}
 	case backingserviceinstanceapi.BackingServiceInstancePhaseBound:
 		switch bsi.Status.Action {
 		case backingserviceinstanceapi.BackingServiceInstanceActionToUnbind:
+
 			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigUnbinding)
-			if result = c.unbindInstance(dcname, bs, bsi); result == nil {
-				changed = true
+			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true"{
+				if result = c.unbindInstanceUPS(dcname, bsi); result == nil {
+					changed = true
+				}
+			}else {
+				if result = c.unbindInstance(dcname, bs, bsi); result == nil {
+					changed = true
+				}
 			}
-			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Unbinding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
+			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Unbinding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
 			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
+			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+				if result = c.bindInstanceUPS(dcname, bsi); result == nil {
+					changed = true
+				}
+			}else {
 			if result = c.bindInstance(dcname, bs, bsi); result == nil {
 				changed = true
 			}
-			c.recorder.Eventf(bsi,kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
-			/*
-				default:
-					return fmt.Errorf("action '%s' should never happen under status '%s'", bsi.Status.Action, bsi.Status.Phase)
-			*/
+			}
+			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
+
+		default:
+			glog.Info("check dc healthy.")
+			c.check_dc_healthy(bsi)
+
 		}
 
 	}
@@ -187,7 +218,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		*/
 
 		glog.Infoln("bsi controller error. ", err_msg)
-		c.recorder.Eventf(bsi,kapi.EventTypeWarning, "Error", err_msg)
+		c.recorder.Eventf(bsi, kapi.EventTypeWarning, "Error", err_msg)
 	}
 
 	if changed {
@@ -487,8 +518,8 @@ func basicAuthStr(username, password string) string {
 
 var InvalidCharFinder = regexp.MustCompile("[^a-zA-Z0-9]")
 
-func deploymentconfig_env_prefix(bsiName string) string {
-	return strings.ToUpper(fmt.Sprintf("BSI_%s_", InvalidCharFinder.ReplaceAllLiteralString(bsiName, "")))
+func deploymentconfig_env_prefix(bsName, bsiName string) string {
+	return strings.ToUpper(fmt.Sprintf("BSI_%s_%s_", InvalidCharFinder.ReplaceAllLiteralString(bsName, ""), InvalidCharFinder.ReplaceAllLiteralString(bsiName, "")))
 }
 
 func deploymentconfig_env_name(prefix string, envName string) string {
@@ -501,6 +532,47 @@ func (c *BackingServiceInstanceController) deploymentconfig_inject_envs(dc strin
 
 func (c *BackingServiceInstanceController) deploymentconfig_clear_envs(dc string, bsi *backingserviceinstanceapi.BackingServiceInstance, b *backingserviceinstanceapi.InstanceBinding) error {
 	return c.deploymentconfig_modify_envs(dc, bsi, b, false)
+}
+
+
+func (c *BackingServiceInstanceController) deploymentconfig_inject_envs_ups(dc string, bsi *backingserviceinstanceapi.BackingServiceInstance, b *backingserviceinstanceapi.InstanceBinding) error {
+	return c.deploymentconfig_modify_envs_ups(dc, bsi, b, true)
+}
+func (c *BackingServiceInstanceController) deploymentconfig_clear_envs_ups(dc string, bsi *backingserviceinstanceapi.BackingServiceInstance, b *backingserviceinstanceapi.InstanceBinding) error {
+	return c.deploymentconfig_modify_envs_ups(dc, bsi, b, false)
+}
+
+
+func (c *BackingServiceInstanceController) check_dc_healthy(bsi *backingserviceinstanceapi.BackingServiceInstance) {
+	if bsi.Spec.Bound < 1{
+		return
+	}
+	for _, binding := range bsi.Spec.Binding{
+		dc, err := c.Client.DeploymentConfigs(bsi.Namespace).Get(binding.BindDeploymentConfig)
+		if err != nil {
+			if kerrors.IsNotFound(err) {
+				glog.Infof("dc %s is not found.", binding.BindDeploymentConfig)
+			}else{
+				glog.Error(err.Error())
+			}
+		}else{
+			if dc.Annotations["backingservice.instance/"+bsi.Name] != "bound"{
+				glog.Infof("rebind envs in to dc %s",binding.BindDeploymentConfig)
+				if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+					err = c.deploymentconfig_inject_envs_ups(binding.BindDeploymentConfig, bsi, &binding)
+					if err != nil {
+						glog.Error(err.Error())
+					}
+				}else{
+					err = c.deploymentconfig_inject_envs(binding.BindDeploymentConfig, bsi, &binding)
+					if err != nil {
+						glog.Error(err.Error())
+					}
+				}
+			}
+		}
+	}
+	return
 }
 
 // return exists or not
@@ -551,6 +623,62 @@ func env_unset(envs []kapi.EnvVar, envName string) (bool, []kapi.EnvVar) {
 	return index < n, envs[:index]
 }
 
+func (c *BackingServiceInstanceController) deploymentconfig_modify_envs_ups(dcname string, bsi *backingserviceinstanceapi.BackingServiceInstance, binding *backingserviceinstanceapi.InstanceBinding, toInject bool) error {
+	dc, err := c.Client.DeploymentConfigs(bsi.Namespace).Get(dcname)
+	if err != nil {
+		return err
+	}
+
+	if dc.Spec.Template == nil {
+		return nil
+	}
+
+	env_prefix := deploymentconfig_env_prefix(bsi.Spec.BackingServiceName, bsi.Name)
+	containers := dc.Spec.Template.Spec.Containers
+	if toInject {
+
+
+		vsp := &VcapServiceParameters{
+				Name:        bsi.Name,
+				Label:       "",
+				Plan:        backingserviceinstanceapi.UPS,
+				Credentials: binding.Credentials,
+			}
+
+
+		for i := range containers {
+			for k, v := range binding.Credentials {
+				_, containers[i].Env = env_set(containers[i].Env, deploymentconfig_env_name(env_prefix, k), v)
+			}
+
+			if vsp != nil {
+				_, containers[i].Env = modifyVcapServicesEnvNameEnv(containers[i].Env, backingserviceinstanceapi.UPS, vsp, "")
+			}
+		}
+		if dc.Annotations == nil{
+			dc.Annotations = make(map[string]string)
+		}
+		dc.Annotations["backingservice.instance/"+bsi.Name] = "bound"
+	} else {
+		for i := range containers {
+			for k := range binding.Credentials {
+				_, containers[i].Env = env_unset(containers[i].Env, deploymentconfig_env_name(env_prefix, k))
+			}
+
+			_, containers[i].Env = modifyVcapServicesEnvNameEnv(containers[i].Env, backingserviceinstanceapi.UPS, nil, bsi.Name)
+		}
+		delete(dc.Annotations, "backingservice.instance/"+bsi.Name)
+	}
+
+	if _, err := c.Client.DeploymentConfigs(bsi.Namespace).Update(dc); err != nil {
+		return err
+	}
+
+	c.deploymentconfig_print_envs(bsi.Namespace, binding)
+	return nil
+}
+
+
 func (c *BackingServiceInstanceController) deploymentconfig_modify_envs(dcname string, bsi *backingserviceinstanceapi.BackingServiceInstance, binding *backingserviceinstanceapi.InstanceBinding, toInject bool) error {
 	dc, err := c.Client.DeploymentConfigs(bsi.Namespace).Get(dcname)
 	if err != nil {
@@ -561,19 +689,20 @@ func (c *BackingServiceInstanceController) deploymentconfig_modify_envs(dcname s
 		return nil
 	}
 
-	bs, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
-	if err != nil {
-		return err
-	}
-
-	var plan = (*backingserviceapi.ServicePlan)(nil)
-	for k := range bs.Spec.Plans {
-		if bsi.Spec.BackingServicePlanGuid == bs.Spec.Plans[k].Id {
-			plan = &(bs.Spec.Plans[k])
+		bs, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
+		if err != nil {
+			return err
 		}
-	}
 
-	env_prefix := deploymentconfig_env_prefix(bsi.Name)
+		var plan = (*backingserviceapi.ServicePlan)(nil)
+		for k := range bs.Spec.Plans {
+			if bsi.Spec.BackingServicePlanGuid == bs.Spec.Plans[k].Id {
+				plan = &(bs.Spec.Plans[k])
+			}
+		}
+
+
+	env_prefix := deploymentconfig_env_prefix(bsi.Spec.BackingServiceName, bsi.Name)
 	containers := dc.Spec.Template.Spec.Containers
 
 	if toInject {
@@ -596,6 +725,10 @@ func (c *BackingServiceInstanceController) deploymentconfig_modify_envs(dcname s
 				_, containers[i].Env = modifyVcapServicesEnvNameEnv(containers[i].Env, bs.Name, vsp, "")
 			}
 		}
+		if dc.Annotations == nil{
+			dc.Annotations = make(map[string]string)
+		}
+		dc.Annotations["backingservice.instance/"+bsi.Name] = "bound"
 	} else {
 		for i := range containers {
 			for k := range binding.Credentials {
@@ -604,6 +737,7 @@ func (c *BackingServiceInstanceController) deploymentconfig_modify_envs(dcname s
 
 			_, containers[i].Env = modifyVcapServicesEnvNameEnv(containers[i].Env, bs.Name, nil, bsi.Name)
 		}
+		delete(dc.Annotations, "backingservice.instance/"+bsi.Name)
 	}
 
 	if _, err := c.Client.DeploymentConfigs(bsi.Namespace).Update(dc); err != nil {
@@ -644,7 +778,7 @@ func modifyVcapServicesEnvNameEnv(env []kapi.EnvVar, bsName string, vsp *VcapSer
 
 	json_env = string(json_data)
 
-	glog.Infof("new ", VcapServicesEnvName, " = ", json_env)
+	glog.Info("new ", VcapServicesEnvName, " = ", json_env)
 
 	return env_set(env, VcapServicesEnvName, json_env)
 }
@@ -754,6 +888,48 @@ func (c *BackingServiceInstanceController) deleteInstance(bs *backingserviceapi.
 
 }
 
+
+func (c *BackingServiceInstanceController) bindInstanceUPS(dc string,  bsi *backingserviceinstanceapi.BackingServiceInstance) (err error) {
+	glog.Infoln(backingserviceinstanceapi.UPS, "bsi to bind ", bsi.Name, " and ", dc)
+
+	instanceBinding := backingserviceinstanceapi.InstanceBinding{}
+	now := unversioned.Now()
+	instanceBinding.BoundTime = &now //&unversioned.Now()
+	instanceBinding.BindUuid = backingserviceinstanceapi.UPS
+	instanceBinding.BindDeploymentConfig = dc
+	instanceBinding.Credentials = bsi.Spec.Credentials
+
+
+	/*
+	instanceBinding.Credentials = make(map[string]string)
+	for k, v := range bsi.Spec.Credentials{
+		instanceBinding.Credentials[k] = v
+	}
+	*/
+
+	glog.Infoln("deploymentconfig_inject_envs")
+
+	err = c.deploymentconfig_inject_envs_ups(dc, bsi, &instanceBinding)
+	if err != nil {
+		return err
+	} else {
+		bsi.Spec.Binding = append(bsi.Spec.Binding, instanceBinding)
+	}
+
+	glog.Infoln("bsi bound. ", bsi.Name)
+
+	bsi.Spec.Bound += 1
+
+	bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseBound
+	bsi.Annotations[dc] = backingserviceinstanceapi.BindDeploymentConfigBound
+
+	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToBind)
+	return
+
+
+}
+
+
 func (c *BackingServiceInstanceController) bindInstance(dc string, bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
 	glog.Infoln("bsi to bind ", bsi.Name, " and ", dc)
 
@@ -813,6 +989,52 @@ func (c *BackingServiceInstanceController) bindInstance(dc string, bs *backingse
 	bsi.Annotations[dc] = backingserviceinstanceapi.BindDeploymentConfigBound
 
 	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToBind)
+	return
+
+}
+
+
+func (c *BackingServiceInstanceController) unbindInstanceUPS(dc string, bsi *backingserviceinstanceapi.BackingServiceInstance) (err error) {
+
+	glog.Infoln(backingserviceinstanceapi.UPS," bsi to unbind ", bsi.Name)
+
+
+	for idx, b := range bsi.Spec.Binding {
+		if b.BindDeploymentConfig == dc {
+
+			glog.Infoln("deploymentconfig_clear_envs")
+			err = c.deploymentconfig_clear_envs_ups(dc, bsi, &b)
+			if err != nil {
+				return err
+			} else {
+				bsi.Spec.Binding = append(bsi.Spec.Binding[:idx], bsi.Spec.Binding[idx+1:]...)
+				delete(bsi.Annotations, dc)
+			}
+			break
+		}
+	}
+	/*
+		err = c.deploymentconfig_clear_envs(bsi.Namespace, dc)
+		if err != nil {
+			return err
+		}
+	*/
+	glog.Infoln("bsi is unbound ", bsi.Name)
+	/*
+		delete(bsi.Annotations, dc)
+		bsi.Spec.BindDeploymentConfig = ""
+		bsi.Spec.Credentials = nil
+		bsi.Spec.BoundTime = nil
+		bsi.Spec.BindUuid = ""
+		bsi.Spec.Bound = false
+	*/
+	bsi.Spec.Bound -= 1
+	if bsi.Spec.Bound == 0 {
+		bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+	}
+
+	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToUnbind)
+
 	return
 
 }

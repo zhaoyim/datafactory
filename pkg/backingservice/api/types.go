@@ -5,6 +5,8 @@ import (
 	"k8s.io/kubernetes/pkg/api/unversioned"
 )
 
+const BSNS = "openshift"
+
 type BackingService struct {
 	unversioned.TypeMeta
 	kapi.ObjectMeta
