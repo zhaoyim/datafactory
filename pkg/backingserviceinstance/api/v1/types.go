@@ -49,6 +49,8 @@ type BackingServiceInstanceSpec struct {
 type BackingServiceInstanceSpec struct {
 	// description of an instance.
 	InstanceProvisioning `json:"provisioning, omitempty"`
+	// description of an user-provided-service
+	UserProvidedService `json:"userprovidedservice, omitempty"`
 	// bindings of an instance
 	Binding []InstanceBinding `json:"binding, omitempty"`
 	// binding number of an instance
@@ -70,6 +72,11 @@ type InstanceProvisioning struct {
 	Parameters             map[string]string `json:"parameters, omitempty"`
 }
 */
+
+// UserProvidedService describe an user-provided-service
+type UserProvidedService struct{
+	Credentials map[string]string `json:"credentials, omitempty"`
+}
 
 // InstanceProvisioning describe an InstanceProvisioning detail
 type InstanceProvisioning struct {
@@ -135,6 +142,8 @@ const (
 	BindDeploymentConfigBinding   string = "binding"
 	BindDeploymentConfigUnbinding string = "unbinding"
 	BindDeploymentConfigBound     string = "bound"
+
+	UPS string = "USER-PROVIDED-SERVICE"
 )
 
 //=====================================================

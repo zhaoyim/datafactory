@@ -13,11 +13,12 @@ import (
 	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	
 	//log "github.com/golang/glog"
+	"strings"
 )
 
-func GetBackingServicePlan(bs *backingserviceapi.BackingService, planId string) *backingserviceapi.ServicePlan {
+func GetBackingServicePlan(bs *backingserviceapi.BackingService, name string) *backingserviceapi.ServicePlan {
 	for _, plan := range bs.Spec.Plans {
-		if planId == plan.Id {
+		if name == plan.Name {
 			return &plan
 		}
 	}
@@ -31,27 +32,32 @@ func GetBackingServicePlan(bs *backingserviceapi.BackingService, planId string) 
 
 const (
 	newBackingServiceInstanceLong = `
-Create a new BackingServiceInstance
+Create a new BackingService instance
 
 This command will try to create a backing service instance.
 `
-	newBackingServiceInstanceExample = `# Create a new backingserviceinstance with [name BackingServiceName BackingServicePlanGuid]
-  $ %[1]s mysql_BackingServiceInstance --backingservice_name="BackingServiceName" --planid="BackingServicePlanGuid"`
+	newBackingServiceInstanceExample = `# Create a backingservice instance via backingservice
+  $ %[1]s mysql-instance --backingservice=myslql --plan=shared
+
+  # Create a user-provided-service
+  $ %[1]s redis-instance -p host=redis.somedomain.com -p port=6379 -p password=H3IIOw0R1D`
 )
 
 type NewBackingServiceInstanceOptions struct {
 	Name      string
 	
 	BackingServiceName     string
-	BackingServicePlanGuid string
+	BackingServicePlanName string
+	Parameters []string
+	Mode string
 }
 
 func NewCmdNewBackingServiceInstance(fullName string, f *clientcmd.Factory, out io.Writer) *cobra.Command {
 	options := &NewBackingServiceInstanceOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "new-backingserviceinstance NAME --backingservice_name=BackingServiceName --planid=BackingServicePlanGuid",
-		Short:   "create a new BackingServiceInstance",
+		Use:     "new-instance NAME --backingservice=BackingServiceName --plan=BackingServicePlanName",
+		Short:   "create a new BackingService instance",
 		Long:    newBackingServiceInstanceLong,
 		Example: fmt.Sprintf(newBackingServiceInstanceExample, fullName),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -67,8 +73,9 @@ func NewCmdNewBackingServiceInstance(fullName string, f *clientcmd.Factory, out 
 		},
 	}
 
-	cmd.Flags().StringVar(&options.BackingServiceName, "backingservice_name", "", "BackingService Name")
-	cmd.Flags().StringVar(&options.BackingServicePlanGuid, "planid", "", "BackingService Plan GUID")
+	cmd.Flags().StringVar(&options.BackingServiceName, "backingservice", "", "BackingService Name")
+	cmd.Flags().StringVar(&options.BackingServicePlanName, "plan", "", "BackingService Plan Name")
+	cmd.Flags().StringSliceVarP(&options.Parameters, "parameters", "p", options.Parameters, "Specify key value pairs of Paremeters variables.")
 	// todo: dashboard_url
 	
 	return cmd
@@ -83,6 +90,21 @@ func (o *NewBackingServiceInstanceOptions) complete(cmd *cobra.Command, f *clien
 
 	o.Name = args[0]
 
+	if len(o.BackingServicePlanName) == 0 || len(o.BackingServiceName) == 0{
+		if len(o.Parameters)>0{
+			o.Mode = backingserviceinstanceapi.UPS
+
+			return nil
+		}
+		return errors.New("backingservice and plan must be specified.")
+	}else{
+		o.Mode = "normal"
+		if len(o.Parameters) > 0{
+			cmd.Help()
+			return errors.New("User-provided-service can't be created like this way.")
+		}
+	}
+
 	return nil
 }
 
@@ -91,6 +113,39 @@ func (o *NewBackingServiceInstanceOptions) Run(cmd *cobra.Command, f *clientcmd.
 	if err != nil {
 		return err
 	}
+
+	if o.Mode== backingserviceinstanceapi.UPS {
+		bsi := &backingserviceinstanceapi.BackingServiceInstance{}
+		bsi.Name = o.Name
+		bsi.Spec.BackingServiceName = backingserviceinstanceapi.UPS
+		bsi.Spec.BackingServicePlanGuid = backingserviceinstanceapi.UPS
+		bsi.Annotations = make(map[string]string)
+		bsi.Annotations[backingserviceinstanceapi.UPS] = "true"
+		bsi.Spec.Credentials = make(map[string]string)
+		bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+		for _, para:=range o.Parameters {
+			parts := strings.SplitN(para, "=", 2)
+			if len(parts) != 2 {
+				return fmt.Errorf("invalid environment variable: %v", para)
+			}else{
+				bsi.Spec.Credentials[parts[0]] = parts[1]
+			}
+		}
+
+
+		namespace, _, err := f.DefaultNamespace()
+		if err != nil {
+			return err
+		}
+		_, err = client.BackingServiceInstances(namespace).Create(bsi)
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(out, "User-Provided-Service Instance has been created.\n")
+
+		return nil
+	}
 	
 	//>> todo: maybe better do this is in Create
 	bs, err := client.BackingServices("openshift").Get(o.BackingServiceName)
@@ -98,9 +153,10 @@ func (o *NewBackingServiceInstanceOptions) Run(cmd *cobra.Command, f *clientcmd.
 		return err
 	}
 	
-	plan := GetBackingServicePlan(bs, o.BackingServicePlanGuid)
+	plan := GetBackingServicePlan(bs, o.BackingServicePlanName)
 	if plan == nil {
-		return errors.New("plan not found")
+		return fmt.Errorf("plan %s not found", o.BackingServicePlanName)
+		//return errors.New("plan not found")
 	}
 	//<<
 	

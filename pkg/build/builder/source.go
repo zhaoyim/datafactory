@@ -25,7 +25,7 @@ const (
 	// urlCheckTimeout is the timeout used to check the source URL
 	// If fetching the URL exceeds the timeout, then the build will
 	// not proceed further and stop
-	urlCheckTimeout = 16 * time.Second
+	urlCheckTimeout = 60 * time.Second
 )
 
 type gitAuthError string
