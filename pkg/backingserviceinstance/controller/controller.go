@@ -163,7 +163,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				if result = c.bindInstanceUPS(dcname, bsi); result == nil {
 					changed = true
 				}
-			}else {
+			} else {
 				if result = c.bindInstance(dcname, bs, bsi); result == nil {
 					changed = true
 				}
@@ -179,7 +179,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				if result = c.unbindInstanceUPS(dcname, bsi); result == nil {
 					changed = true
 				}
-			}else {
+			} else {
 				if result = c.unbindInstance(dcname, bs, bsi); result == nil {
 					changed = true
 				}
@@ -191,10 +191,10 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				if result = c.bindInstanceUPS(dcname, bsi); result == nil {
 					changed = true
 				}
-			}else {
-			if result = c.bindInstance(dcname, bs, bsi); result == nil {
-				changed = true
-			}
+			} else {
+				if result = c.bindInstance(dcname, bs, bsi); result == nil {
+					changed = true
+				}
 			}
 			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 
@@ -1004,33 +1004,35 @@ func (c *BackingServiceInstanceController) unbindInstanceUPS(dc string, bsi *bac
 
 			glog.Infoln("deploymentconfig_clear_envs")
 			err = c.deploymentconfig_clear_envs_ups(dc, bsi, &b)
-			if err != nil {
+			if err != nil && (! kerrors.IsNotFound(err)) {
 				return err
 			} else {
 				bsi.Spec.Binding = append(bsi.Spec.Binding[:idx], bsi.Spec.Binding[idx+1:]...)
 				delete(bsi.Annotations, dc)
 			}
+			
+			/*
+				err = c.deploymentconfig_clear_envs(bsi.Namespace, dc)
+				if err != nil {
+					return err
+				}
+			*/
+			glog.Infoln("bsi is unbound ", bsi.Name)
+			/*
+				delete(bsi.Annotations, dc)
+				bsi.Spec.BindDeploymentConfig = ""
+				bsi.Spec.Credentials = nil
+				bsi.Spec.BoundTime = nil
+				bsi.Spec.BindUuid = ""
+				bsi.Spec.Bound = false
+			*/
+			bsi.Spec.Bound -= 1
+			if bsi.Spec.Bound == 0 {
+				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+			}
+			
 			break
 		}
-	}
-	/*
-		err = c.deploymentconfig_clear_envs(bsi.Namespace, dc)
-		if err != nil {
-			return err
-		}
-	*/
-	glog.Infoln("bsi is unbound ", bsi.Name)
-	/*
-		delete(bsi.Annotations, dc)
-		bsi.Spec.BindDeploymentConfig = ""
-		bsi.Spec.Credentials = nil
-		bsi.Spec.BoundTime = nil
-		bsi.Spec.BindUuid = ""
-		bsi.Spec.Bound = false
-	*/
-	bsi.Spec.Bound -= 1
-	if bsi.Spec.Bound == 0 {
-		bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
 	}
 
 	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToUnbind)
@@ -1067,33 +1069,35 @@ func (c *BackingServiceInstanceController) unbindInstance(dc string, bs *backing
 			}
 			glog.Infoln("deploymentconfig_clear_envs")
 			err = c.deploymentconfig_clear_envs(dc, bsi, &b)
-			if err != nil {
+			if err != nil && (! kerrors.IsNotFound(err)) {
 				return err
 			} else {
 				bsi.Spec.Binding = append(bsi.Spec.Binding[:idx], bsi.Spec.Binding[idx+1:]...)
 				delete(bsi.Annotations, dc)
 			}
+			
+			/*
+				err = c.deploymentconfig_clear_envs(bsi.Namespace, dc)
+				if err != nil {
+					return err
+				}
+			*/
+			glog.Infoln("bsi is unbound ", bsi.Name)
+			/*
+				delete(bsi.Annotations, dc)
+				bsi.Spec.BindDeploymentConfig = ""
+				bsi.Spec.Credentials = nil
+				bsi.Spec.BoundTime = nil
+				bsi.Spec.BindUuid = ""
+				bsi.Spec.Bound = false
+			*/
+			bsi.Spec.Bound -= 1
+			if bsi.Spec.Bound == 0 {
+				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+			}
+			
 			break
 		}
-	}
-	/*
-		err = c.deploymentconfig_clear_envs(bsi.Namespace, dc)
-		if err != nil {
-			return err
-		}
-	*/
-	glog.Infoln("bsi is unbound ", bsi.Name)
-	/*
-		delete(bsi.Annotations, dc)
-		bsi.Spec.BindDeploymentConfig = ""
-		bsi.Spec.Credentials = nil
-		bsi.Spec.BoundTime = nil
-		bsi.Spec.BindUuid = ""
-		bsi.Spec.Bound = false
-	*/
-	bsi.Spec.Bound -= 1
-	if bsi.Spec.Bound == 0 {
-		bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
 	}
 
 	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToUnbind)
