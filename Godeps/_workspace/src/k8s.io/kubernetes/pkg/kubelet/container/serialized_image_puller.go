@@ -25,6 +25,9 @@ import (
 	"k8s.io/kubernetes/pkg/client/record"
 	"k8s.io/kubernetes/pkg/util"
 	"k8s.io/kubernetes/pkg/util/wait"
+
+	"k8s.io/kubernetes/pkg/util/rand"
+	"log"
 )
 
 type imagePullRequest struct {
@@ -134,8 +137,17 @@ func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Cont
 }
 
 func (puller *serializedImagePuller) pullImages() {
+	id := rand.String(8)
+	log.Printf("[Debug] loop(%s) new pull some images\n", id)
 	for pullRequest := range puller.pullRequests {
+		log.Println("---------------------------------")
 		puller.logIt(pullRequest.ref, api.EventTypeNormal, PullingImage, pullRequest.logPrefix, fmt.Sprintf("pulling image %q", pullRequest.container.Image), glog.Info)
-		pullRequest.returnChan <- puller.runtime.PullImage(pullRequest.spec, pullRequest.pullSecrets)
+		log.Printf("[Debug] loop(%s) pull image %s [pulling]\n", id, pullRequest.container.Image)
+		err := puller.runtime.PullImage(pullRequest.spec, pullRequest.pullSecrets)
+		log.Printf("[Debug] loop(%s) pull image %s. get result %v [return]\n", id, pullRequest.container.Image, err)
+		pullRequest.returnChan <- err
+		log.Printf("[Debug] loop(%s) pull image %s. get result %v, and send result to channel success. [ok]\n", id, pullRequest.container.Image, err)
+		log.Println("---------------------------------")
 	}
+	log.Printf("[Debug] loop(%s) finish pull some images\n", id)
 }
