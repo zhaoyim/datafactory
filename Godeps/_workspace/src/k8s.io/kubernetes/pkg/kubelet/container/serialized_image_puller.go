@@ -79,6 +79,7 @@ func (puller *serializedImagePuller) logIt(ref *api.ObjectReference, eventtype, 
 // PullImage pulls the image for the specified pod and container.
 func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Container, pullSecrets []api.Secret) (error, string) {
 	logPrefix := fmt.Sprintf("%s/%s", pod.Name, container.Image)
+	log.Printf("[Debug] find a pull image request for %s\n", logPrefix)
 	ref, err := GenerateContainerRef(pod, container)
 	if err != nil {
 		glog.Errorf("Couldn't make a ref to pod %v, container %v: '%v'", pod.Name, container.Name, err)
@@ -111,6 +112,7 @@ func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Cont
 		return ErrImagePullBackOff, msg
 	}
 
+	log.Printf("[Debug] request image [%s] start enque, need check if done\n", logPrefix)
 	// enqueue image pull request and wait for response.
 	returnChan := make(chan error)
 	puller.pullRequests <- &imagePullRequest{
@@ -121,6 +123,8 @@ func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Cont
 		ref:         ref,
 		returnChan:  returnChan,
 	}
+	log.Printf("[Debug] request image [%s] enque done\n", logPrefix)
+
 	if err = <-returnChan; err != nil {
 		puller.logIt(ref, api.EventTypeWarning, FailedToPullImage, logPrefix, fmt.Sprintf("Failed to pull image %q: %v", container.Image, err), glog.Warning)
 		puller.backOff.Next(backOffKey, puller.backOff.Clock.Now())
