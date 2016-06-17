@@ -19,6 +19,8 @@ import (
 	"github.com/openshift/source-to-image/pkg/tar"
 	"github.com/openshift/source-to-image/pkg/util"
 
+	"github.com/docker/docker/pkg/parsers"
+
 	"github.com/openshift/origin/pkg/build/api"
 	"github.com/openshift/origin/pkg/build/builder/cmd/dockercfg"
 	"github.com/openshift/origin/pkg/build/controller/strategy"
@@ -99,6 +101,7 @@ func (d *DockerBuilder) Build() error {
 		if err := tagImage(d.dockerClient, buildTag, pushTag); err != nil {
 			return err
 		}
+
 	}
 
 	if err := removeImage(d.dockerClient, buildTag); err != nil {
@@ -119,6 +122,18 @@ func (d *DockerBuilder) Build() error {
 		if err := pushImage(d.dockerClient, pushTag, pushAuthConfig); err != nil {
 			return fmt.Errorf("Failed to push image: %v", err)
 		}
+		if sourceInfo != nil {
+			repo, _ := parsers.ParseRepositoryTag(pushTag)
+			pushTag2 := repo + ":" + sourceInfo.Ref + "-" + sourceInfo.CommitID[:8]
+			glog.Infof("Pushing image %s ...", pushTag2)
+			if err := pushImage(d.dockerClient, pushTag2, pushAuthConfig); err != nil {
+				return fmt.Errorf("Failed to push image: %v", err)
+			}
+			if err := removeImage(d.dockerClient, pushTag2); err != nil {
+				glog.Warningf("Failed to remove build tag %v: %v", pushTag2, err)
+			}
+		}
+
 		glog.Infof("Push successful")
 	}
 	return nil
