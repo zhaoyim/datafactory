@@ -25,6 +25,9 @@ import (
 	"k8s.io/kubernetes/pkg/client/record"
 	"k8s.io/kubernetes/pkg/util"
 	"k8s.io/kubernetes/pkg/util/wait"
+
+	"k8s.io/kubernetes/pkg/util/rand"
+	"log"
 )
 
 type imagePullRequest struct {
@@ -76,6 +79,7 @@ func (puller *serializedImagePuller) logIt(ref *api.ObjectReference, eventtype, 
 // PullImage pulls the image for the specified pod and container.
 func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Container, pullSecrets []api.Secret) (error, string) {
 	logPrefix := fmt.Sprintf("%s/%s", pod.Name, container.Image)
+	log.Printf("[Debug] find a pull image request for %s\n", logPrefix)
 	ref, err := GenerateContainerRef(pod, container)
 	if err != nil {
 		glog.Errorf("Couldn't make a ref to pod %v, container %v: '%v'", pod.Name, container.Name, err)
@@ -108,6 +112,7 @@ func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Cont
 		return ErrImagePullBackOff, msg
 	}
 
+	log.Printf("[Debug] request image [%s] start enque, need check if done\n", logPrefix)
 	// enqueue image pull request and wait for response.
 	returnChan := make(chan error)
 	puller.pullRequests <- &imagePullRequest{
@@ -118,6 +123,8 @@ func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Cont
 		ref:         ref,
 		returnChan:  returnChan,
 	}
+	log.Printf("[Debug] request image [%s] enque done\n", logPrefix)
+
 	if err = <-returnChan; err != nil {
 		puller.logIt(ref, api.EventTypeWarning, FailedToPullImage, logPrefix, fmt.Sprintf("Failed to pull image %q: %v", container.Image, err), glog.Warning)
 		puller.backOff.Next(backOffKey, puller.backOff.Clock.Now())
@@ -134,8 +141,17 @@ func (puller *serializedImagePuller) PullImage(pod *api.Pod, container *api.Cont
 }
 
 func (puller *serializedImagePuller) pullImages() {
+	id := rand.String(8)
+	log.Printf("[Debug] loop(%s) new pull some images\n", id)
 	for pullRequest := range puller.pullRequests {
+		log.Println("---------------------------------")
 		puller.logIt(pullRequest.ref, api.EventTypeNormal, PullingImage, pullRequest.logPrefix, fmt.Sprintf("pulling image %q", pullRequest.container.Image), glog.Info)
-		pullRequest.returnChan <- puller.runtime.PullImage(pullRequest.spec, pullRequest.pullSecrets)
+		log.Printf("[Debug] loop(%s) pull image %s [pulling]\n", id, pullRequest.container.Image)
+		err := puller.runtime.PullImage(pullRequest.spec, pullRequest.pullSecrets)
+		log.Printf("[Debug] loop(%s) pull image %s. get result %v [return]\n", id, pullRequest.container.Image, err)
+		pullRequest.returnChan <- err
+		log.Printf("[Debug] loop(%s) pull image %s. get result %v, and send result to channel success. [ok]\n", id, pullRequest.container.Image, err)
+		log.Println("---------------------------------")
 	}
+	log.Printf("[Debug] loop(%s) finish pull some images\n", id)
 }
