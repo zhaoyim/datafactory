@@ -175,6 +175,10 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 		return nil, err
 	}
 
+	if bsi.Annotations == nil {
+		bsi.Annotations = map[string]string{}
+	}
+
 	if bound := bsi.Annotations[bro.ResourceName]; bound == backingserviceinstanceapi.BindDeploymentConfigBound {
 		return nil, fmt.Errorf("'%s' is already bound to this instance.", bro.ResourceName)
 	}
@@ -199,9 +203,6 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 
 	//need debug....bsi.Spec.BindDeploymentConfig = bro.ResourceName // dc.Name
 
-	if bsi.Annotations == nil {
-		bsi.Annotations = map[string]string{}
-	}
 	bsi.Annotations[bro.ResourceName] = backingserviceinstanceapi.BindDeploymentConfigBinding
 
 	bsi.Status.Action = backingserviceinstanceapi.BackingServiceInstanceActionToBind
@@ -225,6 +226,10 @@ func (r *BindingREST) Update(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 	bsi, err := r.backingServiceInstanceRegistry.GetBackingServiceInstance(ctx, bro.Name)
 	if err != nil {
 		return nil, false, err
+	}
+	
+	if bsi.Annotations == nil {
+		bsi.Annotations = map[string]string{}
 	}
 
 	if bound, ok := bsi.Annotations[bro.ResourceName]; !ok || bound == "unbound"/*unbound should never happen.*/ {
