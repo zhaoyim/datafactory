@@ -40,18 +40,18 @@ func (e fatalError) Error() string {
 
 // Handle processes a namespace and deletes content in origin if its terminating
 func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
-	//glog.Infoln("bsi handler called.", bsi.Name)
+	glog.Infoln("================= bsi handler called.", bsi.Name)
 	//c.recorder.Eventf(bsi, "Debug", "bsi handler called.%s", bsi.Name)
 
 	changed := false
 	bs := &backingserviceapi.BackingService{}
 	if bsi.Annotations[backingserviceinstanceapi.UPS] != "true" {
-	bsp, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
-	if err != nil {
-		return err
-	}else{
-		bs = bsp
-	}
+		bsp, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
+		if err != nil {
+			return err
+		} else {
+			bs = bsp
+		}
 	}
 
 	switch bsi.Status.Phase {
@@ -76,6 +76,33 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	case backingserviceinstanceapi.BackingServiceInstancePhaseProvisioning:
 		if bsi.Status.Action == backingserviceinstanceapi.BackingServiceInstanceActionToDelete {
 			return c.Client.BackingServiceInstances(bsi.Namespace).Delete(bsi.Name)
+		}
+		
+		if bsi.Spec.InstanceID != "" {
+			// already in provisioning, but not fully provisioned yet.
+			
+			servicebroker, err := servicebroker_load(c.Client, bs.GenerateName)
+			if err != nil {
+				result = err
+				break
+			}
+			
+			// check last operation
+			
+			lastOp, err := servicebroker_getlastoperation(bsi.Spec.InstanceID, servicebroker)
+			if err != nil {
+				glog.Infoln("bsi ", bsi.Name, " servicebroker_getlastoperation error: ", err.Error())
+				return
+			}
+			
+			glog.Infoln("bsi ", bsi.Name, " servicebroker_getlastoperation state: ", lastOp.State)
+			
+			if lastOp.State == Succeeded {
+				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+				changed = true
+			}
+			
+			break
 		}
 
 		glog.Infoln("bsi provisioning ", bsi.Name)
@@ -135,11 +162,17 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		}
 		bsi.Spec.Parameters["instance_id"] = bsInstanceID
 
-		bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
-
 		changed = true
-
-		glog.Infoln("bsi inited. ", bsi.Name)
+	
+		if svcinstance.LastOperation == nil || svcinstance.LastOperation.State == Succeeded {
+			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+			
+			glog.Infoln("bsi provisioned: ", bsi.Name)
+		} else { // svcinstance.LastOperation.State == InProgress
+			glog.Infoln("bsi created but still in provisioning: ", bsi.Name)
+			
+			// store svcinstance.LastOperation.AsyncPollIntervalSeconds?
+		}
 
 	case backingserviceinstanceapi.BackingServiceInstancePhaseUnbound:
 		switch bsi.Status.Action {
@@ -283,7 +316,9 @@ func checkIfPlanidExist(client osclient.Interface, planId string) (bool, *backin
 func commToServiceBroker(method, path string, jsonData []byte, header map[string]string) (resp *http.Response, err error) {
 
 	fmt.Println(method, path, string(jsonData))
-
+	if jsonData == nil {
+		jsonData = []byte{}
+	}
 	req, err := http.NewRequest(strings.ToUpper(method) /*SERVICE_BROKER_API_SERVER+*/, path, bytes.NewBuffer(jsonData))
 
 	if len(header) > 0 {
@@ -308,10 +343,19 @@ type ServiceInstance struct {
 	//Incomplete       bool        `json:"accepts_incomplete, omitempty"`
 	Parameters interface{} `json:"parameters, omitempty"`
 }
+
+type LastOperationState string
+
+const (
+	InProgress LastOperationState = "in progress"
+	Succeeded  LastOperationState = "succeeded"
+	Failed     LastOperationState = "failed"
+)
+
 type LastOperation struct {
-	State                    string `json:"state"`
-	Description              string `json:"description"`
-	AsyncPollIntervalSeconds int    `json:"async_poll_interval_seconds, omitempty"`
+	State                    LastOperationState `json:"state"`
+	Description              string             `json:"description"`
+	AsyncPollIntervalSeconds int                `json:"async_poll_interval_seconds, omitempty"`
 }
 type CreateServiceInstanceResponse struct {
 	DashboardUrl  string         `json:"dashboard_url"`
@@ -386,6 +430,45 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 	}
 	glog.Infof("%v,%+v\n", string(body), svcinstance)
 	return svcinstance, nil
+}
+
+func servicebroker_getlastoperation(instance_guid string, sb *ServiceBroker) (*LastOperation, error) {
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json"
+	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
+
+	resp, err := commToServiceBroker("GET", "http://"+sb.Url+"/v2/service_instances/"+instance_guid+"/last_operation", []byte{}, header)
+	if err != nil {
+
+		glog.Error(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	glog.Infof("respcode from PUT /v2/service_instances/%s/last_operation: %v", instance_guid, resp.StatusCode)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		glog.Error(err)
+		return nil, err
+	}
+
+	glog.Infof("%v\n", string(body))
+	if resp.StatusCode == http.StatusOK {
+		if len(body) > 0 {
+			lastOp := &LastOperation{}
+			err = json.Unmarshal(body, lastOp)
+
+			if err != nil {
+				glog.Error(err)
+				return nil, err
+			}
+			
+			return lastOp, nil
+		}
+	}
+
+	return nil, fmt.Errorf("wrong resp.StatusCode: %d", resp.StatusCode)
 }
 
 func servicebroker_binding(param *ServiceBinding, binding_guid string, sb *ServiceBroker) (*ServiceBindingResponse, error) {
