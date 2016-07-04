@@ -16,11 +16,15 @@ import (
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/client/record"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/kubernetes/pkg/util/wait"
 	"k8s.io/kubernetes/pkg/util"
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 )
+
 
 // NamespaceController is responsible for participating in Kubernetes Namespace termination
 // Use the NamespaceControllerFactory to create this controller.
@@ -87,20 +91,8 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				break
 			}
 			
-			// check last operation
-			
-			lastOp, err := servicebroker_getlastoperation(bsi.Spec.InstanceID, servicebroker)
-			if err != nil {
-				glog.Infoln("bsi ", bsi.Name, " servicebroker_getlastoperation error: ", err.Error())
-				return
-			}
-			
-			glog.Infoln("bsi ", bsi.Name, " servicebroker_getlastoperation state: ", lastOp.State)
-			
-			if lastOp.State == Succeeded {
-				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
-				changed = true
-			}
+			// maybe openshift is restarted, so call this anyway
+			c.newInstanceInProvisioning(bsi, bs, servicebroker)
 			
 			break
 		}
@@ -166,8 +158,9 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	
 		if svcinstance.IsAsync {
 			glog.Infoln("bsi created but still in provisioning: ", bsi.Name)
-			
 			// how to get LastOperation.AsyncPollIntervalSeconds?
+			
+			c.newInstanceInProvisioning(bsi, bs, servicebroker)
 		} else {
 			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
 			
@@ -1198,4 +1191,70 @@ func (c *BackingServiceInstanceController) get_deploymentconfig_name(bsi *backin
 		}
 	}
 	return ""
+}
+
+//========================================
+
+var instancesInProvisioningMutex sync.Mutex
+var instancesInProvisioning = map[string]struct{}{}
+
+func (c *BackingServiceInstanceController) newInstanceInProvisioning(bsi *backingserviceinstanceapi.BackingServiceInstance, bs *backingserviceapi.BackingService, servicebroker *ServiceBroker) {
+	instancesInProvisioningMutex.Lock()
+	_, present := instancesInProvisioning[bsi.Spec.InstanceID]
+	if ! present {
+		instancesInProvisioning[bsi.Spec.InstanceID] = struct{}{}
+	}
+	instancesInProvisioningMutex.Unlock()
+	
+	if present {
+		return
+	}
+
+	stopCh := make(chan struct{})
+	stop := func() {
+		close(stopCh)
+		
+		instancesInProvisioningMutex.Lock()
+		delete(instancesInProvisioning, bsi.Spec.InstanceID)
+		instancesInProvisioningMutex.Unlock()
+	}
+	
+	f := func() {
+		// check last operation
+		lastOp, err := servicebroker_getlastoperation(bsi.Spec.InstanceID, servicebroker)
+		if err != nil {
+			glog.Infoln("newInstanceInProvisioning ", bsi.Name, " servicebroker_getlastoperation error: ", err.Error())
+			return
+		}
+		
+		glog.Infoln("newInstanceInProvisioning ", bsi.Name, " servicebroker_getlastoperation state: ", lastOp.State)
+		
+		if lastOp.State == Succeeded {
+			var A [5]struct{}
+			for range A[:] {
+				bsi, err = c.Client.BackingServiceInstances(bsi.Namespace).Get(bsi.Name)
+				if err != nil {
+					glog.Infoln("newInstanceInProvisioning Get", bsi.Name, " error: ", err.Error())
+					continue
+				}
+				
+				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+				
+				_, err = c.Client.BackingServiceInstances(bsi.Namespace).Update(bsi)
+				if err != nil {
+					glog.Infoln("newInstanceInProvisioning Update", bsi.Name, " error: ", err.Error())
+					continue
+				}
+
+				glog.Infoln("newInstanceInProvisioning bsi etc changed and update. ")
+				
+				break
+			}
+			
+			stop()
+		}
+	}
+	
+	period := 11 * time.Second
+	go wait.Until(f, period, stopCh)
 }
