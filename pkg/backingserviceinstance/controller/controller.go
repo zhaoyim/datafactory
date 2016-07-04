@@ -79,7 +79,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		}
 		
 		if bsi.Spec.InstanceID != "" {
-			// already in provisioning, but not fully provisioned yet.
+			// already started provisioning, but not fully provisioned yet.
 			
 			servicebroker, err := servicebroker_load(c.Client, bs.GenerateName)
 			if err != nil {
@@ -164,14 +164,14 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 
 		changed = true
 	
-		if svcinstance.LastOperation == nil || svcinstance.LastOperation.State == Succeeded {
+		if svcinstance.IsAsync {
+			glog.Infoln("bsi created but still in provisioning: ", bsi.Name)
+			
+			// how to get LastOperation.AsyncPollIntervalSeconds?
+		} else {
 			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
 			
 			glog.Infoln("bsi provisioned: ", bsi.Name)
-		} else { // svcinstance.LastOperation.State == InProgress
-			glog.Infoln("bsi created but still in provisioning: ", bsi.Name)
-			
-			// store svcinstance.LastOperation.AsyncPollIntervalSeconds?
 		}
 
 	case backingserviceinstanceapi.BackingServiceInstancePhaseUnbound:
@@ -358,6 +358,7 @@ type LastOperation struct {
 	AsyncPollIntervalSeconds int                `json:"async_poll_interval_seconds, omitempty"`
 }
 type CreateServiceInstanceResponse struct {
+	IsAsync       bool           
 	DashboardUrl  string         `json:"dashboard_url"`
 	LastOperation *LastOperation `json:"last_operation, omitempty"`
 }
@@ -425,6 +426,8 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 				return nil, err
 			}
 		}
+		
+		svcinstance.IsAsync = resp.StatusCode == http.StatusAccepted
 	} else {
 		return nil, fmt.Errorf("%d returned from broker %s", resp.StatusCode, sb.Url)
 	}
