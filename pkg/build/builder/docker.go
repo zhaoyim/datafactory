@@ -125,6 +125,9 @@ func (d *DockerBuilder) Build() error {
 		if sourceInfo != nil {
 			repo, _ := parsers.ParseRepositoryTag(pushTag)
 			pushTag2 := repo + ":" + sourceInfo.Ref + "-" + sourceInfo.CommitID[:8]
+			if err := tagImage(d.dockerClient, pushTag, pushTag2); err != nil {
+				return err
+			}
 			glog.Infof("Pushing image %s ...", pushTag2)
 			if err := pushImage(d.dockerClient, pushTag2, pushAuthConfig); err != nil {
 				return fmt.Errorf("Failed to push image: %v", err)
