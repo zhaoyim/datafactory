@@ -1230,9 +1230,10 @@ func (c *BackingServiceInstanceController) newInstanceInProvisioning(bsi *backin
 		glog.Infoln("newInstanceInProvisioning ", bsi.Name, " servicebroker_getlastoperation state: ", lastOp.State)
 		
 		if lastOp.State == Succeeded {
-			var A [5]struct{}
-			for range A[:] {
-				bsi, err = c.Client.BackingServiceInstances(bsi.Namespace).Get(bsi.Name)
+			// try most 5 times
+			for range [5]struct{}{} {
+				// here must use :=
+				bsi, err := c.Client.BackingServiceInstances(bsi.Namespace).Get(bsi.Name)
 				if err != nil {
 					glog.Infoln("newInstanceInProvisioning Get", bsi.Name, " error: ", err.Error())
 					continue
