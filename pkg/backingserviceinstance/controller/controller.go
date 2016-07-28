@@ -354,7 +354,7 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 	header["Content-Type"] = "application/json"
 	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
 
-	resp, err := commToServiceBroker("PUT", "http://"+sb.Url+"/v2/service_instances/"+instance_guid, jsonData, header)
+	resp, err := commToServiceBroker("PUT", "http://"+sb.Url+"/v2/service_instances/"+instance_guid+"?accepts_incomplete=true", jsonData, header)
 	if err != nil {
 		glog.Error(err)
 		return nil, err
