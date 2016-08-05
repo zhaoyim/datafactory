@@ -119,12 +119,9 @@ func (d *DockerBuilder) Build() error {
 			glog.V(4).Infof("Authenticating Docker push with user %q", pushAuthConfig.Username)
 		}
 		glog.Infof("Pushing image %s ...", pushTag)
-		if err := pushImage(d.dockerClient, pushTag, pushAuthConfig); err != nil {
-			return fmt.Errorf("Failed to push image: %v", err)
-		}
 		if sourceInfo != nil {
 			repo, _ := parsers.ParseRepositoryTag(pushTag)
-			pushTag2 := repo + ":" + sourceInfo.Ref + "-" + sourceInfo.CommitID[:8]
+			pushTag2 := repo + ":" + strings.Replace(sourceInfo.Ref, "/", "-", -1) + "-" + sourceInfo.CommitID[:8]
 			if err := tagImage(d.dockerClient, pushTag, pushTag2); err != nil {
 				return err
 			}
@@ -136,6 +133,10 @@ func (d *DockerBuilder) Build() error {
 				glog.Warningf("Failed to remove build tag %v: %v", pushTag2, err)
 			}
 		}
+		if err := pushImage(d.dockerClient, pushTag, pushAuthConfig); err != nil {
+			return fmt.Errorf("Failed to push image: %v", err)
+		}
+
 
 		glog.Infof("Push successful")
 	}
