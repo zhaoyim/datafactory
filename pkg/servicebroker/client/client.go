@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -51,6 +52,10 @@ func httpGet(getUrl string, credential ...string) ([]byte, error) {
 	var resp *http.Response
 	var err error
 	if len(credential) == 2 {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
 		req, err := http.NewRequest("GET", getUrl, nil)
 		if err != nil {
 			return nil, fmt.Errorf("[servicebroker http client] err %s, %s\n", getUrl, err)
@@ -59,7 +64,7 @@ func httpGet(getUrl string, credential ...string) ([]byte, error) {
 		basic := fmt.Sprintf("Basic %s", string(base64Encode([]byte(fmt.Sprintf("%s:%s", credential[0], credential[1])))))
 		req.Header.Set(Authorization, basic)
 
-		resp, err = http.DefaultClient.Do(req)
+		resp, err = client.Do(req)
 		if err != nil {
 			fmt.Errorf("http get err:%s", err.Error())
 			return nil, err

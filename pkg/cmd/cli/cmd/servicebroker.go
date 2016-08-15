@@ -75,14 +75,14 @@ func (o *NewServiceBrokerOptions) complete(cmd *cobra.Command, f *clientcmd.Fact
 		cmd.Help()
 		return errors.New("must have exactly one argument")
 	}
-
-	URL, err := url.Parse(setUrl(o.Url))
+	o.Url = setUrl(o.Url)
+	_, err := url.Parse(o.Url)
 	if err != nil {
 		cmd.Help()
 		return errors.New("wrong param url format")
 	}
 
-	o.Url = URL.Host
+	//o.Url = URL.Host
 
 	if len(o.Url) == 0 {
 		cmd.Help()
