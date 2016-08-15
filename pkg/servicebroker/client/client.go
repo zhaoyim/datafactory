@@ -34,7 +34,7 @@ type httpClient struct {
 
 func (c *httpClient) Catalog(Url string, credential ...string) (ServiceList, error) {
 	services := new(ServiceList)
-	b, err := c.Get("http://"+Url+"/v2/catalog", credential...)
+	b, err := c.Get(Url+"/v2/catalog", credential...)
 	if err != nil {
 		fmt.Printf("httpclient catalog err %s", err.Error())
 		return *services, err
