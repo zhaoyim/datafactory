@@ -4,6 +4,7 @@ import (
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -284,6 +285,11 @@ func commToServiceBroker(method, path string, jsonData []byte, header map[string
 
 	fmt.Println(method, path, string(jsonData))
 
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
 	req, err := http.NewRequest(strings.ToUpper(method) /*SERVICE_BROKER_API_SERVER+*/, path, bytes.NewBuffer(jsonData))
 
 	if len(header) > 0 {
@@ -291,7 +297,7 @@ func commToServiceBroker(method, path string, jsonData []byte, header map[string
 			req.Header.Set(key, value)
 		}
 	}
-	return http.DefaultClient.Do(req)
+	return client.Do(req)
 }
 
 type ServiceBroker struct {
@@ -354,7 +360,7 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 	header["Content-Type"] = "application/json"
 	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
 
-	resp, err := commToServiceBroker("PUT", "http://"+sb.Url+"/v2/service_instances/"+instance_guid+"?accepts_incomplete=true", jsonData, header)
+	resp, err := commToServiceBroker("PUT", sb.Url+"/v2/service_instances/"+instance_guid+"?accepts_incomplete=true", jsonData, header)
 	if err != nil {
 		glog.Error(err)
 		return nil, err
@@ -398,7 +404,7 @@ func servicebroker_binding(param *ServiceBinding, binding_guid string, sb *Servi
 	header["Content-Type"] = "application/json"
 	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
 
-	resp, err := commToServiceBroker("PUT", "http://"+sb.Url+"/v2/service_instances/"+param.svc_instance_id+"/service_bindings/"+binding_guid, jsonData, header)
+	resp, err := commToServiceBroker("PUT", sb.Url+"/v2/service_instances/"+param.svc_instance_id+"/service_bindings/"+binding_guid, jsonData, header)
 	if err != nil {
 
 		glog.Error(err)
@@ -436,7 +442,7 @@ func servicebroker_unbinding(bindId string, svc *ServiceBinding, sb *ServiceBrok
 	header["Content-Type"] = "application/json"
 	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
 
-	resp, err := commToServiceBroker("DELETE", "http://"+sb.Url+"/v2/service_instances/"+svc.svc_instance_id+"/service_bindings/"+bindId+"?service_id="+svc.ServiceId+"&plan_id="+svc.PlanId, nil, header)
+	resp, err := commToServiceBroker("DELETE", sb.Url+"/v2/service_instances/"+svc.svc_instance_id+"/service_bindings/"+bindId+"?service_id="+svc.ServiceId+"&plan_id="+svc.PlanId, nil, header)
 	if err != nil {
 
 		glog.Error(err)
@@ -476,7 +482,7 @@ func servicebroker_deprovisioning(bsi *backingserviceinstanceapi.BackingServiceI
 	header["Content-Type"] = "application/json"
 	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
 
-	resp, err := commToServiceBroker("DELETE", "http://"+sb.Url+"/v2/service_instances/"+bsi.Spec.InstanceID+"?service_id="+bsi.Spec.BackingServiceSpecID+"&plan_id="+bsi.Spec.BackingServicePlanGuid, nil, header)
+	resp, err := commToServiceBroker("DELETE", sb.Url+"/v2/service_instances/"+bsi.Spec.InstanceID+"?service_id="+bsi.Spec.BackingServiceSpecID+"&plan_id="+bsi.Spec.BackingServicePlanGuid, nil, header)
 	if err != nil {
 
 		glog.Error(err)
