@@ -115,6 +115,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		serviceinstance.ServiceId = bs.Spec.Id
 		serviceinstance.PlanId = bsi.Spec.BackingServicePlanGuid
 		serviceinstance.OrganizationGuid = bsi.Namespace
+		serviceinstance.SpaceGuid = bsi.Namespace
 
 		glog.Infoln("bsi provisioning servicebroker_create_instance, ", bsi.Name)
 
@@ -388,7 +389,8 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 			}
 		}
 	} else {
-		return nil, fmt.Errorf("%d returned from broker %s", resp.StatusCode, sb.Url)
+		glog.Error("Error:",string(body))
+		return nil, fmt.Errorf("%d returned from broker %s: ", resp.StatusCode, sb.Url, string(body))
 	}
 	glog.Infof("%v,%+v\n", string(body), svcinstance)
 	return svcinstance, nil
