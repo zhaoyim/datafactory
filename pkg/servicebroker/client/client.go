@@ -69,6 +69,7 @@ func httpGet(getUrl string, credential ...string) ([]byte, error) {
 			fmt.Errorf("http get err:%s", err.Error())
 			return nil, err
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			return nil, fmt.Errorf("[servicebroker http client] status err %s, %d\n", getUrl, resp.StatusCode)
 		}
