@@ -287,6 +287,7 @@ func commToServiceBroker(method, path string, jsonData []byte, header map[string
 	fmt.Println(method, path, string(jsonData))
 
 	tr := &http.Transport{
+		DisableKeepAlives: true,
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
