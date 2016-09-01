@@ -53,6 +53,7 @@ func httpGet(getUrl string, credential ...string) ([]byte, error) {
 	var err error
 	if len(credential) == 2 {
 		tr := &http.Transport{
+			DisableKeepAlives: true,
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		client := &http.Client{Transport: tr}
@@ -60,6 +61,7 @@ func httpGet(getUrl string, credential ...string) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("[servicebroker http client] err %s, %s\n", getUrl, err)
 		}
+		req.Close = true
 
 		basic := fmt.Sprintf("Basic %s", string(base64Encode([]byte(fmt.Sprintf("%s:%s", credential[0], credential[1])))))
 		req.Header.Set(Authorization, basic)
@@ -69,6 +71,7 @@ func httpGet(getUrl string, credential ...string) ([]byte, error) {
 			fmt.Errorf("http get err:%s", err.Error())
 			return nil, err
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			return nil, fmt.Errorf("[servicebroker http client] status err %s, %d\n", getUrl, resp.StatusCode)
 		}
