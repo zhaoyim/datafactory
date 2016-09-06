@@ -284,7 +284,7 @@ func checkIfPlanidExist(client osclient.Interface, planId string) (bool, *backin
 
 func commToServiceBroker(method, path string, jsonData []byte, header map[string]string) (resp *http.Response, err error) {
 
-	fmt.Println(method, path, string(jsonData))
+	glog.Infoln(method, path, string(jsonData))
 
 	tr := &http.Transport{
 		DisableKeepAlives: true,
