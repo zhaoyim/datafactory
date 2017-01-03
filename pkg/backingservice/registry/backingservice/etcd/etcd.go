@@ -44,6 +44,7 @@ func NewREST(optsGetter restoptions.Getter) (*REST, error) {
 
 		CreateStrategy: backingservice.BsStrategy,
 		UpdateStrategy: backingservice.BsStrategy,
+		DeleteStrategy: backingservice.BsStrategy,
 
 		ReturnDeletedObject: false,
 	}

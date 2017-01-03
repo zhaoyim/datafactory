@@ -36,6 +36,7 @@ import (
 	backingservice "github.com/openshift/origin/pkg/backingservice/registry/backingservice/etcd"
 	backingserviceinstanceregistry "github.com/openshift/origin/pkg/backingserviceinstance/registry/backingserviceinstance"
 	backingserviceinstanceetcd "github.com/openshift/origin/pkg/backingserviceinstance/registry/backingserviceinstance/etcd"
+	servicebroker "github.com/openshift/origin/pkg/servicebroker/registry/servicebroker/etcd"
 
 	"github.com/openshift/origin/pkg/api/v1"
 	buildclient "github.com/openshift/origin/pkg/build/client"
@@ -83,9 +84,7 @@ import (
 	egressnetworkpolicyetcd "github.com/openshift/origin/pkg/sdn/registry/egressnetworkpolicy/etcd"
 	hostsubnetetcd "github.com/openshift/origin/pkg/sdn/registry/hostsubnet/etcd"
 	netnamespaceetcd "github.com/openshift/origin/pkg/sdn/registry/netnamespace/etcd"
-	"github.com/openshift/origin/pkg/service"
 	saoauth "github.com/openshift/origin/pkg/serviceaccounts/oauthclient"
-	servicebroker "github.com/openshift/origin/pkg/servicebroker/registry/servicebroker/etcd"
 	templateregistry "github.com/openshift/origin/pkg/template/registry"
 	templateetcd "github.com/openshift/origin/pkg/template/registry/etcd"
 	groupetcd "github.com/openshift/origin/pkg/user/registry/group/etcd"
@@ -403,9 +402,13 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 	}
 
 	// <<<<<<< HEAD
-	applicationStorage := application.NewREST(c.EtcdHelper, c.PrivilegedLoopbackOpenShiftClient, c.PrivilegedLoopbackKubernetesClient)
-	serviceBrokerStorage := servicebroker.NewREST(c.EtcdHelper, c.BackingServiceInstanceControllerClients())
-	backingServiceStorage := backingservice.NewREST(c.EtcdHelper, c.BackingServiceInstanceControllerClients())
+	applicationStorage, err := application.NewREST(c.RESTOptionsGetter)
+	checkStorageErr(err)
+	// serviceBrokerStorage, err := servicebroker.NewREST(c.EtcdHelper, c.BackingServiceInstanceControllerClients())
+	serviceBrokerStorage, err := servicebroker.NewREST(c.RESTOptionsGetter)
+	checkStorageErr(err)
+	backingServiceStorage, err := backingservice.NewREST(c.RESTOptionsGetter)
+	checkStorageErr(err)
 
 	// buildStorage, buildDetailsStorage := buildetcd.NewREST(c.EtcdHelper)
 	// =======
@@ -496,8 +499,9 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 	imageStreamImageStorage := imagestreamimage.NewREST(imageRegistry, imageStreamRegistry)
 	imageStreamImageRegistry := imagestreamimage.NewRegistry(imageStreamImageStorage)
 
-	backingServiceInstanceEtcd := backingserviceinstanceetcd.NewREST(c.EtcdHelper)
-	backingServiceInstanceRegistry := backingserviceinstanceregistry.NewRegistry(backingServiceInstanceEtcd)
+	backingServiceInstanceStorage, err := backingserviceinstanceetcd.NewREST(c.RESTOptionsGetter)
+	checkStorageErr(err)
+	backingServiceInstanceRegistry := backingserviceinstanceregistry.NewRegistry(backingServiceInstanceStorage)
 	backingServiceInstanceBindingEtcd := backingserviceinstanceetcd.NewBindingREST(backingServiceInstanceRegistry, deployConfigRegistry)
 
 	buildGenerator := &buildgenerator.BuildGenerator{
@@ -585,7 +589,7 @@ func (c *MasterConfig) GetRestStorage() map[string]rest.Storage {
 		"applications":                    applicationStorage,
 		"serviceBrokers":                  serviceBrokerStorage,
 		"backingServices":                 backingServiceStorage,
-		"backingServiceInstances":         backingServiceInstanceEtcd,
+		"backingServiceInstances":         backingServiceInstanceStorage,
 		"backingServiceInstances/binding": backingServiceInstanceBindingEtcd,
 
 		"deploymentConfigs":          deployConfigStorage,

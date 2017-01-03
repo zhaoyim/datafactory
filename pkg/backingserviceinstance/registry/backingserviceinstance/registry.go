@@ -4,7 +4,7 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/rest"
 	"k8s.io/kubernetes/pkg/api/unversioned"
-	"k8s.io/kubernetes/pkg/runtime"
+	//"k8s.io/kubernetes/pkg/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 
 	"github.com/openshift/origin/pkg/backingserviceinstance/api"
@@ -30,35 +30,19 @@ type Registry interface {
 	WatchBackingServiceInstances(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error)
 }
 
-// Storage is an interface for a standard REST Storage backend
-type Storage interface {
-	rest.GracefulDeleter
-	rest.Lister
-	rest.Getter
-	rest.Watcher
-
-	Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error)
-	Update(ctx kapi.Context, obj runtime.Object) (runtime.Object, bool, error)
-}
-
 // storage puts strong typing around storage calls
 type storage struct {
-	Storage
-	//status   rest.Updater
-	//internal rest.Updater
+	rest.StandardStorage
 }
 
 // NewRegistry returns a new Registry interface for the given Storage. Any mismatched
 // types will panic.
-//func NewRegistry(s Storage, status, internal rest.Updater) Registry {
-//	return &storage{Storage: s, status: status, internal: internal}
-//}
-func NewRegistry(s Storage) Registry {
-	return &storage{Storage: s}
+func NewRegistry(s rest.StandardStorage) Registry {
+	return &storage{s}
 }
 
-func (s *storage) ListBackingServiceInstances(ctx kapi.Context,options *kapi.ListOptions) (*api.BackingServiceInstanceList, error) {
-	obj, err := s.List(ctx,options)
+func (s *storage) ListBackingServiceInstances(ctx kapi.Context, options *kapi.ListOptions) (*api.BackingServiceInstanceList, error) {
+	obj, err := s.List(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +74,7 @@ func (s *storage) CreateBackingServiceInstance(ctx kapi.Context, backingservicei
 //}
 
 func (s *storage) UpdateBackingServiceInstance(ctx kapi.Context, backingServiceInstance *api.BackingServiceInstance) (*api.BackingServiceInstance, error) {
-	obj, _, err := s.Update(ctx, backingServiceInstance)
+	obj, _, err := s.Update(ctx, backingServiceInstance.Name, rest.DefaultUpdatedObjectInfo(backingServiceInstance, kapi.Scheme))
 	if err != nil {
 		return nil, err
 	}

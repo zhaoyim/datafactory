@@ -30,28 +30,15 @@ type Registry interface {
 	WatchBackingServices(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error)
 }
 
-// Storage is an interface for a standard REST Storage backend
-type Storage interface {
-	rest.GracefulDeleter
-	rest.Lister
-	rest.Getter
-	rest.Watcher
-
-	Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error)
-	Update(ctx kapi.Context, obj runtime.Object) (runtime.Object, bool, error)
-}
-
 // storage puts strong typing around storage calls
 type storage struct {
-	Storage
-	status   rest.Updater
-	internal rest.Updater
+	rest.StandardStorage
 }
 
 // NewRegistry returns a new Registry interface for the given Storage. Any mismatched
 // types will panic.
-func NewRegistry(s Storage, status, internal rest.Updater) Registry {
-	return &storage{Storage: s, status: status, internal: internal}
+func NewRegistry(s rest.StandardStorage) Registry {
+	return &storage{s}
 }
 
 func (s *storage) ListBackingServices(ctx kapi.Context) (*api.BackingServiceList, error) {
