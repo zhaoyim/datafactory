@@ -503,20 +503,21 @@ func servicebroker_deprovisioning(bsi *backingserviceinstanceapi.BackingServiceI
 	type DeprovisioningResp struct {
 		Response interface{}
 	}
-	svcDeprovisioning := &DeprovisioningResp{}
 
 	if resp.StatusCode == http.StatusOK {
 		if len(body) > 0 {
+			svcDeprovisioning := &DeprovisioningResp{}
 			err = json.Unmarshal(body, svcDeprovisioning)
-
 			if err != nil {
 				glog.Error(err)
 				return nil, err
 			}
+
+			return svcDeprovisioning, nil
 		}
 	}
-	glog.Infof("%v,%+v\n", string(body), svcDeprovisioning)
-	return svcDeprovisioning, nil
+	glog.Infof("%d, %V\n", resp.StatusCode, string(body))
+	return nil, fmt.Errorf("unknow error %d: %s", resp.StatusCode, string(body))
 }
 
 func basicAuthStr(username, password string) string {
