@@ -22,6 +22,9 @@ const (
 	VerbAll        = "*"
 	NonResourceAll = "*"
 
+	ScopesKey           = "authorization.openshift.io/scopes"
+	ScopesAllNamespaces = "*"
+
 	UserKind           = "User"
 	GroupKind          = "Group"
 	ServiceAccountKind = "ServiceAccount"
@@ -108,15 +111,27 @@ var (
 
 		NonEscalatingResourcesGroupName: {OpenshiftNonEscalatingViewableGroupName, KubeNonEscalatingViewableGroupName},
 	}
+
+	UserResource           = "users"
+	GroupResource          = "groups"
+	ServiceAccountResource = "serviceaccounts"
+	SystemUserResource     = "systemusers"
+	SystemGroupResource    = "systemgroups"
 )
 
-func init() {
-	// set the non-escalating groups
-	GroupsToResources[OpenshiftNonEscalatingViewableGroupName] = NormalizeResources(sets.NewString(GroupsToResources[OpenshiftAllGroupName]...)).
-		Difference(NormalizeResources(sets.NewString(GroupsToResources[OpenshiftEscalatingViewableGroupName]...))).List()
+// DiscoveryRule is a rule that allows a client to discover the API resources available on this server
+var DiscoveryRule = PolicyRule{
+	Verbs: sets.NewString("get"),
+	NonResourceURLs: sets.NewString(
+		// Server version checking
+		"/version", "/version/*",
 
-	GroupsToResources[KubeNonEscalatingViewableGroupName] = NormalizeResources(sets.NewString(GroupsToResources[KubeAllGroupName]...)).
-		Difference(NormalizeResources(sets.NewString(GroupsToResources[KubeEscalatingViewableGroupName]...))).List()
+		// API discovery/negotiation
+		"/api", "/api/*",
+		"/apis", "/apis/*",
+		"/oapi", "/oapi/*",
+		"/osapi", "/osapi/", // these cannot be removed until we can drop support for pre 3.1 clients
+	),
 }
 
 // PolicyRule holds information that describes a policy rule, but does not contain information
@@ -171,6 +186,10 @@ type RoleBinding struct {
 	RoleRef kapi.ObjectReference
 }
 
+type RolesByName map[string]*Role
+
+// +genclient=true
+
 // Policy is a object that holds all the Roles for a particular namespace.  There is at most
 // one Policy document per namespace.
 type Policy struct {
@@ -181,8 +200,10 @@ type Policy struct {
 	LastModified unversioned.Time
 
 	// Roles holds all the Roles held by this Policy, mapped by Role.Name
-	Roles map[string]*Role
+	Roles RolesByName
 }
+
+type RoleBindingsByName map[string]*RoleBinding
 
 // PolicyBinding is a object that holds all the RoleBindings for a particular namespace.  There is
 // one PolicyBinding document per referenced Policy namespace
@@ -197,7 +218,35 @@ type PolicyBinding struct {
 	// PolicyRef is a reference to the Policy that contains all the Roles that this PolicyBinding's RoleBindings may reference
 	PolicyRef kapi.ObjectReference
 	// RoleBindings holds all the RoleBindings held by this PolicyBinding, mapped by RoleBinding.Name
-	RoleBindings map[string]*RoleBinding
+	RoleBindings RoleBindingsByName
+}
+
+// SelfSubjectRulesReview is a resource you can create to determine which actions you can perform in a namespace
+type SelfSubjectRulesReview struct {
+	unversioned.TypeMeta
+
+	// Spec adds information about how to conduct the check
+	Spec SelfSubjectRulesReviewSpec
+
+	// Status is completed by the server to tell which permissions you have
+	Status SubjectRulesReviewStatus
+}
+
+// SelfSubjectRulesReviewSpec adds information about how to conduct the check
+type SelfSubjectRulesReviewSpec struct {
+	// Scopes to use for the evaluation.  Empty means "use the unscoped (full) permissions of the user/groups".
+	// Nil for a self-SubjectRulesReview, means "use the scopes on this request".
+	// Nil for a regular SubjectRulesReview, means the same as empty.
+	Scopes []string
+}
+
+// SubjectRulesReviewStatus is contains the result of a rules check
+type SubjectRulesReviewStatus struct {
+	// Rules is the list of rules (no particular sort) that are allowed for the subject
+	Rules []PolicyRule
+	// EvaluationError can appear in combination with Rules.  It means some error happened during evaluation
+	// that may have prevented additional rules from being populated.
+	EvaluationError string
 }
 
 // ResourceAccessReviewResponse describes who can perform the action
@@ -207,9 +256,16 @@ type ResourceAccessReviewResponse struct {
 	// Namespace is the namespace used for the access review
 	Namespace string
 	// Users is the list of users who can perform the action
+	// +genconversion=false
 	Users sets.String
 	// Groups is the list of groups who can perform the action
+	// +genconversion=false
 	Groups sets.String
+
+	// EvaluationError is an indication that some error occurred during resolution, but partial results can still be returned.
+	// It is entirely possible to get an error and be able to continue determine authorization status in spite of it.  This is
+	// most common when a bound role is missing, but enough roles are still present and bound to reason about the request.
+	EvaluationError string
 }
 
 // ResourceAccessReview is a means to request a list of which users and groups are authorized to perform the
@@ -218,7 +274,7 @@ type ResourceAccessReview struct {
 	unversioned.TypeMeta
 
 	// Action describes the action being tested
-	Action AuthorizationAttributes
+	Action
 }
 
 // SubjectAccessReviewResponse describes whether or not a user or group can perform an action
@@ -231,6 +287,10 @@ type SubjectAccessReviewResponse struct {
 	Allowed bool
 	// Reason is optional.  It indicates why a request was allowed or denied.
 	Reason string
+	// EvaluationError is an indication that some error occurred during the authorization check.
+	// It is entirely possible to get an error and be able to continue determine authorization status in spite of it.  This is
+	// most common when a bound role is missing, but enough roles are still present and bound to reason about the request.
+	EvaluationError string
 }
 
 // SubjectAccessReview is an object for requesting information about whether a user or group can perform an action
@@ -238,11 +298,16 @@ type SubjectAccessReview struct {
 	unversioned.TypeMeta
 
 	// Action describes the action being tested
-	Action AuthorizationAttributes
+	Action
 	// User is optional.  If both User and Groups are empty, the current authenticated user is used.
 	User string
 	// Groups is optional.  Groups is the list of groups to which the User belongs.
+	// +genconversion=false
 	Groups sets.String
+	// Scopes to use for the evaluation.  Empty means "use the unscoped (full) permissions of the user/groups".
+	// Nil for a self-SAR, means "use the scopes on this request".
+	// Nil for a regular SAR, means the same as empty.
+	Scopes []string
 }
 
 // LocalResourceAccessReview is a means to request a list of which users and groups are authorized to perform the action specified by spec in a particular namespace
@@ -250,7 +315,7 @@ type LocalResourceAccessReview struct {
 	unversioned.TypeMeta
 
 	// Action describes the action being tested
-	Action AuthorizationAttributes
+	Action
 }
 
 // LocalSubjectAccessReview is an object for requesting information about whether a user or group can perform an action in a particular namespace
@@ -258,15 +323,20 @@ type LocalSubjectAccessReview struct {
 	unversioned.TypeMeta
 
 	// Action describes the action being tested.  The Namespace element is FORCED to the current namespace.
-	Action AuthorizationAttributes
+	Action
 	// User is optional.  If both User and Groups are empty, the current authenticated user is used.
 	User string
 	// Groups is optional.  Groups is the list of groups to which the User belongs.
+	// +genconversion=false
 	Groups sets.String
+	// Scopes to use for the evaluation.  Empty means "use the unscoped (full) permissions of the user/groups".
+	// Nil for a self-SAR, means "use the scopes on this request".
+	// Nil for a regular SAR, means the same as empty.
+	Scopes []string
 }
 
-// AuthorizationAttributes describes a request to be authorized
-type AuthorizationAttributes struct {
+// Action describes a request to be authorized
+type Action struct {
 	// Namespace is the namespace of the action being requested.  Currently, there is no distinction between no namespace and all namespaces
 	Namespace string
 	// Verb is one of: get, list, watch, create, update, delete
@@ -350,6 +420,8 @@ type ClusterRoleBinding struct {
 	RoleRef kapi.ObjectReference
 }
 
+type ClusterRolesByName map[string]*ClusterRole
+
 // ClusterPolicy is a object that holds all the ClusterRoles for a particular namespace.  There is at most
 // one ClusterPolicy document per namespace.
 type ClusterPolicy struct {
@@ -361,8 +433,10 @@ type ClusterPolicy struct {
 	LastModified unversioned.Time
 
 	// Roles holds all the ClusterRoles held by this ClusterPolicy, mapped by Role.Name
-	Roles map[string]*ClusterRole
+	Roles ClusterRolesByName
 }
+
+type ClusterRoleBindingsByName map[string]*ClusterRoleBinding
 
 // ClusterPolicyBinding is a object that holds all the ClusterRoleBindings for a particular namespace.  There is
 // one ClusterPolicyBinding document per referenced ClusterPolicy namespace
@@ -377,7 +451,7 @@ type ClusterPolicyBinding struct {
 	// ClusterPolicyRef is a reference to the ClusterPolicy that contains all the ClusterRoles that this ClusterPolicyBinding's RoleBindings may reference
 	PolicyRef kapi.ObjectReference
 	// RoleBindings holds all the RoleBindings held by this ClusterPolicyBinding, mapped by RoleBinding.Name
-	RoleBindings map[string]*ClusterRoleBinding
+	RoleBindings ClusterRoleBindingsByName
 }
 
 // ClusterPolicyList is a collection of ClusterPolicies

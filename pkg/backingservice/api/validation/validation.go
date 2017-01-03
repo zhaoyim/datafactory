@@ -7,16 +7,16 @@ import (
 	"k8s.io/kubernetes/pkg/util/validation/field"
 )
 
-func BackingServicetName(name string, prefix bool) (bool, string) {
-	if ok, reason := oapi.MinimalNameRequirements(name, prefix); !ok {
-		return ok, reason
+func BackingServicetName(name string, prefix bool) []string {
+	if reasons := oapi.MinimalNameRequirements(name, prefix); len(reasons) != 0 {
+		return reasons
 	}
 
 	if len(name) < 2 {
-		return false, "must be at least 2 characters long"
+		return []string{"must be at least 2 characters long"}
 	}
 
-	return true, ""
+	return nil
 }
 
 // ValidateBackingService tests required fields for a BackingService.

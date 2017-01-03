@@ -1,7 +1,6 @@
 package validation
 
 import (
-
 	"k8s.io/kubernetes/pkg/api/validation"
 	"k8s.io/kubernetes/pkg/util/validation/field"
 
@@ -12,35 +11,37 @@ import (
 	oclient "github.com/openshift/origin/pkg/client"
 	kerrors "k8s.io/kubernetes/pkg/api/errors"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	"strings"
 )
 
-func ValidateApplicationName(name string, prefix bool) (bool, string) {
-	if ok, reason := oapi.MinimalNameRequirements(name, prefix); !ok {
-		return ok, reason
+const MinApplicationLength = 32
+
+func ValidateApplicationName(name string, prefix bool) []string {
+	if reasons := oapi.MinimalNameRequirements(name, prefix); len(reasons) != 0 {
+		return reasons
 	}
 
-	if len(name) < 2 {
-		return false, "must be at least 2 characters long"
+	if len(name) < MinApplicationLength {
+		return []string{fmt.Sprintf("must be at least %d characters long", MinApplicationLength)}
 	}
-
-	return true, ""
+	return nil
 }
 
-func ValidationApplicationItemKind(items applicationapi.ItemList) (bool, string) {
+func ValidationApplicationItemKind(items applicationapi.ItemList) []string {
 	for _, item := range items {
 		if !applicationutil.Contains(applicationapi.ApplicationItemSupportKinds, item.Kind) {
-			return false, fmt.Sprintf("item unsupport selected kind %s", item.Kind)
+			return []string{fmt.Sprintf("item unsupport selected kind %s", item.Kind)}
 		}
 
 		if len(item.Name) < 2 {
-			return false, "item name must be at least 2 characters long"
+			return []string{"item name must be at least 2 characters long"}
 		}
 
-		if ok, reason := oapi.MinimalNameRequirements(item.Name, false); !ok {
-			return ok, reason
+		if reasons := oapi.MinimalNameRequirements(item.Name, false); len(reasons) != 0 {
+			return reasons
 		}
 	}
-	return true, ""
+	return nil
 }
 
 func ValidationApplicationItemName(namespace string, items applicationapi.ItemList, oClient *oclient.Client, kClient *kclient.Client) (bool, string) {
@@ -122,11 +123,11 @@ func ValidationApplicationItemName(namespace string, items applicationapi.ItemLi
 // ValidateApplication tests required fields for a Application.
 // This should only be called when creating a application (not on update),
 // since its name validation is more restrictive than default namespace name validation
-func ValidateApplication(application *applicationapi.Application, oClient *oclient.Client, kClient *kclient.Client)  field.ErrorList {
-	result := validation.ValidateObjectMeta(&application.ObjectMeta, true,  oapi.MinimalNameRequirements, field.NewPath("metadata"))
+func ValidateApplication(application *applicationapi.Application, oClient *oclient.Client, kClient *kclient.Client) field.ErrorList {
+	result := validation.ValidateObjectMeta(&application.ObjectMeta, true, oapi.MinimalNameRequirements, field.NewPath("metadata"))
 
-	if ok, err := ValidationApplicationItemKind(application.Spec.Items); !ok {
-		result = append(result, field.Invalid(field.NewPath("items"), application.Spec.Items, err))
+	if reasons := ValidationApplicationItemKind(application.Spec.Items); len(reasons) != 0 {
+		result = append(result, field.Invalid(field.NewPath("items"), application.Spec.Items, strings.Join(reasons, ", ")))
 	}
 
 	if ok, err := ValidationApplicationItemName(application.Namespace, application.Spec.Items, oClient, kClient); !ok {
@@ -136,22 +137,18 @@ func ValidateApplication(application *applicationapi.Application, oClient *oclie
 	return result
 }
 
-
-
 // ValidateApplication tests required fields for a Application.
 // This should only be called when creating a application (not on update),
 // since its name validation is more restrictive than default namespace name validation
-func ValidateApplicationProxy(application *applicationapi.Application)  field.ErrorList {
-	result := validation.ValidateObjectMeta(&application.ObjectMeta, true,  oapi.MinimalNameRequirements, field.NewPath("metadata"))
+func ValidateApplicationProxy(application *applicationapi.Application) field.ErrorList {
+	result := validation.ValidateObjectMeta(&application.ObjectMeta, true, oapi.MinimalNameRequirements, field.NewPath("metadata"))
 	return result
 }
 
 // ValidateApplicationUpdate tests to make sure a application update can be applied.  Modifies newApplication with immutable fields.
-func ValidateApplicationUpdate(newApplication *applicationapi.Application, oldApplication *applicationapi.Application)  field.ErrorList {
-	allErrs := validation.ValidateObjectMetaUpdate(&newApplication.ObjectMeta, &oldApplication.ObjectMeta,field.NewPath("metadata"))
+func ValidateApplicationUpdate(newApplication *applicationapi.Application, oldApplication *applicationapi.Application) field.ErrorList {
+	allErrs := validation.ValidateObjectMetaUpdate(&newApplication.ObjectMeta, &oldApplication.ObjectMeta, field.NewPath("metadata"))
 	allErrs = append(allErrs, ValidateApplicationProxy(newApplication)...)
-
-
 
 	return allErrs
 }

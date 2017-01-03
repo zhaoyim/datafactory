@@ -1,7 +1,6 @@
 package validation
 
 import (
-
 	"k8s.io/kubernetes/pkg/api/validation"
 	"k8s.io/kubernetes/pkg/util/validation/field"
 
@@ -9,16 +8,16 @@ import (
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 )
 
-func ValidateServiceBrokerName(name string, prefix bool) (bool, string) {
-	if ok, reason := oapi.MinimalNameRequirements(name, prefix); !ok {
-		return ok, reason
+func ValidateServiceBrokerName(name string, prefix bool) []string {
+	if reasons := oapi.MinimalNameRequirements(name, prefix); len(reasons) != 0 {
+		return reasons
 	}
 
 	if len(name) < 2 {
-		return false, "must be at least 2 characters long"
+		return []string{"must be at least 2 characters long"}
 	}
 
-	return true, ""
+	return nil
 }
 
 // ValidateServiceBroker tests required fields for a ServiceBroker.

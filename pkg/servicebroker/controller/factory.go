@@ -1,18 +1,18 @@
 package controller
 
 import (
-	"k8s.io/kubernetes/pkg/client/cache"
-	kclient "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/runtime"
-	kutil "k8s.io/kubernetes/pkg/util"
-	utilruntime "k8s.io/kubernetes/pkg/util/runtime"
-	"k8s.io/kubernetes/pkg/watch"
-	"time"
-	kapi "k8s.io/kubernetes/pkg/api"
 	osclient "github.com/openshift/origin/pkg/client"
 	controller "github.com/openshift/origin/pkg/controller"
 	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 	servicebrokerclient "github.com/openshift/origin/pkg/servicebroker/client"
+	kapi "k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/client/cache"
+	kclient "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/kubernetes/pkg/runtime"
+	"k8s.io/kubernetes/pkg/util/flowcontrol"
+	utilruntime "k8s.io/kubernetes/pkg/util/runtime"
+	"k8s.io/kubernetes/pkg/watch"
+	"time"
 )
 
 type ServiceBrokerControllerFactory struct {
@@ -38,7 +38,7 @@ func (factory *ServiceBrokerControllerFactory) Create() controller.RunnableContr
 		},
 	}
 	queue := cache.NewFIFO(cache.MetaNamespaceKeyFunc)
-	cache.NewReflector(servicebrokerLW, &servicebrokerapi.ServiceBroker{}, queue, 10 * time.Second).Run()
+	cache.NewReflector(servicebrokerLW, &servicebrokerapi.ServiceBroker{}, queue, 10*time.Second).Run()
 
 	servicebrokerController := &ServiceBrokerController{
 		Client:              factory.Client,
@@ -61,13 +61,10 @@ func (factory *ServiceBrokerControllerFactory) Create() controller.RunnableContr
 				}
 				return true
 			},
-			kutil.NewTokenBucketRateLimiter(10, 1),
-		),
+			flowcontrol.NewTokenBucketRateLimiter(1, 10)),
 		Handle: func(obj interface{}) error {
 			servicebroker := obj.(*servicebrokerapi.ServiceBroker)
 			return servicebrokerController.Handle(servicebroker)
 		},
 	}
 }
-
-

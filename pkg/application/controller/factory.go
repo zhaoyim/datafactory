@@ -5,7 +5,7 @@ import (
 	"k8s.io/kubernetes/pkg/client/cache"
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 	"k8s.io/kubernetes/pkg/runtime"
-	kutil "k8s.io/kubernetes/pkg/util"
+	"k8s.io/kubernetes/pkg/util/flowcontrol"
 	utilruntime "k8s.io/kubernetes/pkg/util/runtime"
 	"k8s.io/kubernetes/pkg/watch"
 	"time"
@@ -26,7 +26,6 @@ type ApplicationControllerFactory struct {
 // Create creates a ApplicationControllerFactory.
 func (factory *ApplicationControllerFactory) Create() controller.RunnableController {
 
-
 	applicationLW := &cache.ListWatch{
 		ListFunc: func(options kapi.ListOptions) (runtime.Object, error) {
 			return factory.Client.Applications(kapi.NamespaceAll).List(options)
@@ -36,7 +35,7 @@ func (factory *ApplicationControllerFactory) Create() controller.RunnableControl
 		},
 	}
 	queue := cache.NewFIFO(cache.MetaNamespaceKeyFunc)
-	cache.NewReflector(applicationLW, &applicationapi.Application{}, queue, 30 * time.Second).Run()
+	cache.NewReflector(applicationLW, &applicationapi.Application{}, queue, 30*time.Second).Run()
 
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartRecordingToSink(factory.KubeClient.Events(""))
@@ -62,8 +61,7 @@ func (factory *ApplicationControllerFactory) Create() controller.RunnableControl
 				}
 				return true
 			},
-			kutil.NewTokenBucketRateLimiter(10, 1),
-		),
+			flowcontrol.NewTokenBucketRateLimiter(1, 10)),
 		Handle: func(obj interface{}) error {
 			application := obj.(*applicationapi.Application)
 			return applicationController.Handle(application)
