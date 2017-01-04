@@ -42,20 +42,20 @@ type ApplicationPhase string
 type Application struct {
 	unversioned.TypeMeta `json:",inline"`
 	// Standard object's metadata.
-	kapi.ObjectMeta `json:"metadata,omitempty"`
+	kapi.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Spec defines the behavior of the Namespace.
-	Spec ApplicationSpec `json:"spec,omitempty" description:"spec defines the behavior of the Application"`
+	Spec ApplicationSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec" description:"spec defines the behavior of the Application"`
 
 	// Status describes the current status of a Namespace
-	Status ApplicationStatus `json:"status,omitempty" description:"status describes the current status of a Application; read-only"`
+	Status ApplicationStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status" description:"status describes the current status of a Application; read-only"`
 }
 
 // ApplicationList describe an ApplicationList
 type ApplicationList struct {
 	unversioned.TypeMeta `json:",inline"`
 	// Standard object's metadata.
-	unversioned.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of applications
 	Items []Application `json:"items" description:"list of Applications"`

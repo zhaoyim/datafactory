@@ -37,43 +37,43 @@ type ServiceBrokerPhase string
 type ServiceBroker struct {
 	unversioned.TypeMeta `json:",inline"`
 	// Standard object's metadata.
-	kapi.ObjectMeta `json:"metadata,omitempty"`
+	kapi.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Spec defines the behavior of the Namespace.
-	Spec ServiceBrokerSpec `json:"spec,omitempty" description:"spec defines the behavior of the ServiceBroker"`
+	Spec ServiceBrokerSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec" description:"spec defines the behavior of the ServiceBroker"`
 
 	// Status describes the current status of a Namespace
-	Status ServiceBrokerStatus `json:"status,omitempty" description:"status describes the current status of a ServiceBroker; read-only"`
+	Status ServiceBrokerStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status" description:"status describes the current status of a ServiceBroker; read-only"`
 }
 
 // ServiceBrokerList is a list of ServiceBroker objects.
 type ServiceBrokerList struct {
 	unversioned.TypeMeta `json:",inline"`
 	// Standard object's metadata.
-	unversioned.ListMeta `json:"metadata,omitempty"`
+	unversioned.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of routes
-	Items []ServiceBroker `json:"items" description:"list of servicebrokers"`
+	Items []ServiceBroker `json:"items" protobuf:"bytes,2,rep,name=items" description:"list of servicebrokers"`
 }
 
 // ServiceBrokerSpec describes the attributes on a ServiceBroker
 type ServiceBrokerSpec struct {
 	// url defines the address of a ServiceBroker service
-	Url string `json:"url" description:"url defines the address of a ServiceBroker service"`
+	Url string `json:"url" protobuf:"bytes,1,opt,name=url" description:"url defines the address of a ServiceBroker service"`
 	// name defines the name of a ServiceBroker service
-	Name string `json:"name" description:"name defines the name of a ServiceBroker service"`
+	Name string `json:"name" protobuf:"bytes,2,opt,name=name" description:"name defines the name of a ServiceBroker service"`
 	// username defines the username to access ServiceBroker service
-	UserName string `json:"username" description:"username defines the username to access ServiceBroker service"`
+	UserName string `json:"username" protobuf:"bytes,3,opt,name=username" description:"username defines the username to access ServiceBroker service"`
 	// password defines the password to access ServiceBroker service
-	Password string `json:"password" description:"password defines the password to access ServiceBroker service"`
+	Password string `json:"password" protobuf:"bytes,4,opt,name=password" description:"password defines the password to access ServiceBroker service"`
 	// Finalizers is an opaque list of values that must be empty to permanently remove object from storage
-	Finalizers []kapi.FinalizerName `json:"finalizers,omitempty" description:"an opaque list of values that must be empty to permanently remove object from storage"`
+	Finalizers []kapi.FinalizerName `json:"finalizers,omitempty" protobuf:"bytes,5,rep,name=finalizers" description:"an opaque list of values that must be empty to permanently remove object from storage"`
 }
 
 // ServiceBrokerStatus is information about the current status of a ServiceBroker
 type ServiceBrokerStatus struct {
 	// Phase is the current lifecycle phase of the project
-	Phase ServiceBrokerPhase `json:"phase,omitempty" description:"phase is the current lifecycle phase of the servicebroker"`
+	Phase ServiceBrokerPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase" description:"phase is the current lifecycle phase of the servicebroker"`
 }
 
 const (
