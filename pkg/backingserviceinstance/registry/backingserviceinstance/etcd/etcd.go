@@ -26,7 +26,7 @@ import (
 	// deployconfigregistry "github.com/openshift/origin/pkg/deploy/registry/deployconfig"
 
 	kapi "k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/rest"
+	//"k8s.io/kubernetes/pkg/api/rest"
 	// "k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/fields"
 	"k8s.io/kubernetes/pkg/labels"
@@ -48,7 +48,7 @@ type BackingServiceInstanceStorage struct {
 }
 
 type REST struct {
-	store *registry.Store
+	*registry.Store
 }
 
 func NewREST(optsGetter restoptions.Getter) (*REST, error) {
@@ -87,6 +87,7 @@ func NewREST(optsGetter restoptions.Getter) (*REST, error) {
 	return &REST{store}, nil
 }
 
+/*
 func (r *REST) New() runtime.Object {
 	return r.store.NewFunc()
 }
@@ -110,6 +111,7 @@ func (r *REST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, err
 func (r *REST) Update(ctx kapi.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
 	return r.store.Update(ctx, name, objInfo)
 }
+*/
 
 func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions) (runtime.Object, error) {
 	bsiObj, err := r.Get(ctx, name)
@@ -136,7 +138,8 @@ func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions
 	// 	return result, err
 	// }
 
-	return r.store.Delete(ctx, name, options)
+	//return r.store.Delete(ctx, name, options)
+	return r.Delete(ctx, name, options)
 }
 
 // func (r *REST) Watch(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {

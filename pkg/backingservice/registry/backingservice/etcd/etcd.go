@@ -15,7 +15,7 @@ import (
 )
 
 type REST struct {
-	store *registry.Store
+	*registry.Store
 }
 
 // NewREST returns a new REST.
