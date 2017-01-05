@@ -54,7 +54,7 @@ type BackingServiceInstanceSpec struct {
 	// bindings of an instance
 	Binding []InstanceBinding `json:"binding, omitempty" protobuf:"bytes,3,rep,name=binding"`
 	// binding number of an instance
-	Bound int `json:"bound, omitempty" protobuf:"varint,4,opt,name=bound"`
+	Bound int64 `json:"bound, omitempty" protobuf:"varint,4,opt,name=bound"`
 	// id of an instance
 	InstanceID string `json:"instance_id, omitempty" protobuf:"bytes,5,opt,name=instance_id"`
 	// tags of an instance
@@ -74,7 +74,7 @@ type InstanceProvisioning struct {
 */
 
 // UserProvidedService describe an user-provided-service
-type UserProvidedService struct{
+type UserProvidedService struct {
 	Credentials map[string]string `json:"credentials, omitempty" protobuf:"bytes,1,rep,name=credentials"`
 }
 
@@ -123,7 +123,7 @@ type LastOperation struct {
 	// description of last operation
 	Description string `json:"description" protobuf:"bytes,2,opt,name=description"`
 	// async_poll_interval_seconds of a last operation
-	AsyncPollIntervalSeconds int `json:"async_poll_interval_seconds, omitempty" protobuf:"varint,3,opt,name=async_poll_interval_seconds"`
+	AsyncPollIntervalSeconds int64 `json:"async_poll_interval_seconds, omitempty" protobuf:"varint,3,opt,name=async_poll_interval_seconds"`
 }
 
 type BackingServiceInstancePhase string
@@ -171,5 +171,4 @@ type BindingRequestOptions struct {
 	BindResourceVersion string `json:"bindResourceVersion, omitempty" protobuf:"bytes,3,opt,name=bindResourceVersion"`
 	// resourceName of an instance binding
 	ResourceName string `json:"resourceName, omitempty" protobuf:"bytes,4,opt,name=resourceName"`
-
 }

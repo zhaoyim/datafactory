@@ -1,7 +1,6 @@
 package v1
 
 import (
-
 	"k8s.io/kubernetes/pkg/runtime"
 
 	oapi "github.com/openshift/origin/pkg/api"
@@ -15,4 +14,3 @@ func addConversionFuncs(scheme *runtime.Scheme) {
 		panic(err)
 	}
 }
-

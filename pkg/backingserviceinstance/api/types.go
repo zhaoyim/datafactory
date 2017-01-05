@@ -43,14 +43,13 @@ type BackingServiceInstanceSpec struct {
 	InstanceProvisioning
 	UserProvidedService
 	Binding    []InstanceBinding
-	Bound      int
+	Bound      int64
 	Tags       []string
 	InstanceID string
 	// InstanceID is blank means to delete (when len(Parameters) > 0)
 }
 
-
-type UserProvidedService struct{
+type UserProvidedService struct {
 	Credentials map[string]string
 }
 
@@ -96,7 +95,7 @@ type BackingServiceInstanceStatus struct {
 type LastOperation struct {
 	State                    string
 	Description              string
-	AsyncPollIntervalSeconds int
+	AsyncPollIntervalSeconds int64
 }
 
 type BackingServiceInstancePhase string
@@ -115,7 +114,7 @@ const (
 	BindDeploymentConfigBinding   string = "binding"
 	BindDeploymentConfigUnbinding string = "unbinding"
 	BindDeploymentConfigBound     string = "bound"
-	UPS string = "USER-PROVIDED-SERVICE"
+	UPS                           string = "USER-PROVIDED-SERVICE"
 )
 
 //=====================================================

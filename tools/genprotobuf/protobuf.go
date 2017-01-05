@@ -49,6 +49,10 @@ func init() {
 		`github.com/openshift/origin/pkg/security/api/v1`,
 		`github.com/openshift/origin/pkg/template/api/v1`,
 		`github.com/openshift/origin/pkg/user/api/v1`,
+		`github.com/openshift/origin/pkg/application/api/v1`,
+		`github.com/openshift/origin/pkg/backingservice/api/v1`,
+		`github.com/openshift/origin/pkg/backingserviceinstance/api/v1`,
+		`github.com/openshift/origin/pkg/servicebroker/api/v1`,
 	}, ",")
 
 	g.BindFlags(flag.CommandLine)

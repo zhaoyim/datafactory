@@ -58,25 +58,25 @@ type ApplicationList struct {
 	unversioned.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of applications
-	Items []Application `json:"items" description:"list of Applications"`
+	Items []Application `json:"items" description:"list of Applications" protobuf:"bytes,2,rep,name=items"`
 }
 
 // ApplicationSpec describes the attributes on a Application
 type ApplicationSpec struct {
 	// name defines the name of a Application
-	Name string `json:"name" description:"name defines the name of a Application"`
+	Name string `json:"name" description:"name defines the name of a Application" protobuf:"bytes,1,opt,name=name"`
 	// items defines the resources to be labeled in a Application
-	Items ItemList `json:"items" description:"items defines the resources to be labeled in a Application"`
+	Items ItemList `json:"items" description:"items defines the resources to be labeled in a Application" protobuf:"bytes,2,rep,name=items,casttype=ItemList"`
 	//destory defines the resources to be removed in a Application
-	Destory bool `json:"destoryOption" description:"destory defines the resources to be removed in a Application"`
+	Destory bool `json:"destoryOption" description:"destory defines the resources to be removed in a Application" protobuf:"varint,3,opt,name=destoryOption"`
 	// Finalizers is an opaque list of values that must be empty to permanently remove object from storage
-	Finalizers []kapi.FinalizerName `json:"finalizers,omitempty" description:"an opaque list of values that must be empty to permanently remove object from storage"`
+	Finalizers []kapi.FinalizerName `json:"finalizers,omitempty" description:"an opaque list of values that must be empty to permanently remove object from storage" protobuf:"bytes,4,rep,name=finalizers,casttype=k8s.io/kubernetes/pkg/api/v1.FinalizerName"`
 }
 
 // ApplicationStatus is information about the current status of a Application
 type ApplicationStatus struct {
 	// phase is the current lifecycle phase of the Application
-	Phase ApplicationPhase `json:"phase,omitempty" description:"phase is the current lifecycle phase of the Application"`
+	Phase ApplicationPhase `json:"phase,omitempty" description:"phase is the current lifecycle phase of the Application" protobuf:"bytes,1,opt,name=phase,casttype=ApplicationPhase"`
 }
 
 type ItemList []Item
@@ -84,11 +84,11 @@ type ItemList []Item
 // Item  describe an application item
 type Item struct {
 	// kind defines the item kind of a item in Application
-	Kind string `json:"kind" description:"kind defines the item kind of a item in Application"`
+	Kind string `json:"kind" description:"kind defines the item kind of a item in Application" protobuf:"bytes,1,opt,name=kind"`
 	// name defines the item name of a item in Application
-	Name string `json:"name" description:"name defines the item name of a item in Application"`
+	Name string `json:"name" description:"name defines the item name of a item in Application" protobuf:"bytes,2,opt,name=name"`
 	// status defines a operate to the item label
-	Status string `json:"status,omitempty" description:"status defines a operate to the item label"`
+	Status string `json:"status,omitempty" description:"status defines a operate to the item label" protobuf:"bytes,3,opt,name=status"`
 }
 
 const (

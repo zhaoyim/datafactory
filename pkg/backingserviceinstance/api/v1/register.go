@@ -24,6 +24,6 @@ func addKnownTypes(scheme *runtime.Scheme) {
 	)
 }
 
-func (obj *BackingServiceInstance) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
-func (obj *BackingServiceInstanceList) GetObjectKind() unversioned.ObjectKind        { return &obj.TypeMeta }
-func (obj *BindingRequestOptions) GetObjectKind() unversioned.ObjectKind        { return &obj.TypeMeta }
+func (obj *BackingServiceInstance) GetObjectKind() unversioned.ObjectKind     { return &obj.TypeMeta }
+func (obj *BackingServiceInstanceList) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
+func (obj *BindingRequestOptions) GetObjectKind() unversioned.ObjectKind      { return &obj.TypeMeta }

@@ -15,7 +15,6 @@ import (
 
 	"github.com/openshift/origin/pkg/application/api"
 	"github.com/openshift/origin/pkg/application/api/v1"
-
 )
 
 const importPrefix = "github.com/openshift/origin/pkg/application/api"
@@ -90,7 +89,7 @@ func addVersionsToScheme(externalVersions ...unversioned.GroupVersion) {
 }
 
 func newRESTMapper(externalVersions []unversioned.GroupVersion) meta.RESTMapper {
-	rootScoped := sets.NewString("")
+	rootScoped := sets.NewString()
 	ignoredKinds := sets.NewString()
 	return kapi.NewDefaultRESTMapper(externalVersions, interfacesFor, importPrefix, ignoredKinds, rootScoped)
 }

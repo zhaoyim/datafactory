@@ -25,4 +25,3 @@ func addKnownTypes(scheme *runtime.Scheme) {
 
 func (obj *BackingService) GetObjectKind() unversioned.ObjectKind     { return &obj.TypeMeta }
 func (obj *BackingServiceList) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
-

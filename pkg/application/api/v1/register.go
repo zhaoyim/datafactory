@@ -23,5 +23,5 @@ func addKnownTypes(scheme *runtime.Scheme) {
 	)
 }
 
-func (obj *Application) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
-func (obj *ApplicationList) GetObjectKind() unversioned.ObjectKind        { return &obj.TypeMeta }
+func (obj *Application) GetObjectKind() unversioned.ObjectKind     { return &obj.TypeMeta }
+func (obj *ApplicationList) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
