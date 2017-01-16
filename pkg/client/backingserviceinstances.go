@@ -1,11 +1,10 @@
 package client
 
 import (
-	"k8s.io/kubernetes/pkg/watch"
 	kapi "k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/watch"
 
 	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
-
 )
 
 // BackingServiceInstancesInterface has methods to work with BackingServiceInstance resources in a namespace
@@ -141,10 +140,10 @@ func (c *backingserviceinstances) DeleteBinding(name string) (err error) {
 func (c *backingserviceinstances) UpdateBinding(name string, bro *backingserviceinstanceapi.BindingRequestOptions) (err error) {
 	result := &backingserviceinstanceapi.BackingServiceInstance{}
 	err = c.r.Put().
-	Namespace(c.ns).
-	Resource("backingserviceinstances").
-	Name(name).
-	SubResource("binding").
-	Body(bro).Do().Into(result)
+		Namespace(c.ns).
+		Resource("backingserviceinstances").
+		Name(name).
+		SubResource("binding").
+		Body(bro).Do().Into(result)
 	return
 }

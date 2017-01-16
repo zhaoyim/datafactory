@@ -22,7 +22,7 @@ type Strategy struct {
 // objects via the REST API.
 var SbStrategy = Strategy{kapi.Scheme}
 
-func (Strategy) Canonicalize(obj runtime.Object) {}
+func (Strategy) Canonicalize(obj runtime.Object)          {}
 func (Strategy) PrepareForUpdate(obj, old runtime.Object) {}
 
 // NamespaceScoped is false for sdns
@@ -35,6 +35,8 @@ func (Strategy) GenerateName(base string) string {
 }
 
 func (Strategy) PrepareForCreate(obj runtime.Object) {
+	servicebroker := obj.(*api.ServiceBroker)
+	servicebroker.Status.Phase = api.ServiceBrokerNew
 }
 
 // Validate validates a new sdn
@@ -53,7 +55,7 @@ func (Strategy) AllowUnconditionalUpdate() bool {
 
 // ValidateUpdate is the default update validation for a HostSubnet
 func (Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.ErrorList {
-	return validation.ValidateServiceBrokerUpdate(obj.(*api.ServiceBroker),old.(*api.ServiceBroker))
+	return validation.ValidateServiceBrokerUpdate(obj.(*api.ServiceBroker), old.(*api.ServiceBroker))
 }
 
 // Matcher returns a generic matcher for a given label and field selector.
@@ -72,6 +74,7 @@ func Matcher(label labels.Selector, field fields.Selector) generic.Matcher {
 		},
 	}
 }
+
 /*
 func Matcher(label labels.Selector, field fields.Selector) generic.Matcher {
 	return generic.MatcherFunc(func(obj runtime.Object) (bool, error) {
@@ -83,7 +86,6 @@ func Matcher(label labels.Selector, field fields.Selector) generic.Matcher {
 	})
 }
 */
-
 
 func getAttrs(obj runtime.Object) (objLabels labels.Set, objFields fields.Set, err error) {
 	sb := obj.(*api.ServiceBroker)

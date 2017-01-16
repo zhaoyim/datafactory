@@ -15,7 +15,7 @@ import (
 )
 
 type REST struct {
-	store *registry.Store
+	*registry.Store
 }
 
 // NewStorage returns a RESTStorage object that will work against nodes.
@@ -54,33 +54,37 @@ func NewREST(optsGetter restoptions.Getter) (*REST, error) {
 	return &REST{store}, nil
 }
 
-/// New returns a new object
-func (r *REST) New() runtime.Object {
-	return r.store.NewFunc()
-}
+// /// New returns a new object
+// func (r *REST) New() runtime.Object {
+// 	return r.store.NewFunc()
+// }
 
-// NewList returns a new list object
-func (r *REST) NewList() runtime.Object {
-	return r.store.NewListFunc()
-}
+// // NewList returns a new list object
+// func (r *REST) NewList() runtime.Object {
+// 	return r.store.NewListFunc()
+// }
 
-// Get gets a specific image specified by its ID.
-func (r *REST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
-	return r.store.Get(ctx, name)
-}
+// // Get gets a specific image specified by its ID.
+// func (r *REST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
+// 	return r.store.Get(ctx, name)
+// }
 
-func (r *REST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
-	return r.store.List(ctx, options)
-}
+// func (r *REST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
+// 	return r.store.List(ctx, options)
+// }
 
-// Create creates an image based on a specification.
-func (r *REST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error) {
-	app, ok := obj.(*api.Application)
-	if ok {
-		app.Status.Phase = api.ApplicationNew
-	}
-	return r.store.Create(ctx, obj)
-}
+// // Create creates an image based on a specification.
+// func (r *REST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error) {
+// 	app, ok := obj.(*api.Application)
+// 	if ok {
+// 		app.Status.Phase = api.ApplicationNew
+// 	}
+// 	return r.store.Create(ctx, obj)
+// }
+
+// func (r *REST) Watch(ctx kapi.Context, options *kapi.ListOptions) (watch.Interface, error) {
+// 	return r.store.Watch(ctx, options)
+// }
 
 // // Update alters an existing image.
 // func (r *REST) Update(ctx kapi.Context, obj runtime.Object) (runtime.Object, bool, error) {

@@ -11,9 +11,8 @@ import (
 	"github.com/openshift/origin/pkg/application/api"
 	"github.com/openshift/origin/pkg/application/api/validation"
 
-	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 	oclient "github.com/openshift/origin/pkg/client"
-
+	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 )
 
 type Strategy struct {
@@ -25,7 +24,8 @@ type Strategy struct {
 // Strategy is the default logic that applies when creating and updating HostSubnet
 // objects via the REST API.
 var AppStrategy = Strategy{kapi.Scheme, nil, nil}
-func (s Strategy) Canonicalize(obj runtime.Object) {}
+
+func (s Strategy) Canonicalize(obj runtime.Object)          {}
 func (s Strategy) PrepareForUpdate(obj, old runtime.Object) {}
 
 func (s Strategy) NamespaceScoped() bool {
@@ -37,6 +37,10 @@ func (s Strategy) GenerateName(base string) string {
 }
 
 func (s Strategy) PrepareForCreate(obj runtime.Object) {
+	app, ok := obj.(*api.Application)
+	if ok {
+		app.Status.Phase = api.ApplicationNew
+	}
 }
 
 func (s Strategy) Validate(ctx kapi.Context, obj runtime.Object) field.ErrorList {
@@ -55,7 +59,7 @@ func (s Strategy) AllowUnconditionalUpdate() bool {
 
 // ValidateUpdate is the default update validation for a HostSubnet
 func (s Strategy) ValidateUpdate(ctx kapi.Context, obj, old runtime.Object) field.ErrorList {
-	return validation.ValidateApplicationUpdate(obj.(*api.Application),old.(*api.Application))
+	return validation.ValidateApplicationUpdate(obj.(*api.Application), old.(*api.Application))
 }
 
 // Matcher returns a generic matcher for a given label and field selector.

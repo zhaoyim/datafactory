@@ -1,9 +1,8 @@
 package api
 
-
 import (
-"k8s.io/kubernetes/pkg/api/unversioned"
-"k8s.io/kubernetes/pkg/runtime"
+	"k8s.io/kubernetes/pkg/api/unversioned"
+	"k8s.io/kubernetes/pkg/runtime"
 )
 
 const GroupName = ""
@@ -34,6 +33,5 @@ func addKnownTypes(scheme *runtime.Scheme) {
 	)
 }
 
-func (obj *Application) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }
-func (obj *ApplicationList) GetObjectKind() unversioned.ObjectKind        { return &obj.TypeMeta }
-
+func (obj *Application) GetObjectKind() unversioned.ObjectKind     { return &obj.TypeMeta }
+func (obj *ApplicationList) GetObjectKind() unversioned.ObjectKind { return &obj.TypeMeta }

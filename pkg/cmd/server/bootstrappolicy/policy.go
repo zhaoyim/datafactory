@@ -10,9 +10,11 @@ import (
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/util/sets"
 
+	applicationapi "github.com/openshift/origin/pkg/application/api"
 	authorizationapi "github.com/openshift/origin/pkg/authorization/api"
 	authorizationapiv1 "github.com/openshift/origin/pkg/authorization/api/v1"
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
+	backingserviceinstanceapi "github.com/openshift/origin/pkg/backingserviceinstance/api"
 	buildapi "github.com/openshift/origin/pkg/build/api"
 	deployapi "github.com/openshift/origin/pkg/deploy/api"
 	imageapi "github.com/openshift/origin/pkg/image/api"
@@ -21,6 +23,7 @@ import (
 	quotaapi "github.com/openshift/origin/pkg/quota/api"
 	routeapi "github.com/openshift/origin/pkg/route/api"
 	sdnapi "github.com/openshift/origin/pkg/sdn/api"
+	servicebrokerapi "github.com/openshift/origin/pkg/servicebroker/api"
 	templateapi "github.com/openshift/origin/pkg/template/api"
 	userapi "github.com/openshift/origin/pkg/user/api"
 )
@@ -46,6 +49,9 @@ var (
 	oauthGroup       = oauthapi.GroupName
 	sdnGroup         = sdnapi.GroupName
 	bsGroup          = backingserviceapi.GroupName
+	sbGroup          = servicebrokerapi.GroupName
+	applicationGroup = applicationapi.GroupName
+	bsiGroup         = backingserviceinstanceapi.GroupName
 )
 
 func GetBootstrapOpenshiftRoles(openshiftNamespace string) []authorizationapi.Role {
@@ -113,6 +119,11 @@ func GetBootstrapClusterRoles() []authorizationapi.ClusterRole {
 					"persistentvolumes/status", "pods", "pods/binding", "pods/log", "pods/status", "podtemplates", "replicationcontrollers", "replicationcontrollers/scale",
 					"replicationcontrollers/status", "resourcequotas", "resourcequotas/status", "securitycontextconstraints", "serviceaccounts", "services",
 					"services/status").RuleOrDie(),
+
+				//servicebroker
+				authorizationapi.NewRule(read...).Groups(applicationGroup).Resources("applications").RuleOrDie(),
+				authorizationapi.NewRule(read...).Groups(bsGroup).Resources("backingservices").RuleOrDie(),
+				authorizationapi.NewRule(read...).Groups(bsiGroup).Resources("backingserviceinstances", "backingserviceinstances/binding").RuleOrDie(),
 
 				authorizationapi.NewRule(read...).Groups(appsGroup).Resources("petsets", "petsets/status").RuleOrDie(),
 
@@ -210,6 +221,11 @@ func GetBootstrapClusterRoles() []authorizationapi.ClusterRole {
 				Name: AdminRoleName,
 			},
 			Rules: []authorizationapi.PolicyRule{
+				//servicebroker
+				authorizationapi.NewRule(readWrite...).Groups(applicationGroup).Resources("applications").RuleOrDie(),
+				authorizationapi.NewRule(readWrite...).Groups(bsGroup).Resources("backingservices").RuleOrDie(),
+				authorizationapi.NewRule(readWrite...).Groups(bsiGroup).Resources("backingserviceinstances", "backingserviceinstances/binding").RuleOrDie(),
+
 				authorizationapi.NewRule(readWrite...).Groups(kapiGroup).Resources("pods", "pods/attach", "pods/proxy", "pods/exec", "pods/portforward").RuleOrDie(),
 				authorizationapi.NewRule(readWrite...).Groups(kapiGroup).Resources("replicationcontrollers", "replicationcontrollers/scale", "serviceaccounts",
 					"services", "services/proxy", "endpoints", "persistentvolumeclaims", "configmaps", "secrets").RuleOrDie(),
@@ -268,6 +284,10 @@ func GetBootstrapClusterRoles() []authorizationapi.ClusterRole {
 				Name: EditRoleName,
 			},
 			Rules: []authorizationapi.PolicyRule{
+				authorizationapi.NewRule(readWrite...).Groups(applicationGroup).Resources("applications").RuleOrDie(),
+				authorizationapi.NewRule(readWrite...).Groups(bsGroup).Resources("backingservices").RuleOrDie(),
+				authorizationapi.NewRule(readWrite...).Groups(bsiGroup).Resources("backingserviceinstances", "backingserviceinstances/binding").RuleOrDie(),
+
 				authorizationapi.NewRule(readWrite...).Groups(kapiGroup).Resources("pods", "pods/attach", "pods/proxy", "pods/exec", "pods/portforward").RuleOrDie(),
 				authorizationapi.NewRule(readWrite...).Groups(kapiGroup).Resources("replicationcontrollers", "replicationcontrollers/scale", "serviceaccounts",
 					"services", "services/proxy", "endpoints", "persistentvolumeclaims", "configmaps", "secrets").RuleOrDie(),
