@@ -74,7 +74,7 @@ type InstanceProvisioning struct {
 */
 
 // UserProvidedService describe an user-provided-service
-type UserProvidedService struct{
+type UserProvidedService struct {
 	Credentials map[string]string `json:"credentials, omitempty"`
 }
 
@@ -92,6 +92,8 @@ type InstanceProvisioning struct {
 	BackingServicePlanName string `json:"backingservice_plan_name, omitempty"`
 	// parameters of an instance
 	Parameters map[string]string `json:"parameters, omitempty"`
+	// credentials of an instance
+	Credentials map[string]string `json:"credentials, omitempty"`
 }
 
 // InstanceBinding describe an instance binding.
@@ -171,5 +173,4 @@ type BindingRequestOptions struct {
 	BindResourceVersion string `json:"bindResourceVersion, omitempty"`
 	// resourceName of an instance binding
 	ResourceName string `json:"resourceName, omitempty"`
-
 }

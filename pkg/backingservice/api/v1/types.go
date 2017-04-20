@@ -101,6 +101,8 @@ type ServicePlanMetadata struct {
 	Costs []ServicePlanCost `json:"costs, omitempty"`
 	// displayname of a ServicePlanMetadata
 	DisplayName string `json:"displayName, omitempty"`
+	// customize options of a plan.
+	Customize map[string]interface{} `json:"customize, omitempty"`
 }
 
 //TODO amount should be a array object...

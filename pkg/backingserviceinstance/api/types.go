@@ -49,8 +49,7 @@ type BackingServiceInstanceSpec struct {
 	// InstanceID is blank means to delete (when len(Parameters) > 0)
 }
 
-
-type UserProvidedService struct{
+type UserProvidedService struct {
 	Credentials map[string]string
 }
 
@@ -73,6 +72,7 @@ type InstanceProvisioning struct {
 	BackingServicePlanGuid string
 	BackingServicePlanName string
 	Parameters             map[string]string
+	Creds                  map[string]string
 	// len(Parameters) == 0 means not inited
 }
 
@@ -115,7 +115,7 @@ const (
 	BindDeploymentConfigBinding   string = "binding"
 	BindDeploymentConfigUnbinding string = "unbinding"
 	BindDeploymentConfigBound     string = "bound"
-	UPS string = "USER-PROVIDED-SERVICE"
+	UPS                           string = "USER-PROVIDED-SERVICE"
 )
 
 //=====================================================
