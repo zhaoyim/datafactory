@@ -27,7 +27,6 @@ type ServiceBrokerController struct {
 	ServiceBrokerClient servicebrokerclient.Interface
 }
 
-
 type fatalError string
 
 func (e fatalError) Error() string {
@@ -36,6 +35,7 @@ func (e fatalError) Error() string {
 
 // Handle processes a namespace and deletes content in origin if its terminating
 func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (err error) {
+	glog.Infoln("###############sb handler called.", sb.Name)
 
 	if sb.Spec.Url == "" {
 		return nil
