@@ -853,6 +853,16 @@ func deepCopy_api_BackingServiceStatus(in backingserviceapi.BackingServiceStatus
 	return nil
 }
 
+func deepCopy_api_CustomizeSpec(in backingserviceapi.CustomizeSpec, out *backingserviceapi.CustomizeSpec, c *conversion.Cloner) error {
+	out.Default = in.Default
+	out.Max = in.Max
+	out.Price = in.Price
+	out.Step = in.Step
+	out.Unit = in.Unit
+	out.Desc = in.Desc
+	return nil
+}
+
 func deepCopy_api_ServicePlan(in backingserviceapi.ServicePlan, out *backingserviceapi.ServicePlan, c *conversion.Cloner) error {
 	out.Name = in.Name
 	out.Id = in.Id
@@ -897,6 +907,18 @@ func deepCopy_api_ServicePlanMetadata(in backingserviceapi.ServicePlanMetadata, 
 		out.Costs = nil
 	}
 	out.DisplayName = in.DisplayName
+	if in.Customize != nil {
+		out.Customize = make(map[string]backingserviceapi.CustomizeSpec)
+		for key, val := range in.Customize {
+			newVal := new(backingserviceapi.CustomizeSpec)
+			if err := deepCopy_api_CustomizeSpec(val, newVal, c); err != nil {
+				return err
+			}
+			out.Customize[key] = *newVal
+		}
+	} else {
+		out.Customize = nil
+	}
 	return nil
 }
 
@@ -1041,6 +1063,14 @@ func deepCopy_api_InstanceProvisioning(in backingserviceinstanceapi.InstanceProv
 		}
 	} else {
 		out.Parameters = nil
+	}
+	if in.Creds != nil {
+		out.Creds = make(map[string]string)
+		for key, val := range in.Creds {
+			out.Creds[key] = val
+		}
+	} else {
+		out.Creds = nil
 	}
 	return nil
 }
@@ -3776,6 +3806,7 @@ func init() {
 		deepCopy_api_BackingServiceList,
 		deepCopy_api_BackingServiceSpec,
 		deepCopy_api_BackingServiceStatus,
+		deepCopy_api_CustomizeSpec,
 		deepCopy_api_ServicePlan,
 		deepCopy_api_ServicePlanCost,
 		deepCopy_api_ServicePlanMetadata,

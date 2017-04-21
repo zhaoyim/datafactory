@@ -4,6 +4,9 @@ import (
 	kclient "k8s.io/kubernetes/pkg/client/unversioned"
 
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/golang/glog"
 	backingserviceapi "github.com/openshift/origin/pkg/backingservice/api"
 	osclient "github.com/openshift/origin/pkg/client"
@@ -12,8 +15,6 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	kerrors "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/labels"
-	"strconv"
-	"time"
 )
 
 // NamespaceController is responsible for participating in Kubernetes Namespace termination
@@ -26,7 +27,6 @@ type ServiceBrokerController struct {
 	//ServiceBrokerClient is a ServiceBroker client
 	ServiceBrokerClient servicebrokerclient.Interface
 }
-
 
 type fatalError string
 
@@ -55,7 +55,10 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 
 				errs := []error{}
 				for _, v := range services.Services {
+					for _, p := range v.Plans {
+						glog.Infof("%v,%v\n", p.Name, p.Metadata.Customize)
 
+					}
 					if err := backingServiceHandler(c.Client, newBackingService(sb.Name, v)); err != nil {
 						errs = append(errs, err)
 					}
@@ -94,6 +97,7 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 
 			if timeUp(servicebrokerapi.RefreshTimer, sb, 300) {
 				for _, v := range services.Services {
+
 					backingServiceHandler(c.Client, newBackingService(sb.Name, v))
 				}
 			}

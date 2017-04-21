@@ -102,7 +102,16 @@ type ServicePlanMetadata struct {
 	// displayname of a ServicePlanMetadata
 	DisplayName string `json:"displayName, omitempty"`
 	// customize options of a plan.
-	Customize map[string]interface{} `json:"customize, omitempty"`
+	Customize map[string]CustomizeSpec `json:"customize, omitempty"`
+}
+
+type CustomizeSpec struct {
+	Default float64 `json:"default,omitempty"`
+	Max     float64 `json:"max,omitempty"`
+	Price   float64 `json:"price,omitempty"`
+	Step    float64 `json:"step,omitempty"`
+	Unit    string  `json:"unit,omitempty"`
+	Desc    string  `json:"desc,omitempty"`
 }
 
 //TODO amount should be a array object...

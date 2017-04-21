@@ -69,7 +69,16 @@ type ServicePlanMetadata struct {
 	Bullets     []string
 	Costs       []ServicePlanCost
 	DisplayName string
-	Customize   map[string]interface{}
+	Customize   map[string]CustomizeSpec
+}
+
+type CustomizeSpec struct {
+	Default float64
+	Max     float64
+	Price   float64
+	Step    float64
+	Unit    string
+	Desc    string
 }
 
 //TODO amount should be a array object...
