@@ -1566,6 +1566,109 @@ func Convert_v1_ServicePlanMetadata_To_api_ServicePlanMetadata(in *backingservic
 	return autoConvert_v1_ServicePlanMetadata_To_api_ServicePlanMetadata(in, out, s)
 }
 
+func autoConvert_api_BackingServiceInstance_To_v1_BackingServiceInstance(in *backingserviceinstanceapi.BackingServiceInstance, out *backingserviceinstanceapiv1.BackingServiceInstance, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.BackingServiceInstance))(in)
+	}
+	if err := Convert_api_ObjectMeta_To_v1_ObjectMeta(&in.ObjectMeta, &out.ObjectMeta, s); err != nil {
+		return err
+	}
+	if err := Convert_api_BackingServiceInstanceSpec_To_v1_BackingServiceInstanceSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_api_BackingServiceInstanceStatus_To_v1_BackingServiceInstanceStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+func Convert_api_BackingServiceInstance_To_v1_BackingServiceInstance(in *backingserviceinstanceapi.BackingServiceInstance, out *backingserviceinstanceapiv1.BackingServiceInstance, s conversion.Scope) error {
+	return autoConvert_api_BackingServiceInstance_To_v1_BackingServiceInstance(in, out, s)
+}
+
+func autoConvert_api_BackingServiceInstanceList_To_v1_BackingServiceInstanceList(in *backingserviceinstanceapi.BackingServiceInstanceList, out *backingserviceinstanceapiv1.BackingServiceInstanceList, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.BackingServiceInstanceList))(in)
+	}
+	if err := api.Convert_unversioned_ListMeta_To_unversioned_ListMeta(&in.ListMeta, &out.ListMeta, s); err != nil {
+		return err
+	}
+	if in.Items != nil {
+		out.Items = make([]backingserviceinstanceapiv1.BackingServiceInstance, len(in.Items))
+		for i := range in.Items {
+			if err := Convert_api_BackingServiceInstance_To_v1_BackingServiceInstance(&in.Items[i], &out.Items[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Items = nil
+	}
+	return nil
+}
+
+func Convert_api_BackingServiceInstanceList_To_v1_BackingServiceInstanceList(in *backingserviceinstanceapi.BackingServiceInstanceList, out *backingserviceinstanceapiv1.BackingServiceInstanceList, s conversion.Scope) error {
+	return autoConvert_api_BackingServiceInstanceList_To_v1_BackingServiceInstanceList(in, out, s)
+}
+
+func autoConvert_api_BackingServiceInstanceSpec_To_v1_BackingServiceInstanceSpec(in *backingserviceinstanceapi.BackingServiceInstanceSpec, out *backingserviceinstanceapiv1.BackingServiceInstanceSpec, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.BackingServiceInstanceSpec))(in)
+	}
+	if err := Convert_api_InstanceProvisioning_To_v1_InstanceProvisioning(&in.InstanceProvisioning, &out.InstanceProvisioning, s); err != nil {
+		return err
+	}
+	if err := Convert_api_UserProvidedService_To_v1_UserProvidedService(&in.UserProvidedService, &out.UserProvidedService, s); err != nil {
+		return err
+	}
+	if in.Binding != nil {
+		out.Binding = make([]backingserviceinstanceapiv1.InstanceBinding, len(in.Binding))
+		for i := range in.Binding {
+			if err := Convert_api_InstanceBinding_To_v1_InstanceBinding(&in.Binding[i], &out.Binding[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Binding = nil
+	}
+	out.Bound = in.Bound
+	if in.Tags != nil {
+		out.Tags = make([]string, len(in.Tags))
+		for i := range in.Tags {
+			out.Tags[i] = in.Tags[i]
+		}
+	} else {
+		out.Tags = nil
+	}
+	out.InstanceID = in.InstanceID
+	return nil
+}
+
+func Convert_api_BackingServiceInstanceSpec_To_v1_BackingServiceInstanceSpec(in *backingserviceinstanceapi.BackingServiceInstanceSpec, out *backingserviceinstanceapiv1.BackingServiceInstanceSpec, s conversion.Scope) error {
+	return autoConvert_api_BackingServiceInstanceSpec_To_v1_BackingServiceInstanceSpec(in, out, s)
+}
+
+func autoConvert_api_BackingServiceInstanceStatus_To_v1_BackingServiceInstanceStatus(in *backingserviceinstanceapi.BackingServiceInstanceStatus, out *backingserviceinstanceapiv1.BackingServiceInstanceStatus, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.BackingServiceInstanceStatus))(in)
+	}
+	out.Phase = backingserviceinstanceapiv1.BackingServiceInstancePhase(in.Phase)
+	out.Action = backingserviceinstanceapiv1.BackingServiceInstanceAction(in.Action)
+	// unable to generate simple pointer conversion for api.LastOperation -> v1.LastOperation
+	if in.LastOperation != nil {
+		out.LastOperation = new(backingserviceinstanceapiv1.LastOperation)
+		if err := Convert_api_LastOperation_To_v1_LastOperation(in.LastOperation, out.LastOperation, s); err != nil {
+			return err
+		}
+	} else {
+		out.LastOperation = nil
+	}
+	return nil
+}
+
+func Convert_api_BackingServiceInstanceStatus_To_v1_BackingServiceInstanceStatus(in *backingserviceinstanceapi.BackingServiceInstanceStatus, out *backingserviceinstanceapiv1.BackingServiceInstanceStatus, s conversion.Scope) error {
+	return autoConvert_api_BackingServiceInstanceStatus_To_v1_BackingServiceInstanceStatus(in, out, s)
+}
+
 func autoConvert_api_BindingRequestOptions_To_v1_BindingRequestOptions(in *backingserviceinstanceapi.BindingRequestOptions, out *backingserviceinstanceapiv1.BindingRequestOptions, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*backingserviceinstanceapi.BindingRequestOptions))(in)
@@ -1583,6 +1686,204 @@ func Convert_api_BindingRequestOptions_To_v1_BindingRequestOptions(in *backingse
 	return autoConvert_api_BindingRequestOptions_To_v1_BindingRequestOptions(in, out, s)
 }
 
+func autoConvert_api_InstanceBinding_To_v1_InstanceBinding(in *backingserviceinstanceapi.InstanceBinding, out *backingserviceinstanceapiv1.InstanceBinding, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.InstanceBinding))(in)
+	}
+	out.BindUuid = in.BindUuid
+	// unable to generate simple pointer conversion for unversioned.Time -> unversioned.Time
+	if in.BoundTime != nil {
+		out.BoundTime = new(unversioned.Time)
+		if err := api.Convert_unversioned_Time_To_unversioned_Time(in.BoundTime, out.BoundTime, s); err != nil {
+			return err
+		}
+	} else {
+		out.BoundTime = nil
+	}
+	out.BindDeploymentConfig = in.BindDeploymentConfig
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
+	return nil
+}
+
+func Convert_api_InstanceBinding_To_v1_InstanceBinding(in *backingserviceinstanceapi.InstanceBinding, out *backingserviceinstanceapiv1.InstanceBinding, s conversion.Scope) error {
+	return autoConvert_api_InstanceBinding_To_v1_InstanceBinding(in, out, s)
+}
+
+func autoConvert_api_InstanceProvisioning_To_v1_InstanceProvisioning(in *backingserviceinstanceapi.InstanceProvisioning, out *backingserviceinstanceapiv1.InstanceProvisioning, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.InstanceProvisioning))(in)
+	}
+	out.DashboardUrl = in.DashboardUrl
+	out.BackingServiceName = in.BackingServiceName
+	out.BackingServiceSpecID = in.BackingServiceSpecID
+	out.BackingServicePlanGuid = in.BackingServicePlanGuid
+	out.BackingServicePlanName = in.BackingServicePlanName
+	if in.Parameters != nil {
+		out.Parameters = make(map[string]string)
+		for key, val := range in.Parameters {
+			out.Parameters[key] = val
+		}
+	} else {
+		out.Parameters = nil
+	}
+	if in.Creds != nil {
+		out.Creds = make(map[string]string)
+		for key, val := range in.Creds {
+			out.Creds[key] = val
+		}
+	} else {
+		out.Creds = nil
+	}
+	return nil
+}
+
+func Convert_api_InstanceProvisioning_To_v1_InstanceProvisioning(in *backingserviceinstanceapi.InstanceProvisioning, out *backingserviceinstanceapiv1.InstanceProvisioning, s conversion.Scope) error {
+	return autoConvert_api_InstanceProvisioning_To_v1_InstanceProvisioning(in, out, s)
+}
+
+func autoConvert_api_LastOperation_To_v1_LastOperation(in *backingserviceinstanceapi.LastOperation, out *backingserviceinstanceapiv1.LastOperation, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.LastOperation))(in)
+	}
+	out.State = in.State
+	out.Description = in.Description
+	out.AsyncPollIntervalSeconds = in.AsyncPollIntervalSeconds
+	return nil
+}
+
+func Convert_api_LastOperation_To_v1_LastOperation(in *backingserviceinstanceapi.LastOperation, out *backingserviceinstanceapiv1.LastOperation, s conversion.Scope) error {
+	return autoConvert_api_LastOperation_To_v1_LastOperation(in, out, s)
+}
+
+func autoConvert_api_UserProvidedService_To_v1_UserProvidedService(in *backingserviceinstanceapi.UserProvidedService, out *backingserviceinstanceapiv1.UserProvidedService, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.UserProvidedService))(in)
+	}
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
+	return nil
+}
+
+func Convert_api_UserProvidedService_To_v1_UserProvidedService(in *backingserviceinstanceapi.UserProvidedService, out *backingserviceinstanceapiv1.UserProvidedService, s conversion.Scope) error {
+	return autoConvert_api_UserProvidedService_To_v1_UserProvidedService(in, out, s)
+}
+
+func autoConvert_v1_BackingServiceInstance_To_api_BackingServiceInstance(in *backingserviceinstanceapiv1.BackingServiceInstance, out *backingserviceinstanceapi.BackingServiceInstance, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.BackingServiceInstance))(in)
+	}
+	if err := Convert_v1_ObjectMeta_To_api_ObjectMeta(&in.ObjectMeta, &out.ObjectMeta, s); err != nil {
+		return err
+	}
+	if err := Convert_v1_BackingServiceInstanceSpec_To_api_BackingServiceInstanceSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_v1_BackingServiceInstanceStatus_To_api_BackingServiceInstanceStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+func Convert_v1_BackingServiceInstance_To_api_BackingServiceInstance(in *backingserviceinstanceapiv1.BackingServiceInstance, out *backingserviceinstanceapi.BackingServiceInstance, s conversion.Scope) error {
+	return autoConvert_v1_BackingServiceInstance_To_api_BackingServiceInstance(in, out, s)
+}
+
+func autoConvert_v1_BackingServiceInstanceList_To_api_BackingServiceInstanceList(in *backingserviceinstanceapiv1.BackingServiceInstanceList, out *backingserviceinstanceapi.BackingServiceInstanceList, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.BackingServiceInstanceList))(in)
+	}
+	if err := api.Convert_unversioned_ListMeta_To_unversioned_ListMeta(&in.ListMeta, &out.ListMeta, s); err != nil {
+		return err
+	}
+	if in.Items != nil {
+		out.Items = make([]backingserviceinstanceapi.BackingServiceInstance, len(in.Items))
+		for i := range in.Items {
+			if err := Convert_v1_BackingServiceInstance_To_api_BackingServiceInstance(&in.Items[i], &out.Items[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Items = nil
+	}
+	return nil
+}
+
+func Convert_v1_BackingServiceInstanceList_To_api_BackingServiceInstanceList(in *backingserviceinstanceapiv1.BackingServiceInstanceList, out *backingserviceinstanceapi.BackingServiceInstanceList, s conversion.Scope) error {
+	return autoConvert_v1_BackingServiceInstanceList_To_api_BackingServiceInstanceList(in, out, s)
+}
+
+func autoConvert_v1_BackingServiceInstanceSpec_To_api_BackingServiceInstanceSpec(in *backingserviceinstanceapiv1.BackingServiceInstanceSpec, out *backingserviceinstanceapi.BackingServiceInstanceSpec, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.BackingServiceInstanceSpec))(in)
+	}
+	if err := Convert_v1_InstanceProvisioning_To_api_InstanceProvisioning(&in.InstanceProvisioning, &out.InstanceProvisioning, s); err != nil {
+		return err
+	}
+	if err := Convert_v1_UserProvidedService_To_api_UserProvidedService(&in.UserProvidedService, &out.UserProvidedService, s); err != nil {
+		return err
+	}
+	if in.Binding != nil {
+		out.Binding = make([]backingserviceinstanceapi.InstanceBinding, len(in.Binding))
+		for i := range in.Binding {
+			if err := Convert_v1_InstanceBinding_To_api_InstanceBinding(&in.Binding[i], &out.Binding[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Binding = nil
+	}
+	out.Bound = in.Bound
+	out.InstanceID = in.InstanceID
+	if in.Tags != nil {
+		out.Tags = make([]string, len(in.Tags))
+		for i := range in.Tags {
+			out.Tags[i] = in.Tags[i]
+		}
+	} else {
+		out.Tags = nil
+	}
+	return nil
+}
+
+func Convert_v1_BackingServiceInstanceSpec_To_api_BackingServiceInstanceSpec(in *backingserviceinstanceapiv1.BackingServiceInstanceSpec, out *backingserviceinstanceapi.BackingServiceInstanceSpec, s conversion.Scope) error {
+	return autoConvert_v1_BackingServiceInstanceSpec_To_api_BackingServiceInstanceSpec(in, out, s)
+}
+
+func autoConvert_v1_BackingServiceInstanceStatus_To_api_BackingServiceInstanceStatus(in *backingserviceinstanceapiv1.BackingServiceInstanceStatus, out *backingserviceinstanceapi.BackingServiceInstanceStatus, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.BackingServiceInstanceStatus))(in)
+	}
+	out.Phase = backingserviceinstanceapi.BackingServiceInstancePhase(in.Phase)
+	out.Action = backingserviceinstanceapi.BackingServiceInstanceAction(in.Action)
+	// unable to generate simple pointer conversion for v1.LastOperation -> api.LastOperation
+	if in.LastOperation != nil {
+		out.LastOperation = new(backingserviceinstanceapi.LastOperation)
+		if err := Convert_v1_LastOperation_To_api_LastOperation(in.LastOperation, out.LastOperation, s); err != nil {
+			return err
+		}
+	} else {
+		out.LastOperation = nil
+	}
+	return nil
+}
+
+func Convert_v1_BackingServiceInstanceStatus_To_api_BackingServiceInstanceStatus(in *backingserviceinstanceapiv1.BackingServiceInstanceStatus, out *backingserviceinstanceapi.BackingServiceInstanceStatus, s conversion.Scope) error {
+	return autoConvert_v1_BackingServiceInstanceStatus_To_api_BackingServiceInstanceStatus(in, out, s)
+}
+
 func autoConvert_v1_BindingRequestOptions_To_api_BindingRequestOptions(in *backingserviceinstanceapiv1.BindingRequestOptions, out *backingserviceinstanceapi.BindingRequestOptions, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*backingserviceinstanceapiv1.BindingRequestOptions))(in)
@@ -1598,6 +1899,101 @@ func autoConvert_v1_BindingRequestOptions_To_api_BindingRequestOptions(in *backi
 
 func Convert_v1_BindingRequestOptions_To_api_BindingRequestOptions(in *backingserviceinstanceapiv1.BindingRequestOptions, out *backingserviceinstanceapi.BindingRequestOptions, s conversion.Scope) error {
 	return autoConvert_v1_BindingRequestOptions_To_api_BindingRequestOptions(in, out, s)
+}
+
+func autoConvert_v1_InstanceBinding_To_api_InstanceBinding(in *backingserviceinstanceapiv1.InstanceBinding, out *backingserviceinstanceapi.InstanceBinding, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.InstanceBinding))(in)
+	}
+	// unable to generate simple pointer conversion for unversioned.Time -> unversioned.Time
+	if in.BoundTime != nil {
+		out.BoundTime = new(unversioned.Time)
+		if err := api.Convert_unversioned_Time_To_unversioned_Time(in.BoundTime, out.BoundTime, s); err != nil {
+			return err
+		}
+	} else {
+		out.BoundTime = nil
+	}
+	out.BindUuid = in.BindUuid
+	out.BindDeploymentConfig = in.BindDeploymentConfig
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
+	return nil
+}
+
+func Convert_v1_InstanceBinding_To_api_InstanceBinding(in *backingserviceinstanceapiv1.InstanceBinding, out *backingserviceinstanceapi.InstanceBinding, s conversion.Scope) error {
+	return autoConvert_v1_InstanceBinding_To_api_InstanceBinding(in, out, s)
+}
+
+func autoConvert_v1_InstanceProvisioning_To_api_InstanceProvisioning(in *backingserviceinstanceapiv1.InstanceProvisioning, out *backingserviceinstanceapi.InstanceProvisioning, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.InstanceProvisioning))(in)
+	}
+	out.DashboardUrl = in.DashboardUrl
+	out.BackingServiceName = in.BackingServiceName
+	out.BackingServiceSpecID = in.BackingServiceSpecID
+	out.BackingServicePlanGuid = in.BackingServicePlanGuid
+	out.BackingServicePlanName = in.BackingServicePlanName
+	if in.Parameters != nil {
+		out.Parameters = make(map[string]string)
+		for key, val := range in.Parameters {
+			out.Parameters[key] = val
+		}
+	} else {
+		out.Parameters = nil
+	}
+	if in.Creds != nil {
+		out.Creds = make(map[string]string)
+		for key, val := range in.Creds {
+			out.Creds[key] = val
+		}
+	} else {
+		out.Creds = nil
+	}
+	return nil
+}
+
+func Convert_v1_InstanceProvisioning_To_api_InstanceProvisioning(in *backingserviceinstanceapiv1.InstanceProvisioning, out *backingserviceinstanceapi.InstanceProvisioning, s conversion.Scope) error {
+	return autoConvert_v1_InstanceProvisioning_To_api_InstanceProvisioning(in, out, s)
+}
+
+func autoConvert_v1_LastOperation_To_api_LastOperation(in *backingserviceinstanceapiv1.LastOperation, out *backingserviceinstanceapi.LastOperation, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.LastOperation))(in)
+	}
+	out.State = in.State
+	out.Description = in.Description
+	out.AsyncPollIntervalSeconds = in.AsyncPollIntervalSeconds
+	return nil
+}
+
+func Convert_v1_LastOperation_To_api_LastOperation(in *backingserviceinstanceapiv1.LastOperation, out *backingserviceinstanceapi.LastOperation, s conversion.Scope) error {
+	return autoConvert_v1_LastOperation_To_api_LastOperation(in, out, s)
+}
+
+func autoConvert_v1_UserProvidedService_To_api_UserProvidedService(in *backingserviceinstanceapiv1.UserProvidedService, out *backingserviceinstanceapi.UserProvidedService, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.UserProvidedService))(in)
+	}
+	if in.Credentials != nil {
+		out.Credentials = make(map[string]string)
+		for key, val := range in.Credentials {
+			out.Credentials[key] = val
+		}
+	} else {
+		out.Credentials = nil
+	}
+	return nil
+}
+
+func Convert_v1_UserProvidedService_To_api_UserProvidedService(in *backingserviceinstanceapiv1.UserProvidedService, out *backingserviceinstanceapi.UserProvidedService, s conversion.Scope) error {
+	return autoConvert_v1_UserProvidedService_To_api_UserProvidedService(in, out, s)
 }
 
 func autoConvert_api_BinaryBuildRequestOptions_To_v1_BinaryBuildRequestOptions(in *buildapi.BinaryBuildRequestOptions, out *buildapiv1.BinaryBuildRequestOptions, s conversion.Scope) error {
@@ -9705,6 +10101,10 @@ func init() {
 		autoConvert_api_ApplicationStatus_To_v1_ApplicationStatus,
 		autoConvert_api_Application_To_v1_Application,
 		autoConvert_api_AzureFileVolumeSource_To_v1_AzureFileVolumeSource,
+		autoConvert_api_BackingServiceInstanceList_To_v1_BackingServiceInstanceList,
+		autoConvert_api_BackingServiceInstanceSpec_To_v1_BackingServiceInstanceSpec,
+		autoConvert_api_BackingServiceInstanceStatus_To_v1_BackingServiceInstanceStatus,
+		autoConvert_api_BackingServiceInstance_To_v1_BackingServiceInstance,
 		autoConvert_api_BackingServiceList_To_v1_BackingServiceList,
 		autoConvert_api_BackingServiceSpec_To_v1_BackingServiceSpec,
 		autoConvert_api_BackingServiceStatus_To_v1_BackingServiceStatus,
@@ -9807,9 +10207,12 @@ func init() {
 		autoConvert_api_ImageStreamTag_To_v1_ImageStreamTag,
 		autoConvert_api_ImageStream_To_v1_ImageStream,
 		autoConvert_api_Image_To_v1_Image,
+		autoConvert_api_InstanceBinding_To_v1_InstanceBinding,
+		autoConvert_api_InstanceProvisioning_To_v1_InstanceProvisioning,
 		autoConvert_api_IsPersonalSubjectAccessReview_To_v1_IsPersonalSubjectAccessReview,
 		autoConvert_api_Item_To_v1_Item,
 		autoConvert_api_KeyToPath_To_v1_KeyToPath,
+		autoConvert_api_LastOperation_To_v1_LastOperation,
 		autoConvert_api_LifecycleHook_To_v1_LifecycleHook,
 		autoConvert_api_Lifecycle_To_v1_Lifecycle,
 		autoConvert_api_LocalObjectReference_To_v1_LocalObjectReference,
@@ -9891,6 +10294,7 @@ func init() {
 		autoConvert_api_Template_To_v1_Template,
 		autoConvert_api_UserIdentityMapping_To_v1_UserIdentityMapping,
 		autoConvert_api_UserList_To_v1_UserList,
+		autoConvert_api_UserProvidedService_To_v1_UserProvidedService,
 		autoConvert_api_User_To_v1_User,
 		autoConvert_api_VolumeMount_To_v1_VolumeMount,
 		autoConvert_api_VolumeSource_To_v1_VolumeSource,
@@ -9902,6 +10306,10 @@ func init() {
 		autoConvert_v1_ApplicationStatus_To_api_ApplicationStatus,
 		autoConvert_v1_Application_To_api_Application,
 		autoConvert_v1_AzureFileVolumeSource_To_api_AzureFileVolumeSource,
+		autoConvert_v1_BackingServiceInstanceList_To_api_BackingServiceInstanceList,
+		autoConvert_v1_BackingServiceInstanceSpec_To_api_BackingServiceInstanceSpec,
+		autoConvert_v1_BackingServiceInstanceStatus_To_api_BackingServiceInstanceStatus,
+		autoConvert_v1_BackingServiceInstance_To_api_BackingServiceInstance,
 		autoConvert_v1_BackingServiceList_To_api_BackingServiceList,
 		autoConvert_v1_BackingServiceSpec_To_api_BackingServiceSpec,
 		autoConvert_v1_BackingServiceStatus_To_api_BackingServiceStatus,
@@ -10004,9 +10412,12 @@ func init() {
 		autoConvert_v1_ImageStreamTag_To_api_ImageStreamTag,
 		autoConvert_v1_ImageStream_To_api_ImageStream,
 		autoConvert_v1_Image_To_api_Image,
+		autoConvert_v1_InstanceBinding_To_api_InstanceBinding,
+		autoConvert_v1_InstanceProvisioning_To_api_InstanceProvisioning,
 		autoConvert_v1_IsPersonalSubjectAccessReview_To_api_IsPersonalSubjectAccessReview,
 		autoConvert_v1_Item_To_api_Item,
 		autoConvert_v1_KeyToPath_To_api_KeyToPath,
+		autoConvert_v1_LastOperation_To_api_LastOperation,
 		autoConvert_v1_LifecycleHook_To_api_LifecycleHook,
 		autoConvert_v1_Lifecycle_To_api_Lifecycle,
 		autoConvert_v1_LocalObjectReference_To_api_LocalObjectReference,
@@ -10088,6 +10499,7 @@ func init() {
 		autoConvert_v1_Template_To_api_Template,
 		autoConvert_v1_UserIdentityMapping_To_api_UserIdentityMapping,
 		autoConvert_v1_UserList_To_api_UserList,
+		autoConvert_v1_UserProvidedService_To_api_UserProvidedService,
 		autoConvert_v1_User_To_api_User,
 		autoConvert_v1_VolumeMount_To_api_VolumeMount,
 		autoConvert_v1_VolumeSource_To_api_VolumeSource,

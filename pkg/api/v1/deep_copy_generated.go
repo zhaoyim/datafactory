@@ -1084,13 +1084,13 @@ func deepCopy_v1_InstanceProvisioning(in backingserviceinstanceapiv1.InstancePro
 	} else {
 		out.Parameters = nil
 	}
-	if in.Credentials != nil {
-		out.Credentials = make(map[string]string)
-		for key, val := range in.Credentials {
-			out.Credentials[key] = val
+	if in.Creds != nil {
+		out.Creds = make(map[string]string)
+		for key, val := range in.Creds {
+			out.Creds[key] = val
 		}
 	} else {
-		out.Credentials = nil
+		out.Creds = nil
 	}
 	return nil
 }

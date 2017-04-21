@@ -93,7 +93,7 @@ type InstanceProvisioning struct {
 	// parameters of an instance
 	Parameters map[string]string `json:"parameters, omitempty"`
 	// credentials of an instance
-	Credentials map[string]string `json:"credentials, omitempty"`
+	Creds map[string]string `json:"credentials, omitempty"`
 }
 
 // InstanceBinding describe an instance binding.
