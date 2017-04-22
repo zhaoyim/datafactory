@@ -117,6 +117,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		serviceinstance.PlanId = bsi.Spec.BackingServicePlanGuid
 		serviceinstance.OrganizationGuid = bsi.Namespace
 		serviceinstance.SpaceGuid = bsi.Namespace
+		serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
 
 		glog.Infoln("bsi provisioning servicebroker_create_instance, ", bsi.Name)
 
@@ -316,7 +317,8 @@ type ServiceInstance struct {
 	OrganizationGuid string `json:"organization_guid"`
 	SpaceGuid        string `json:"space_guid"`
 	//Incomplete       bool        `json:"accepts_incomplete, omitempty"`
-	Parameters interface{} `json:"parameters, omitempty"`
+	//Parameters interface{} `json:"parameters, omitempty"`
+	Parameters map[string]string `json:"parameters, omitempty"`
 }
 type LastOperation struct {
 	State                    string `json:"state"`

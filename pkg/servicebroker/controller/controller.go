@@ -55,10 +55,7 @@ func (c *ServiceBrokerController) Handle(sb *servicebrokerapi.ServiceBroker) (er
 
 				errs := []error{}
 				for _, v := range services.Services {
-					for _, p := range v.Plans {
-						glog.Infof("%v,%v\n", p.Name, p.Metadata.Customize)
 
-					}
 					if err := backingServiceHandler(c.Client, newBackingService(sb.Name, v)); err != nil {
 						errs = append(errs, err)
 					}
