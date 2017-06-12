@@ -117,7 +117,11 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		serviceinstance.PlanId = bsi.Spec.BackingServicePlanGuid
 		serviceinstance.OrganizationGuid = bsi.Namespace
 		serviceinstance.SpaceGuid = bsi.Namespace
-		serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
+		//serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
+		serviceinstance.Parameters = make(map[string]interface{})
+		for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
+			serviceinstance.Parameters[k] = v
+		}
 
 		glog.Infoln("bsi provisioning servicebroker_create_instance, ", bsi.Name)
 
@@ -209,6 +213,19 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 
 		}
 
+	}
+	if bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseBound ||
+		bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseUnbound {
+		switch bsi.Status.Patch {
+		case backingserviceinstanceapi.BackingServiceInstancePatchUpdate:
+		// do patch api./
+		case backingserviceinstanceapi.BackingServiceInstancePatchUpdated:
+		// do remove patch phase.
+		case backingserviceinstanceapi.BackingServiceInstancePatchUpdating:
+		//prevent updating.
+		default:
+			glog.Info("no update.")
+		}
 	}
 
 	if result != nil {
@@ -318,7 +335,7 @@ type ServiceInstance struct {
 	SpaceGuid        string `json:"space_guid"`
 	//Incomplete       bool        `json:"accepts_incomplete, omitempty"`
 	//Parameters interface{} `json:"parameters, omitempty"`
-	Parameters map[string]string `json:"parameters, omitempty"`
+	Parameters map[string]interface{} `json:"parameters, omitempty"`
 }
 type LastOperation struct {
 	State                    string `json:"state"`

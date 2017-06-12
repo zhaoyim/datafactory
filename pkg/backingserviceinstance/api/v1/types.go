@@ -94,6 +94,13 @@ type InstanceProvisioning struct {
 	Parameters map[string]string `json:"parameters, omitempty"`
 	// credentials of an instance
 	Creds map[string]string `json:"credentials, omitempty"`
+	// access of hadoop insance... hardcode hack.
+	Acceeses []Access `json:accesses,omitempty`
+}
+
+type Access struct {
+	IsAllowed bool   `json:"is_allowed"`
+	Type      string `json:"type"`
 }
 
 // InstanceBinding describe an instance binding.
@@ -111,11 +118,13 @@ type InstanceBinding struct {
 // BackingServiceInstanceStatus describe the status of a BackingServiceInstance
 type BackingServiceInstanceStatus struct {
 	// phase is the current lifecycle phase of the instance
-	Phase BackingServiceInstancePhase `json:"phase, omitempty"`
+	Phase BackingServiceInstancePhase `json:"phase,omitempty"`
 	// action is the action of the instance
-	Action BackingServiceInstanceAction `json:"action, omitempty"`
+	Action BackingServiceInstanceAction `json:"action,omitempty"`
+	// updating an instance need an flag.
+	Patch BackingServiceInstancePatch `json:"patch,omitempty"`
 	//last operation  of a instance provisioning
-	LastOperation *LastOperation `json:"last_operation, omitempty"`
+	LastOperation *LastOperation `json:"last_operation,omitempty"`
 }
 
 // LastOperation describe last operation of an instance provisioning
@@ -130,12 +139,17 @@ type LastOperation struct {
 
 type BackingServiceInstancePhase string
 type BackingServiceInstanceAction string
+type BackingServiceInstancePatch string
 
 const (
 	BackingServiceInstancePhaseProvisioning BackingServiceInstancePhase = "Provisioning"
 	BackingServiceInstancePhaseUnbound      BackingServiceInstancePhase = "Unbound"
 	BackingServiceInstancePhaseBound        BackingServiceInstancePhase = "Bound"
 	BackingServiceInstancePhaseDeleted      BackingServiceInstancePhase = "Deleted"
+
+	BackingServiceInstancePatchUpdating BackingServiceInstancePatch = "Updating"
+	BackingServiceInstancePatchUpdate   BackingServiceInstancePatch = "Update"
+	BackingServiceInstancePatchUpdated  BackingServiceInstancePatch = "Updated"
 
 	BackingServiceInstanceActionToBind   BackingServiceInstanceAction = "_ToBind"
 	BackingServiceInstanceActionToUnbind BackingServiceInstanceAction = "_ToUnbind"

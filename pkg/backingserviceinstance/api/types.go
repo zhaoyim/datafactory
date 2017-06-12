@@ -73,9 +73,14 @@ type InstanceProvisioning struct {
 	BackingServicePlanName string
 	Parameters             map[string]string
 	Creds                  map[string]string
+	Acceeses               []Access
 	// len(Parameters) == 0 means not inited
 }
 
+type Access struct {
+	IsAllowed bool
+	Type      string
+}
 type InstanceBinding struct {
 	// BindUuid is blank for not bound (Bound=false) or to unbind (Bound=true)
 	// BindUuid != "" and Bound=false means to bind
@@ -87,9 +92,9 @@ type InstanceBinding struct {
 
 // ProjectStatus is information about the current status of a Project
 type BackingServiceInstanceStatus struct {
-	Phase  BackingServiceInstancePhase
-	Action BackingServiceInstanceAction
-
+	Phase         BackingServiceInstancePhase
+	Action        BackingServiceInstanceAction
+	Patch         BackingServiceInstancePatch
 	LastOperation *LastOperation
 }
 
@@ -101,12 +106,17 @@ type LastOperation struct {
 
 type BackingServiceInstancePhase string
 type BackingServiceInstanceAction string
+type BackingServiceInstancePatch string
 
 const (
 	BackingServiceInstancePhaseProvisioning BackingServiceInstancePhase = "Provisioning"
 	BackingServiceInstancePhaseUnbound      BackingServiceInstancePhase = "Unbound"
 	BackingServiceInstancePhaseBound        BackingServiceInstancePhase = "Bound"
 	BackingServiceInstancePhaseDeleted      BackingServiceInstancePhase = "Deleted"
+
+	BackingServiceInstancePatchUpdating BackingServiceInstancePatch = "Updating"
+	BackingServiceInstancePatchUpdate   BackingServiceInstancePatch = "Update"
+	BackingServiceInstancePatchUpdated  BackingServiceInstancePatch = "Updated"
 
 	BackingServiceInstanceActionToBind   BackingServiceInstanceAction = "_ToBind"
 	BackingServiceInstanceActionToUnbind BackingServiceInstanceAction = "_ToUnbind"

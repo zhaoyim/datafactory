@@ -1566,6 +1566,19 @@ func Convert_v1_ServicePlanMetadata_To_api_ServicePlanMetadata(in *backingservic
 	return autoConvert_v1_ServicePlanMetadata_To_api_ServicePlanMetadata(in, out, s)
 }
 
+func autoConvert_api_Access_To_v1_Access(in *backingserviceinstanceapi.Access, out *backingserviceinstanceapiv1.Access, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapi.Access))(in)
+	}
+	out.IsAllowed = in.IsAllowed
+	out.Type = in.Type
+	return nil
+}
+
+func Convert_api_Access_To_v1_Access(in *backingserviceinstanceapi.Access, out *backingserviceinstanceapiv1.Access, s conversion.Scope) error {
+	return autoConvert_api_Access_To_v1_Access(in, out, s)
+}
+
 func autoConvert_api_BackingServiceInstance_To_v1_BackingServiceInstance(in *backingserviceinstanceapi.BackingServiceInstance, out *backingserviceinstanceapiv1.BackingServiceInstance, s conversion.Scope) error {
 	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
 		defaulting.(func(*backingserviceinstanceapi.BackingServiceInstance))(in)
@@ -1653,6 +1666,7 @@ func autoConvert_api_BackingServiceInstanceStatus_To_v1_BackingServiceInstanceSt
 	}
 	out.Phase = backingserviceinstanceapiv1.BackingServiceInstancePhase(in.Phase)
 	out.Action = backingserviceinstanceapiv1.BackingServiceInstanceAction(in.Action)
+	out.Patch = backingserviceinstanceapiv1.BackingServiceInstancePatch(in.Patch)
 	// unable to generate simple pointer conversion for api.LastOperation -> v1.LastOperation
 	if in.LastOperation != nil {
 		out.LastOperation = new(backingserviceinstanceapiv1.LastOperation)
@@ -1741,6 +1755,16 @@ func autoConvert_api_InstanceProvisioning_To_v1_InstanceProvisioning(in *backing
 	} else {
 		out.Creds = nil
 	}
+	if in.Acceeses != nil {
+		out.Acceeses = make([]backingserviceinstanceapiv1.Access, len(in.Acceeses))
+		for i := range in.Acceeses {
+			if err := Convert_api_Access_To_v1_Access(&in.Acceeses[i], &out.Acceeses[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Acceeses = nil
+	}
 	return nil
 }
 
@@ -1779,6 +1803,19 @@ func autoConvert_api_UserProvidedService_To_v1_UserProvidedService(in *backingse
 
 func Convert_api_UserProvidedService_To_v1_UserProvidedService(in *backingserviceinstanceapi.UserProvidedService, out *backingserviceinstanceapiv1.UserProvidedService, s conversion.Scope) error {
 	return autoConvert_api_UserProvidedService_To_v1_UserProvidedService(in, out, s)
+}
+
+func autoConvert_v1_Access_To_api_Access(in *backingserviceinstanceapiv1.Access, out *backingserviceinstanceapi.Access, s conversion.Scope) error {
+	if defaulting, found := s.DefaultingInterface(reflect.TypeOf(*in)); found {
+		defaulting.(func(*backingserviceinstanceapiv1.Access))(in)
+	}
+	out.IsAllowed = in.IsAllowed
+	out.Type = in.Type
+	return nil
+}
+
+func Convert_v1_Access_To_api_Access(in *backingserviceinstanceapiv1.Access, out *backingserviceinstanceapi.Access, s conversion.Scope) error {
+	return autoConvert_v1_Access_To_api_Access(in, out, s)
 }
 
 func autoConvert_v1_BackingServiceInstance_To_api_BackingServiceInstance(in *backingserviceinstanceapiv1.BackingServiceInstance, out *backingserviceinstanceapi.BackingServiceInstance, s conversion.Scope) error {
@@ -1868,6 +1905,7 @@ func autoConvert_v1_BackingServiceInstanceStatus_To_api_BackingServiceInstanceSt
 	}
 	out.Phase = backingserviceinstanceapi.BackingServiceInstancePhase(in.Phase)
 	out.Action = backingserviceinstanceapi.BackingServiceInstanceAction(in.Action)
+	out.Patch = backingserviceinstanceapi.BackingServiceInstancePatch(in.Patch)
 	// unable to generate simple pointer conversion for v1.LastOperation -> api.LastOperation
 	if in.LastOperation != nil {
 		out.LastOperation = new(backingserviceinstanceapi.LastOperation)
@@ -1955,6 +1993,16 @@ func autoConvert_v1_InstanceProvisioning_To_api_InstanceProvisioning(in *backing
 		}
 	} else {
 		out.Creds = nil
+	}
+	if in.Acceeses != nil {
+		out.Acceeses = make([]backingserviceinstanceapi.Access, len(in.Acceeses))
+		for i := range in.Acceeses {
+			if err := Convert_v1_Access_To_api_Access(&in.Acceeses[i], &out.Acceeses[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Acceeses = nil
 	}
 	return nil
 }
@@ -10096,6 +10144,7 @@ func autoConvert_v1_VolumeSource_To_api_VolumeSource(in *apiv1.VolumeSource, out
 func init() {
 	err := api.Scheme.AddGeneratedConversionFuncs(
 		autoConvert_api_AWSElasticBlockStoreVolumeSource_To_v1_AWSElasticBlockStoreVolumeSource,
+		autoConvert_api_Access_To_v1_Access,
 		autoConvert_api_ApplicationList_To_v1_ApplicationList,
 		autoConvert_api_ApplicationSpec_To_v1_ApplicationSpec,
 		autoConvert_api_ApplicationStatus_To_v1_ApplicationStatus,
@@ -10301,6 +10350,7 @@ func init() {
 		autoConvert_api_Volume_To_v1_Volume,
 		autoConvert_api_WebHookTrigger_To_v1_WebHookTrigger,
 		autoConvert_v1_AWSElasticBlockStoreVolumeSource_To_api_AWSElasticBlockStoreVolumeSource,
+		autoConvert_v1_Access_To_api_Access,
 		autoConvert_v1_ApplicationList_To_api_ApplicationList,
 		autoConvert_v1_ApplicationSpec_To_api_ApplicationSpec,
 		autoConvert_v1_ApplicationStatus_To_api_ApplicationStatus,

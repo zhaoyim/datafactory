@@ -942,6 +942,12 @@ func deepCopy_v1_ServicePlanMetadata(in backingserviceapiv1.ServicePlanMetadata,
 	return nil
 }
 
+func deepCopy_v1_Access(in backingserviceinstanceapiv1.Access, out *backingserviceinstanceapiv1.Access, c *conversion.Cloner) error {
+	out.IsAllowed = in.IsAllowed
+	out.Type = in.Type
+	return nil
+}
+
 func deepCopy_v1_BackingServiceInstance(in backingserviceinstanceapiv1.BackingServiceInstance, out *backingserviceinstanceapiv1.BackingServiceInstance, c *conversion.Cloner) error {
 	if newVal, err := c.DeepCopy(in.TypeMeta); err != nil {
 		return err
@@ -1019,6 +1025,7 @@ func deepCopy_v1_BackingServiceInstanceSpec(in backingserviceinstanceapiv1.Backi
 func deepCopy_v1_BackingServiceInstanceStatus(in backingserviceinstanceapiv1.BackingServiceInstanceStatus, out *backingserviceinstanceapiv1.BackingServiceInstanceStatus, c *conversion.Cloner) error {
 	out.Phase = in.Phase
 	out.Action = in.Action
+	out.Patch = in.Patch
 	if in.LastOperation != nil {
 		out.LastOperation = new(backingserviceinstanceapiv1.LastOperation)
 		if err := deepCopy_v1_LastOperation(*in.LastOperation, out.LastOperation, c); err != nil {
@@ -1091,6 +1098,16 @@ func deepCopy_v1_InstanceProvisioning(in backingserviceinstanceapiv1.InstancePro
 		}
 	} else {
 		out.Creds = nil
+	}
+	if in.Acceeses != nil {
+		out.Acceeses = make([]backingserviceinstanceapiv1.Access, len(in.Acceeses))
+		for i := range in.Acceeses {
+			if err := deepCopy_v1_Access(in.Acceeses[i], &out.Acceeses[i], c); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.Acceeses = nil
 	}
 	return nil
 }
@@ -3699,6 +3716,7 @@ func init() {
 		deepCopy_v1_ServicePlan,
 		deepCopy_v1_ServicePlanCost,
 		deepCopy_v1_ServicePlanMetadata,
+		deepCopy_v1_Access,
 		deepCopy_v1_BackingServiceInstance,
 		deepCopy_v1_BackingServiceInstanceList,
 		deepCopy_v1_BackingServiceInstanceSpec,
