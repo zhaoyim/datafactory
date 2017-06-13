@@ -214,11 +214,21 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		}
 
 	}
+
+	//patch
 	if bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseBound ||
 		bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseUnbound {
+		if len(bsi.Spec.Acceeses) == 0 {
+			glog.Info("nothing to update.")
+			return
+		}
 		switch bsi.Status.Patch {
 		case backingserviceinstanceapi.BackingServiceInstancePatchUpdate:
-		// do patch api./
+			// do patch api./
+			if result = c.updateInstance(bs, bsi); result == nil {
+				changed = true
+				bsi.Status.Patch = backingserviceinstanceapi.BackingServiceInstancePatchUpdated
+			}
 		case backingserviceinstanceapi.BackingServiceInstancePatchUpdated:
 		// do remove patch phase.
 		case backingserviceinstanceapi.BackingServiceInstancePatchUpdating:
@@ -419,6 +429,64 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 	return svcinstance, nil
 }
 
+func servicebroker_update_instance(bsi *backingserviceinstanceapi.BackingServiceInstance, sb *ServiceBroker) (interface{}, error) {
+
+	serviceinstance := &ServiceInstance{}
+	serviceinstance.ServiceId = bsi.Spec.BackingServiceSpecID
+	serviceinstance.PlanId = bsi.Spec.BackingServicePlanGuid
+	// serviceinstance.OrganizationGuid = bsi.Namespace
+	// serviceinstance.SpaceGuid = bsi.Namespace
+	//serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
+	serviceinstance.Parameters = make(map[string]interface{})
+	for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
+		serviceinstance.Parameters[k] = v
+	}
+	serviceinstance.Parameters["accesses"] = bsi.Spec.Acceeses
+
+	jsonBody, err := json.Marshal(serviceinstance)
+	if err != nil {
+		return nil, err
+	}
+
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json"
+	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
+
+	resp, err := commToServiceBroker("PATCH", sb.Url+"/v2/service_instances/"+bsi.Spec.InstanceID, jsonBody, header)
+	if err != nil {
+
+		glog.Error(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	glog.Infof("respcode from PATCH /v2/service_instances/%s: %v", bsi.Spec.InstanceID, resp.StatusCode)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		glog.Error(err)
+		return nil, err
+	}
+	type patchResp struct {
+		Response interface{}
+	}
+	svcPatch := &patchResp{}
+
+	if resp.StatusCode == http.StatusOK {
+		if len(body) > 0 {
+			err = json.Unmarshal(body, svcPatch)
+
+			if err != nil {
+				glog.Error(err)
+				return nil, err
+			}
+		}
+	}
+	glog.Infof("%v,%+v\n", string(body), svcPatch)
+
+	return svcPatch, nil
+
+}
 func servicebroker_binding(param *ServiceBinding, binding_guid string, sb *ServiceBroker) (*ServiceBindingResponse, error) {
 	jsonData, err := json.Marshal(param)
 	if err != nil {
@@ -1060,6 +1128,43 @@ func (c *BackingServiceInstanceController) unbindInstanceUPS(dc string, bsi *bac
 
 }
 
+func (c *BackingServiceInstanceController) updateInstance(bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
+	plan_found := false
+	for _, plan := range bs.Spec.Plans {
+		if bsi.Spec.BackingServicePlanGuid == plan.Id {
+			bsi.Spec.BackingServicePlanName = plan.Name
+			plan_found = true
+			break
+		}
+	}
+
+	if !plan_found {
+		c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Updating", "plan (%s) in bs(%s) for bsi (%s) not found",
+			bsi.Spec.BackingServicePlanGuid, bsi.Spec.BackingServiceName, bsi.Name)
+		result = fmt.Errorf("plan (%s) in bs(%s) for bsi (%s) not found",
+			bsi.Spec.BackingServicePlanGuid, bsi.Spec.BackingServiceName, bsi.Name)
+		return result
+	}
+
+	// ...
+
+	glog.Infoln("bsi provisioning servicebroker_load, ", bsi.Name)
+	//c.recorder.Eventf(bsi, "Provisioning", "bsi %s provisioning servicebroker_load", bsi.Name)
+
+	servicebroker, err := servicebroker_load(c.Client, bs.GenerateName)
+	if err != nil {
+		result = err
+		return result
+	}
+
+	_, err = servicebroker_update_instance(bsi, servicebroker)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
 func (c *BackingServiceInstanceController) unbindInstance(dc string, bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
 
 	glog.Infoln("bsi to unbind ", bsi.Name)
