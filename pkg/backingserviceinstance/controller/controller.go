@@ -218,23 +218,29 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	//patch
 	if bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseBound ||
 		bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseUnbound {
-		if len(bsi.Spec.Acceeses) == 0 {
-			glog.Info("nothing to update.")
-			return
-		}
-		switch bsi.Status.Patch {
-		case backingserviceinstanceapi.BackingServiceInstancePatchUpdate:
-			// do patch api./
-			if result = c.updateInstance(bs, bsi); result == nil {
+		if len(bsi.Spec.Acceeses) > 0 {
+			switch bsi.Status.Patch {
+			case backingserviceinstanceapi.BackingServiceInstancePatchUpdate:
+				// do patch api./
+				bsi.Status.Patch = backingserviceinstanceapi.BackingServiceInstancePatchUpdating
+				if result = c.updateInstance(bs, bsi); result == nil {
+					changed = true
+					bsi.Status.Patch = backingserviceinstanceapi.BackingServiceInstancePatchUpdated
+					bsi.Spec.Acceeses = nil
+				}
+			case backingserviceinstanceapi.BackingServiceInstancePatchUpdated:
+				bsi.Status.Phase = ""
 				changed = true
-				bsi.Status.Patch = backingserviceinstanceapi.BackingServiceInstancePatchUpdated
+			// do remove patch phase.
+			case backingserviceinstanceapi.BackingServiceInstancePatchUpdating:
+			//prevent updating.
+			default:
+				glog.Info("no update due to unknown patch phase.", bsi.Status.Patch)
+				bsi.Status.Phase = ""
+				changed = true
 			}
-		case backingserviceinstanceapi.BackingServiceInstancePatchUpdated:
-		// do remove patch phase.
-		case backingserviceinstanceapi.BackingServiceInstancePatchUpdating:
-		//prevent updating.
-		default:
-			glog.Info("no update.")
+		} else {
+			glog.Info("no pathc needed.")
 		}
 	}
 
