@@ -218,7 +218,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	//patch
 	if bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseBound ||
 		bsi.Status.Phase == backingserviceinstanceapi.BackingServiceInstancePhaseUnbound {
-		if len(bsi.Spec.Acceeses) > 0 {
+		if len(bsi.Spec.Accesses) > 0 {
 			switch bsi.Status.Patch {
 			case backingserviceinstanceapi.BackingServiceInstancePatchUpdate:
 				// do patch api./
@@ -226,7 +226,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				if result = c.updateInstance(bs, bsi); result == nil {
 					changed = true
 					bsi.Status.Patch = backingserviceinstanceapi.BackingServiceInstancePatchUpdated
-					bsi.Spec.Acceeses = nil
+					bsi.Spec.Accesses = nil
 				}
 			case backingserviceinstanceapi.BackingServiceInstancePatchUpdated:
 				bsi.Status.Phase = ""
@@ -240,7 +240,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				changed = true
 			}
 		} else {
-			glog.Info("no pathc needed.")
+			glog.Info("no patch needed.")
 		}
 	}
 
@@ -447,7 +447,7 @@ func servicebroker_update_instance(bsi *backingserviceinstanceapi.BackingService
 	for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
 		serviceinstance.Parameters[k] = v
 	}
-	serviceinstance.Parameters["accesses"] = bsi.Spec.Acceeses
+	serviceinstance.Parameters["accesses"] = bsi.Spec.Accesses
 
 	jsonBody, err := json.Marshal(serviceinstance)
 	if err != nil {

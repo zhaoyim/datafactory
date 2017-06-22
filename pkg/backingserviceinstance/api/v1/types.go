@@ -95,12 +95,7 @@ type InstanceProvisioning struct {
 	// credentials of an instance
 	Creds map[string]string `json:"credentials, omitempty"`
 	// access of hadoop insance... hardcode hack.
-	Acceeses []Access `json:accesses,omitempty`
-}
-
-type Access struct {
-	IsAllowed bool   `json:"is_allowed"`
-	Type      string `json:"type"`
+	Accesses map[string][]string `json:"accesses,omitempty"`
 }
 
 // InstanceBinding describe an instance binding.

@@ -73,14 +73,10 @@ type InstanceProvisioning struct {
 	BackingServicePlanName string
 	Parameters             map[string]string
 	Creds                  map[string]string
-	Acceeses               []Access
+	Accesses               map[string][]string
 	// len(Parameters) == 0 means not inited
 }
 
-type Access struct {
-	IsAllowed bool
-	Type      string
-}
 type InstanceBinding struct {
 	// BindUuid is blank for not bound (Bound=false) or to unbind (Bound=true)
 	// BindUuid != "" and Bound=false means to bind
