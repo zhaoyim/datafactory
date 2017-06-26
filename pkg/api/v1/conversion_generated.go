@@ -1702,6 +1702,7 @@ func autoConvert_api_InstanceBinding_To_v1_InstanceBinding(in *backingserviceins
 		out.BoundTime = nil
 	}
 	out.BindDeploymentConfig = in.BindDeploymentConfig
+	out.BindHadoopUser = in.BindHadoopUser
 	if in.Credentials != nil {
 		out.Credentials = make(map[string]string)
 		for key, val := range in.Credentials {
@@ -1930,6 +1931,7 @@ func autoConvert_v1_InstanceBinding_To_api_InstanceBinding(in *backingserviceins
 	}
 	out.BindUuid = in.BindUuid
 	out.BindDeploymentConfig = in.BindDeploymentConfig
+	out.BindHadoopUser = in.BindHadoopUser
 	if in.Credentials != nil {
 		out.Credentials = make(map[string]string)
 		for key, val := range in.Credentials {

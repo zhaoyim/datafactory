@@ -59,7 +59,6 @@ func NewREST(s storage.Interface) *REST {
 		},
 		QualifiedResource: backingserviceinstanceapi.Resource("backingserviceinstance"),
 
-
 		CreateStrategy: backingserviceinstanceregistry.BsiStrategy,
 		UpdateStrategy: backingserviceinstanceregistry.BsiStrategy,
 
@@ -84,7 +83,7 @@ func (r *REST) Get(ctx kapi.Context, name string) (runtime.Object, error) {
 }
 
 func (r *REST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
-	return r.store.List(ctx,options)
+	return r.store.List(ctx, options)
 }
 
 func (r *REST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error) {
@@ -101,7 +100,6 @@ func (r *REST) Delete(ctx kapi.Context, name string, options *kapi.DeleteOptions
 		return nil, err
 	}
 	bsi := bsiObj.(*backingserviceinstanceapi.BackingServiceInstance)
-
 
 	if len(bsi.Annotations) > 0 {
 		for dc, bound := range bsi.Annotations {
@@ -140,7 +138,7 @@ func NewBindingREST(bsir backingserviceinstanceregistry.Registry, dcr deployconf
 type BindingREST struct {
 	backingServiceInstanceRegistry backingserviceinstanceregistry.Registry
 	deployConfigRegistry           deployconfigregistry.Registry
-	store *etcdgeneric.Etcd
+	store                          *etcdgeneric.Etcd
 }
 
 func (r *BindingREST) New() runtime.Object {
@@ -152,7 +150,7 @@ func (r *BindingREST) Get(ctx kapi.Context, name string) (runtime.Object, error)
 }
 
 func (r *BindingREST) List(ctx kapi.Context, options *kapi.ListOptions) (runtime.Object, error) {
-	return r.store.List(ctx,options)
+	return r.store.List(ctx, options)
 }
 
 func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Object, error) {
@@ -163,7 +161,9 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 	//}
 
 	bro, ok := obj.(*backingserviceinstanceapi.BindingRequestOptions)
-	if !ok || bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig {
+	if !ok ||
+		bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig ||
+		bro.BindKind != backingserviceinstanceapi.BindKind_HadoopUser {
 		return nil, fmt.Errorf("unsupported bind type: %s", bro.BindKind)
 	}
 	// todo: check bro.BindResourceVersion
@@ -174,38 +174,41 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 	if err != nil {
 		return nil, err
 	}
-
 	if bsi.Annotations == nil {
 		bsi.Annotations = map[string]string{}
 	}
+	if bro.BindKind == backingserviceinstanceapi.BindKind_DeploymentConfig {
 
-	if bound := bsi.Annotations[bro.ResourceName]; bound == backingserviceinstanceapi.BindDeploymentConfigBound {
-		return nil, fmt.Errorf("'%s' is already bound to this instance.", bro.ResourceName)
-	}
-	/*
-		if bsi.Status.Phase != backingserviceinstanceapi.BackingServiceInstancePhaseUnbound {
-			return nil, errors.New("back service instance is not in unbound phase")
+		if bound := bsi.Annotations[bro.ResourceName]; bound == backingserviceinstanceapi.BindDeploymentConfigBound {
+			return nil, fmt.Errorf("'%s' is already bound to this instance.", bro.ResourceName)
 		}
-	*/
+		/*
+			if bsi.Status.Phase != backingserviceinstanceapi.BackingServiceInstancePhaseUnbound {
+				return nil, errors.New("back service instance is not in unbound phase")
+			}
+		*/
 
-	//bs, err := r.backingServiceRegistry.GetBackingService(ctx, bsi.Spec.BackingServiceName)
-	//if err != nil {
-	//	return nil, err
-	//}
+		//bs, err := r.backingServiceRegistry.GetBackingService(ctx, bsi.Spec.BackingServiceName)
+		//if err != nil {
+		//	return nil, err
+		//}
 
-	dc, err := r.deployConfigRegistry.GetDeploymentConfig(ctx, bro.ResourceName)
-	if err != nil {
-		return nil, err
+		dc, err := r.deployConfigRegistry.GetDeploymentConfig(ctx, bro.ResourceName)
+		if err != nil {
+			return nil, err
+		}
+		_ = dc
+
+		// update bsi
+
+		//need debug....bsi.Spec.BindDeploymentConfig = bro.ResourceName // dc.Name
+
+		bsi.Annotations[bro.ResourceName] = backingserviceinstanceapi.BindDeploymentConfigBinding
+		bsi.Status.Action = backingserviceinstanceapi.BackingServiceInstanceActionToBind
+	} else {
+		bsi.Annotations[backingserviceinstanceapi.BindKind_HadoopUser] = bro.ResourceName
+		bsi.Status.Action = backingserviceinstanceapi.BackingServiceInstanceActionToBind
 	}
-	_ = dc
-
-	// update bsi
-
-	//need debug....bsi.Spec.BindDeploymentConfig = bro.ResourceName // dc.Name
-
-	bsi.Annotations[bro.ResourceName] = backingserviceinstanceapi.BindDeploymentConfigBinding
-
-	bsi.Status.Action = backingserviceinstanceapi.BackingServiceInstanceActionToBind
 
 	bsi, err = r.backingServiceInstanceRegistry.UpdateBackingServiceInstance(ctx, bsi)
 	if err != nil {
@@ -219,7 +222,9 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 
 func (r *BindingREST) Update(ctx kapi.Context, obj runtime.Object) (runtime.Object, bool, error) {
 	bro, ok := obj.(*backingserviceinstanceapi.BindingRequestOptions)
-	if !ok || bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig {
+	if !ok ||
+		bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig ||
+		bro.BindKind != backingserviceinstanceapi.BindKind_HadoopUser {
 		return nil, false, fmt.Errorf("unsupported bind type: '%s'", bro.BindKind)
 	}
 
@@ -227,17 +232,24 @@ func (r *BindingREST) Update(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 	if err != nil {
 		return nil, false, err
 	}
-	
+
 	if bsi.Annotations == nil {
 		bsi.Annotations = map[string]string{}
 	}
 
-	if bound, ok := bsi.Annotations[bro.ResourceName]; !ok || bound == "unbound"/*unbound should never happen.*/ {
-		return nil, false, fmt.Errorf("DeploymentConfig '%s' not bound to this instance yet.", bro.ResourceName)
+	if bro.BindKind == backingserviceinstanceapi.BindKind_DeploymentConfig {
+
+		if bound, ok := bsi.Annotations[bro.ResourceName]; !ok || bound == "unbound" /*unbound should never happen.*/ {
+			return nil, false, fmt.Errorf("DeploymentConfig '%s' not bound to this instance yet.", bro.ResourceName)
+		} else {
+			bsi.Annotations[bro.ResourceName] = backingserviceinstanceapi.BindDeploymentConfigUnbinding
+			bsi.Status.Action = backingserviceinstanceapi.BackingServiceInstanceActionToUnbind
+		}
 	} else {
-		bsi.Annotations[bro.ResourceName] = backingserviceinstanceapi.BindDeploymentConfigUnbinding
+		bsi.Annotations[backingserviceinstanceapi.BindKind_HadoopUser] = bro.ResourceName
 		bsi.Status.Action = backingserviceinstanceapi.BackingServiceInstanceActionToUnbind
 	}
+
 	bsi, err = r.backingServiceInstanceRegistry.UpdateBackingServiceInstance(ctx, bsi)
 	if err != nil {
 		return nil, false, err

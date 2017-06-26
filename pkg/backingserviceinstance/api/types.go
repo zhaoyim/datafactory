@@ -83,6 +83,7 @@ type InstanceBinding struct {
 	BindUuid             string
 	BoundTime            *unversioned.Time
 	BindDeploymentConfig string
+	BindHadoopUser       string
 	Credentials          map[string]string
 }
 
@@ -128,7 +129,10 @@ const (
 //
 //=====================================================
 
-const BindKind_DeploymentConfig = "DeploymentConfig"
+const (
+	BindKind_DeploymentConfig = "DeploymentConfig"
+	BindKind_HadoopUser       = "HadoopUser"
+)
 
 //type BindingRequest struct {
 //	unversioned.TypeMeta

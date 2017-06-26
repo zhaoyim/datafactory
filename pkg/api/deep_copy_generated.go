@@ -1040,6 +1040,7 @@ func deepCopy_api_InstanceBinding(in backingserviceinstanceapi.InstanceBinding, 
 		out.BoundTime = nil
 	}
 	out.BindDeploymentConfig = in.BindDeploymentConfig
+	out.BindHadoopUser = in.BindHadoopUser
 	if in.Credentials != nil {
 		out.Credentials = make(map[string]string)
 		for key, val := range in.Credentials {

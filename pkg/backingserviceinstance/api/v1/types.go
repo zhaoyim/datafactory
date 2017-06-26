@@ -105,7 +105,9 @@ type InstanceBinding struct {
 	// bind uid of an instance binding
 	BindUuid string `json:"bind_uuid, omitempty"`
 	// deploymentconfig of an binding.
-	BindDeploymentConfig string `json:"bind_deploymentconfig, omitempty"`
+	BindDeploymentConfig string `json:"bind_deploymentconfig,omitempty"`
+	// bind to hadoopuser
+	BindHadoopUser string `json:"bind_hadoop_user,omitempty"`
 	// credentials of an instance binding
 	Credentials map[string]string `json:"credentials, omitempty"`
 }
@@ -161,7 +163,10 @@ const (
 //
 //=====================================================
 
-const BindKind_DeploymentConfig = "DeploymentConfig"
+const (
+	BindKind_DeploymentConfig = "DeploymentConfig"
+	BindKind_HadoopUser       = "HadoopUser"
+)
 
 //type BindingRequest struct {
 //	unversioned.TypeMeta

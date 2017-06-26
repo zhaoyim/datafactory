@@ -118,7 +118,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		serviceinstance.OrganizationGuid = bsi.Namespace
 		serviceinstance.SpaceGuid = bsi.Namespace
 		//serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
-		serviceinstance.Parameters = make(map[string]interface{})
+		serviceinstance.Parameters = make(map[string]string)
 		for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
 			serviceinstance.Parameters[k] = v
 		}
@@ -167,33 +167,46 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 			}
 			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Deleting", "instance:%s [%v]", bsi.Name, changed)
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
-			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
-			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
-				if result = c.bindInstanceUPS(dcname, bsi); result == nil {
-					changed = true
+			if hadoopUser, ok := bsi.Annotations[backingserviceinstanceapi.BindKind_HadoopUser]; !ok {
+				dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
+				if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+					if result = c.bindInstanceUPS(dcname, bsi); result == nil {
+						changed = true
+					}
+				} else {
+					if result = c.bindInstance(dcname, bs, bsi); result == nil {
+						changed = true
+					}
 				}
+				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 			} else {
-				if result = c.bindInstance(dcname, bs, bsi); result == nil {
+				if result = c.bindInstanceHadoop(hadoopUser, bs, bsi); result == nil {
 					changed = true
 				}
+				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, hadoopuser: %s [%v]", bsi.Name, hadoopUser, changed)
 			}
-			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 		}
 	case backingserviceinstanceapi.BackingServiceInstancePhaseBound:
 		switch bsi.Status.Action {
 		case backingserviceinstanceapi.BackingServiceInstanceActionToUnbind:
-
-			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigUnbinding)
-			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
-				if result = c.unbindInstanceUPS(dcname, bsi); result == nil {
-					changed = true
+			if hadoopUser, ok := bsi.Annotations[backingserviceinstanceapi.BindKind_HadoopUser]; !ok {
+				dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigUnbinding)
+				if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+					if result = c.unbindInstanceUPS(dcname, bsi); result == nil {
+						changed = true
+					}
+				} else {
+					if result = c.unbindInstance(dcname, bs, bsi); result == nil {
+						changed = true
+					}
 				}
+				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Unbinding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 			} else {
-				if result = c.unbindInstance(dcname, bs, bsi); result == nil {
+				if result = c.unbindInstanceHadoop(hadoopUser, bs, bsi); result == nil {
 					changed = true
 				}
+				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, hadoopuser: %s [%v]", bsi.Name, hadoopUser, changed)
 			}
-			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Unbinding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
 			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
 			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
@@ -348,7 +361,7 @@ type ServiceInstance struct {
 	SpaceGuid        string `json:"space_guid"`
 	//Incomplete       bool        `json:"accepts_incomplete, omitempty"`
 	//Parameters interface{} `json:"parameters, omitempty"`
-	Parameters map[string]interface{} `json:"parameters, omitempty"`
+	Parameters map[string]string `json:"parameters, omitempty"`
 }
 type LastOperation struct {
 	State                    string `json:"state"`
@@ -362,11 +375,11 @@ type CreateServiceInstanceResponse struct {
 }
 
 type ServiceBinding struct {
-	ServiceId       string                 `json:"service_id"`
-	PlanId          string                 `json:"plan_id"`
-	AppGuid         string                 `json:"app_guid,omitempty"`
-	BindResource    map[string]string      `json:"bind_resource,omitempty"`
-	Parameters      map[string]interface{} `json:"parameters,omitempty"`
+	ServiceId       string            `json:"service_id"`
+	PlanId          string            `json:"plan_id"`
+	AppGuid         string            `json:"app_guid,omitempty"`
+	BindResource    map[string]string `json:"bind_resource,omitempty"`
+	Parameters      map[string]string `json:"parameters,omitempty"`
 	svc_instance_id string
 }
 
@@ -439,12 +452,12 @@ func servicebroker_update_instance(bsi *backingserviceinstanceapi.BackingService
 	serviceinstance.PlanId = bsi.Spec.BackingServicePlanGuid
 	// serviceinstance.OrganizationGuid = bsi.Namespace
 	// serviceinstance.SpaceGuid = bsi.Namespace
-	//serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
-	serviceinstance.Parameters = make(map[string]interface{})
-	for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
-		serviceinstance.Parameters[k] = v
-	}
-	serviceinstance.Parameters["accesses"] = bsi.Spec.Accesses
+	serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
+	// serviceinstance.Parameters = make(map[string]interface{})
+	// for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
+	// 	serviceinstance.Parameters[k] = v
+	// }
+	// serviceinstance.Parameters["accesses"] = bsi.Spec.Accesses
 
 	jsonBody, err := json.Marshal(serviceinstance)
 	if err != nil {
@@ -1022,6 +1035,59 @@ func (c *BackingServiceInstanceController) bindInstanceUPS(dc string, bsi *backi
 
 }
 
+func (c *BackingServiceInstanceController) bindInstanceHadoop(user string, bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
+	glog.Infoln("bsi to bind hadoop user ", bsi.Name, " and ", user)
+
+	servicebroker, err := servicebroker_load(c.Client, bs.GenerateName)
+	if err != nil {
+		return err
+	}
+
+	bind_uuid := string(util.NewUUID())
+
+	servicebinding := &ServiceBinding{
+		ServiceId: bs.Spec.Id,
+		PlanId:    bsi.Spec.BackingServicePlanGuid,
+		AppGuid:   bsi.Namespace,
+		//BindResource: ,
+		Parameters:      bsi.Spec.Parameters,
+		svc_instance_id: bsi.Spec.InstanceID,
+	}
+
+	glog.Infoln("bsi to bind", bsi.Name)
+
+	bindingresponse, err := servicebroker_binding(servicebinding, bind_uuid, servicebroker)
+	if err != nil {
+		return err
+	}
+
+	instanceBinding := backingserviceinstanceapi.InstanceBinding{}
+	now := unversioned.Now()
+	instanceBinding.BoundTime = &now //&unversioned.Now()
+	instanceBinding.BindUuid = bind_uuid
+	instanceBinding.BindHadoopUser = user
+	instanceBinding.Credentials = make(map[string]string)
+	instanceBinding.Credentials["Uri"] = bindingresponse.Credentials.Uri
+	instanceBinding.Credentials["Name"] = bindingresponse.Credentials.Name
+	instanceBinding.Credentials["Username"] = bindingresponse.Credentials.Username
+	instanceBinding.Credentials["Password"] = bindingresponse.Credentials.Password
+	instanceBinding.Credentials["Host"] = bindingresponse.Credentials.Host
+	instanceBinding.Credentials["Port"] = bindingresponse.Credentials.Port
+	instanceBinding.Credentials["Vhost"] = bindingresponse.Credentials.Vhost
+
+	bsi.Spec.Binding = append(bsi.Spec.Binding, instanceBinding)
+
+	glog.Infoln("bsi bound. ", bsi.Name)
+
+	bsi.Spec.Bound += 1
+
+	bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseBound
+	delete(bsi.Annotations, backingserviceinstanceapi.BindKind_HadoopUser)
+
+	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToBind)
+	return
+
+}
 func (c *BackingServiceInstanceController) bindInstance(dc string, bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
 	glog.Infoln("bsi to bind ", bsi.Name, " and ", dc)
 
@@ -1037,7 +1103,7 @@ func (c *BackingServiceInstanceController) bindInstance(dc string, bs *backingse
 		PlanId:    bsi.Spec.BackingServicePlanGuid,
 		AppGuid:   bsi.Namespace,
 		//BindResource: ,
-		//Parameters: ,
+		Parameters:      bsi.Spec.Parameters,
 		svc_instance_id: bsi.Spec.InstanceID,
 	}
 
@@ -1166,6 +1232,58 @@ func (c *BackingServiceInstanceController) updateInstance(bs *backingserviceapi.
 	}
 
 	return nil
+
+}
+
+func (c *BackingServiceInstanceController) unbindInstanceHadoop(user string, bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
+
+	glog.Infoln("bsi to unbind hadoop ", bsi.Name, user)
+
+	servicebroker, err := servicebroker_load(c.Client, bs.GenerateName)
+	if err != nil {
+		return err
+	}
+
+	glog.Infoln("servicebroker_unbinding")
+
+	svc := &ServiceBinding{}
+
+	svc.PlanId = bsi.Spec.BackingServicePlanGuid
+	svc.ServiceId = bsi.Spec.BackingServiceSpecID
+	svc.svc_instance_id = bsi.Spec.InstanceID
+
+	var bindId string
+
+	for idx, b := range bsi.Spec.Binding {
+		if b.BindHadoopUser == user {
+			bindId = b.BindUuid
+			_, err = servicebroker_unbinding(bindId, svc, servicebroker)
+			if err != nil {
+				return err
+			}
+			bsi.Spec.Binding = append(bsi.Spec.Binding[:idx], bsi.Spec.Binding[idx+1:]...)
+			delete(bsi.Annotations, backingserviceinstanceapi.BindKind_HadoopUser)
+
+			/*
+				err = c.deploymentconfig_clear_envs(bsi.Namespace, dc)
+				if err != nil {
+					return err
+				}
+			*/
+			glog.Infoln("bsi is unbound with hadoop", bsi.Name, user)
+
+			bsi.Spec.Bound -= 1
+			if bsi.Spec.Bound == 0 {
+				bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseUnbound
+			}
+
+			break
+		}
+	}
+
+	bsi.Status.Action = "" //remove_action_word(bsi.Status.Action, backingserviceinstanceapi.BackingServiceInstanceActionToUnbind)
+
+	return
 
 }
 func (c *BackingServiceInstanceController) unbindInstance(dc string, bs *backingserviceapi.BackingService, bsi *backingserviceinstanceapi.BackingServiceInstance) (result error) {
