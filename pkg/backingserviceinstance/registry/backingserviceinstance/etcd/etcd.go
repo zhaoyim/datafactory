@@ -162,8 +162,8 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 
 	bro, ok := obj.(*backingserviceinstanceapi.BindingRequestOptions)
 	if !ok ||
-		bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig ||
-		bro.BindKind != backingserviceinstanceapi.BindKind_HadoopUser {
+		(bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig &&
+			bro.BindKind != backingserviceinstanceapi.BindKind_HadoopUser) {
 		return nil, fmt.Errorf("unsupported bind type: %s", bro.BindKind)
 	}
 	// todo: check bro.BindResourceVersion
@@ -223,8 +223,8 @@ func (r *BindingREST) Create(ctx kapi.Context, obj runtime.Object) (runtime.Obje
 func (r *BindingREST) Update(ctx kapi.Context, obj runtime.Object) (runtime.Object, bool, error) {
 	bro, ok := obj.(*backingserviceinstanceapi.BindingRequestOptions)
 	if !ok ||
-		bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig ||
-		bro.BindKind != backingserviceinstanceapi.BindKind_HadoopUser {
+		(bro.BindKind != backingserviceinstanceapi.BindKind_DeploymentConfig &&
+			bro.BindKind != backingserviceinstanceapi.BindKind_HadoopUser) {
 		return nil, false, fmt.Errorf("unsupported bind type: '%s'", bro.BindKind)
 	}
 
