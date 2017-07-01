@@ -208,18 +208,24 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, hadoopuser: %s [%v]", bsi.Name, hadoopUser, changed)
 			}
 		case backingserviceinstanceapi.BackingServiceInstanceActionToBind:
-			dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
-			if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
-				if result = c.bindInstanceUPS(dcname, bsi); result == nil {
-					changed = true
+			if hadoopUser, ok := bsi.Annotations[backingserviceinstanceapi.BindKind_HadoopUser]; !ok {
+				dcname := c.get_deploymentconfig_name(bsi, backingserviceinstanceapi.BindDeploymentConfigBinding)
+				if bsi.Annotations[backingserviceinstanceapi.UPS] == "true" {
+					if result = c.bindInstanceUPS(dcname, bsi); result == nil {
+						changed = true
+					}
+				} else {
+					if result = c.bindInstance(dcname, bs, bsi); result == nil {
+						changed = true
+					}
 				}
+				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
 			} else {
-				if result = c.bindInstance(dcname, bs, bsi); result == nil {
+				if result = c.bindInstanceHadoop(hadoopUser, bs, bsi); result == nil {
 					changed = true
 				}
+				c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, hadoopuser: %s [%v]", bsi.Name, hadoopUser, changed)
 			}
-			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Binding", "instance: %s, dc: %s [%v]", bsi.Name, dcname, changed)
-
 		default:
 			glog.Info("check dc healthy.")
 			c.check_dc_healthy(bsi)
@@ -410,7 +416,8 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 	header["Content-Type"] = "application/json"
 	header["Authorization"] = basicAuthStr(sb.UserName, sb.Password)
 
-	resp, err := commToServiceBroker("PUT", sb.Url+"/v2/service_instances/"+instance_guid+"?accepts_incomplete=true", jsonData, header)
+	// resp, err := commToServiceBroker("PUT", sb.Url+"/v2/service_instances/"+instance_guid+"?accepts_incomplete=true", jsonData, header)
+	resp, err := commToServiceBroker("PUT", sb.Url+"/v2/service_instances/"+instance_guid, jsonData, header)
 	if err != nil {
 		glog.Error(err)
 		return nil, err
