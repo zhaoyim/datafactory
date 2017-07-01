@@ -668,6 +668,10 @@ func (c *BackingServiceInstanceController) check_dc_healthy(bsi *backingservicei
 		return
 	}
 	for _, binding := range bsi.Spec.Binding {
+		if len(binding.BindDeploymentConfig) == 0 {
+			glog.Info("not a dc.")
+			continue
+		}
 		dc, err := c.Client.DeploymentConfigs(bsi.Namespace).Get(binding.BindDeploymentConfig)
 		if err != nil {
 			if kerrors.IsNotFound(err) {
@@ -1060,6 +1064,8 @@ func (c *BackingServiceInstanceController) bindInstanceHadoop(user string, bs *b
 		Parameters:      bsi.Spec.Parameters,
 		svc_instance_id: bsi.Spec.InstanceID,
 	}
+
+	servicebinding.Parameters["user_name"] = user
 
 	glog.Infoln("bsi to bind", bsi.Name)
 
