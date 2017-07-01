@@ -384,9 +384,9 @@ type ServiceBinding struct {
 }
 
 type ServiceBindingResponse struct {
-	Credentials     Credential `json:"credentials"`
-	SyslogDrainUrl  string     `json:"syslog_drain_url"`
-	RouteServiceUrl string     `json:"route_service_url"`
+	Credentials     map[string]string `json:"credentials"`
+	SyslogDrainUrl  string            `json:"syslog_drain_url"`
+	RouteServiceUrl string            `json:"route_service_url"`
 }
 
 type Credential struct {
@@ -1066,14 +1066,15 @@ func (c *BackingServiceInstanceController) bindInstanceHadoop(user string, bs *b
 	instanceBinding.BoundTime = &now //&unversioned.Now()
 	instanceBinding.BindUuid = bind_uuid
 	instanceBinding.BindHadoopUser = user
-	instanceBinding.Credentials = make(map[string]string)
-	instanceBinding.Credentials["Uri"] = bindingresponse.Credentials.Uri
-	instanceBinding.Credentials["Name"] = bindingresponse.Credentials.Name
-	instanceBinding.Credentials["Username"] = bindingresponse.Credentials.Username
-	instanceBinding.Credentials["Password"] = bindingresponse.Credentials.Password
-	instanceBinding.Credentials["Host"] = bindingresponse.Credentials.Host
-	instanceBinding.Credentials["Port"] = bindingresponse.Credentials.Port
-	instanceBinding.Credentials["Vhost"] = bindingresponse.Credentials.Vhost
+	instanceBinding.Credentials = bindingresponse.Credentials
+	// instanceBinding.Credentials = make(map[string]string)
+	// instanceBinding.Credentials["Uri"] = bindingresponse.Credentials.Uri
+	// instanceBinding.Credentials["Name"] = bindingresponse.Credentials.Name
+	// instanceBinding.Credentials["Username"] = bindingresponse.Credentials.Username
+	// instanceBinding.Credentials["Password"] = bindingresponse.Credentials.Password
+	// instanceBinding.Credentials["Host"] = bindingresponse.Credentials.Host
+	// instanceBinding.Credentials["Port"] = bindingresponse.Credentials.Port
+	// instanceBinding.Credentials["Vhost"] = bindingresponse.Credentials.Vhost
 
 	bsi.Spec.Binding = append(bsi.Spec.Binding, instanceBinding)
 
@@ -1119,14 +1120,15 @@ func (c *BackingServiceInstanceController) bindInstance(dc string, bs *backingse
 	instanceBinding.BoundTime = &now //&unversioned.Now()
 	instanceBinding.BindUuid = bind_uuid
 	instanceBinding.BindDeploymentConfig = dc
-	instanceBinding.Credentials = make(map[string]string)
-	instanceBinding.Credentials["Uri"] = bindingresponse.Credentials.Uri
-	instanceBinding.Credentials["Name"] = bindingresponse.Credentials.Name
-	instanceBinding.Credentials["Username"] = bindingresponse.Credentials.Username
-	instanceBinding.Credentials["Password"] = bindingresponse.Credentials.Password
-	instanceBinding.Credentials["Host"] = bindingresponse.Credentials.Host
-	instanceBinding.Credentials["Port"] = bindingresponse.Credentials.Port
-	instanceBinding.Credentials["Vhost"] = bindingresponse.Credentials.Vhost
+	instanceBinding.Credentials = bindingresponse.Credentials
+	// instanceBinding.Credentials = make(map[string]string)
+	// instanceBinding.Credentials["Uri"] = bindingresponse.Credentials.Uri
+	// instanceBinding.Credentials["Name"] = bindingresponse.Credentials.Name
+	// instanceBinding.Credentials["Username"] = bindingresponse.Credentials.Username
+	// instanceBinding.Credentials["Password"] = bindingresponse.Credentials.Password
+	// instanceBinding.Credentials["Host"] = bindingresponse.Credentials.Host
+	// instanceBinding.Credentials["Port"] = bindingresponse.Credentials.Port
+	// instanceBinding.Credentials["Vhost"] = bindingresponse.Credentials.Vhost
 	// = bindingresponse.SyslogDrainUrl
 	// = bindingresponse.RouteServiceUrl
 
