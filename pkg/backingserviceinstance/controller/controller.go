@@ -62,7 +62,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 
 	switch bsi.Status.Phase {
 	case backingserviceinstanceapi.BackingServiceInstancePhaseFailure:
-		fallthrough
+		break
 	default:
 
 		result = fmt.Errorf("unknown phase: %s", bsi.Status.Phase)
@@ -99,7 +99,9 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		}
 
 		if !plan_found {
-			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Provisioning", "plan (%s) in bs(%s) for bsi (%s) not found",
+			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseFailure
+			changed = true
+			c.recorder.Eventf(bsi, kapi.EventTypeWarning, "Provisioning", "plan (%s) in bs(%s) for bsi (%s) not found",
 				bsi.Spec.BackingServicePlanGuid, bsi.Spec.BackingServiceName, bsi.Name)
 			result = fmt.Errorf("plan (%s) in bs(%s) for bsi (%s) not found",
 				bsi.Spec.BackingServicePlanGuid, bsi.Spec.BackingServiceName, bsi.Name)
