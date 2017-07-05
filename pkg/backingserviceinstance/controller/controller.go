@@ -131,6 +131,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 			result = err
 			c.recorder.Eventf(bsi, kapi.EventTypeWarning, "Provisioning", err.Error())
 			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseFailure
+			changed = true
 			break
 		} else {
 			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Provisioning", "bsi provisioning done, instanceid: %s", bsInstanceID)
