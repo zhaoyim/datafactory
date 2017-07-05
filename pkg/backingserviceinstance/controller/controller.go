@@ -47,9 +47,13 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 
 	changed := false
 	bs := &backingserviceapi.BackingService{}
-	if bsi.Annotations[backingserviceinstanceapi.UPS] != "true" {
+	if bsi.Annotations[backingserviceinstanceapi.UPS] != "true" &&
+		bsi.Status.Phase != backingserviceinstanceapi.BackingServiceInstancePhaseFailure {
 		bsp, err := c.Client.BackingServices("openshift").Get(bsi.Spec.BackingServiceName)
 		if err != nil {
+			c.recorder.Eventf(bsi, kapi.EventTypeWarning, "New", err.Error())
+			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseFailure
+			c.Client.BackingServiceInstances(bsi.Namespace).Update(bsi)
 			return err
 		} else {
 			bs = bsp
@@ -57,6 +61,8 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 	}
 
 	switch bsi.Status.Phase {
+	case backingserviceinstanceapi.BackingServiceInstancePhaseFailure:
+		fallthrough
 	default:
 
 		result = fmt.Errorf("unknown phase: %s", bsi.Status.Phase)
