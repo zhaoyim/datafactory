@@ -118,10 +118,11 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		serviceinstance.OrganizationGuid = bsi.Namespace
 		serviceinstance.SpaceGuid = bsi.Namespace
 		//serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
-		serviceinstance.Parameters = make(map[string]string)
-		for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
-			serviceinstance.Parameters[k] = v
-		}
+		// serviceinstance.Parameters = make(map[string]string)
+		// for k, v := range bsi.Spec.InstanceProvisioning.Parameters {
+		// 	serviceinstance.Parameters[k] = v
+		// }
+		serviceinstance.Parameters = bsi.Spec.InstanceProvisioning.Parameters
 
 		glog.Infoln("bsi provisioning servicebroker_create_instance, ", bsi.Name)
 
@@ -129,6 +130,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		if err != nil {
 			result = err
 			c.recorder.Eventf(bsi, kapi.EventTypeWarning, "Provisioning", err.Error())
+			bsi.Status.Phase = backingserviceinstanceapi.BackingServiceInstancePhaseFailure
 			break
 		} else {
 			c.recorder.Eventf(bsi, kapi.EventTypeNormal, "Provisioning", "bsi provisioning done, instanceid: %s", bsInstanceID)
@@ -253,7 +255,7 @@ func (c *BackingServiceInstanceController) Handle(bsi *backingserviceinstanceapi
 		case backingserviceinstanceapi.BackingServiceInstancePatchUpdating:
 		//prevent updating.
 		default:
-			glog.Info("no update due to unknown patch phase.", bsi.Status.Patch)
+			glog.Info(bsi.Name, "no update due to unknown patch phase.", bsi.Status.Patch)
 			bsi.Status.Patch = ""
 			changed = true
 		}
@@ -446,7 +448,7 @@ func servicebroker_create_instance(param *ServiceInstance, instance_guid string,
 		}
 	} else {
 		glog.Error("Error:", string(body))
-		return nil, fmt.Errorf("%d returned from broker %s: ", resp.StatusCode, sb.Url, string(body))
+		return nil, fmt.Errorf("%d returned from broker %s: %s", resp.StatusCode, sb.Url, string(body))
 	}
 	glog.Infof("%v,%+v\n", string(body), svcinstance)
 	return svcinstance, nil

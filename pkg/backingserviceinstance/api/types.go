@@ -114,6 +114,7 @@ const (
 	BackingServiceInstancePatchUpdating BackingServiceInstancePatch = "Updating"
 	BackingServiceInstancePatchUpdate   BackingServiceInstancePatch = "Update"
 	BackingServiceInstancePatchUpdated  BackingServiceInstancePatch = "Updated"
+	BackingServiceInstancePhaseFailure  BackingServiceInstancePhase = "Failure"
 
 	BackingServiceInstanceActionToBind   BackingServiceInstanceAction = "_ToBind"
 	BackingServiceInstanceActionToUnbind BackingServiceInstanceAction = "_ToUnbind"

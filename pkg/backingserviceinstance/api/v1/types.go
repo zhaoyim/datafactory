@@ -143,6 +143,7 @@ const (
 	BackingServiceInstancePhaseUnbound      BackingServiceInstancePhase = "Unbound"
 	BackingServiceInstancePhaseBound        BackingServiceInstancePhase = "Bound"
 	BackingServiceInstancePhaseDeleted      BackingServiceInstancePhase = "Deleted"
+	BackingServiceInstancePhaseFailure      BackingServiceInstancePhase = "Failure"
 
 	BackingServiceInstancePatchUpdating BackingServiceInstancePatch = "Updating"
 	BackingServiceInstancePatchUpdate   BackingServiceInstancePatch = "Update"
